@@ -41,6 +41,18 @@ The scripts use `CREATE TABLE IF NOT EXISTS`, but that does not update an existi
 
 The PvP Center leaderboards also read the standard Mobius `characters` table and expect `charId` and `char_name`. Confirm those names against the exact Mobius revision before production use.
 
+## Custom PvP reward configuration
+
+The custom PvP reward rules are configured in `dist/game/config/Custom/CustomPvp.ini` and loaded by `CustomPvpConfig`:
+
+- `PointsPerKill = 1`: points for an eligible open-world kill; `0` disables point income but retains kill/streak statistics.
+- `MinimumRewardLevel = 1`: minimum victim level eligible for custom kill credit and points.
+- `MaxRewardLevelDifference = 0`: optional maximum absolute killer/victim level gap; `0` disables this restriction.
+- `RepeatKillCooldownSeconds = 30`: repeat-kill anti-farm cooldown for the same killer/victim pair.
+- `RewardEventKills = False` and `RewardInstanceKills = False`: event/instance kills do not award global PvP credit by default.
+
+The new reward-level settings affect only the custom PvP stats and points; core PvP/PK counters and event-specific scores are unchanged. These latest config additions are not yet included in the earlier CI validation snapshot and must be covered by the combined validation pass.
+
 ## Queue startup behavior
 
 1v1 Arena, 3v3 Arena, and Last Hero are designed as always-available matchmaking queues. Their scripts open the queues and spawn manager NPCs when loaded; they do not require an event schedule in `config.xml` or a separate NPC spawn row. If a manager NPC fails to spawn, the mode remains closed and writes a warning to the game log. Reloading scripts stops active matches and removes the old manager before the replacement starts.
