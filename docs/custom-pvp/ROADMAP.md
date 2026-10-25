@@ -29,9 +29,9 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 - PvP kill records are queued and persisted by one background worker, preserving processing order for streak updates.
 - Added queue size diagnostics and configurable backlog warnings.
-- SQL writes now retry up to `DatabaseRetryAttempts` times (default 3) with short exponential delays.
+- SQL writes retry up to `DatabaseRetryAttempts` times (default 3) with short exponential delays.
 - `MaxPendingRecords` bounds the in-memory queue (default 10,000). If full, new custom-stat records are dropped with a severe log message until the backlog drains.
-- A record still failing after all retries is logged and dropped. This is safer for server memory than an unbounded queue, but it does not guarantee lossless persistence during a prolonged database outage. A durable database-backed queue would be needed for that guarantee.
+- A record still failing after all retries is logged and dropped. This does not guarantee lossless persistence during a prolonged database outage; a durable queue would be needed for that guarantee.
 
 ### Phase 5 — PvP achievements (code added, runtime test pending)
 
@@ -52,13 +52,20 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - TvT and CtF death handlers ignore deaths of characters who are not registered participants.
 - Kill scoring checks that the killer is a registered participant with an initialized score entry before updating team/player scores.
 - CtF handles deaths without a player killer without dereferencing a null attacker; flag return handling still runs for a registered carrier.
-- These changes harden existing events; they do not yet add new 1v1, 3v3, or Last Hero event modes.
+
+### Phase 8 — global PvP reward eligibility (code added, build/runtime test pending)
+
+- Added `RewardEventKills` and `RewardInstanceKills` settings to `CustomPvp.ini`; both default to `False`.
+- By default, kills where either player is marked as participating in an event, or where either player is in a non-zero instance, do not award global custom kills or PvP points.
+- These kills still update the victim's custom death count and reset their current streak.
+- Event/instance kills do not consume the open-world killer-victim anti-farm cooldown.
+- Existing core PvP counters and event-specific scoring are left unchanged.
 
 ## Next phases
 
 1. Add durable recovery for records that exceed retry attempts if lossless statistics are required through long database outages.
-2. Decide and implement configurable rules for whether event and instance kills award global PvP points.
-3. Add 1v1/3v3 and Last Hero by reusing established registration, teleport, cleanup, and AntiFeed patterns.
+2. Add 1v1/3v3 and Last Hero using established registration, teleport, cleanup, and AntiFeed patterns.
+3. Prepare full build and runtime validation after the planned features are complete.
 
 ## Design constraints
 
@@ -70,7 +77,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 ## Integration points inspected
 
-- `java/org/l2jmobius/gameserver/entity/actor/Player.java`: `doDie(Creature)` and `increasePvpKills(Creature)`.
+- `java/org/l2jmobius/gameserver/entity/actor/Player.java`: `increasePvpKills()` and event/instance state accessors.
 - `java/org/l2jmobius/gameserver/config/custom/PvpRewardItemConfig.java`: existing reward configuration.
 - `dist/game/data/scripts/custom/events/TeamVsTeam/TvT.java` and `dist/game/data/scripts/custom/events/CaptureTheFlag/CtF.java`: existing event scripts.
 - `dist/game/data/scripts/handlers/bypass/communityboard/HomeBoard.java`: Community Board integration.
