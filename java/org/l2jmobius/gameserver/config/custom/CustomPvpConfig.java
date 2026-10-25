@@ -29,6 +29,8 @@ public class CustomPvpConfig
 	public static int QUEUE_WARNING_THRESHOLD;
 	public static int MAX_PENDING_RECORDS;
 	public static int DB_RETRY_ATTEMPTS;
+	public static boolean REWARD_EVENT_KILLS;
+	public static boolean REWARD_INSTANCE_KILLS;
 
 	public static void load()
 	{
@@ -37,5 +39,7 @@ public class CustomPvpConfig
 		QUEUE_WARNING_THRESHOLD = Math.max(0, config.getInt("QueueWarningThreshold", 1000));
 		MAX_PENDING_RECORDS = Math.max(0, config.getInt("MaxPendingRecords", 10000));
 		DB_RETRY_ATTEMPTS = Math.max(1, Math.min(10, config.getInt("DatabaseRetryAttempts", 3)));
+		REWARD_EVENT_KILLS = config.getBoolean("RewardEventKills", false);
+		REWARD_INSTANCE_KILLS = config.getBoolean("RewardInstanceKills", false);
 	}
 }
