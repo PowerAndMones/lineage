@@ -119,3 +119,12 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Timeout and simultaneous-death endings have no winner and do not change rated statistics. No item rewards, global announcements, or general PvP points are granted.
 - SQL installer: `dist/db_installer/sql/game/character_arena1v1_stats.sql`. Apply it before runtime use.
 - The source has not been compiled or runtime-tested. Community Board rating display remains a follow-up phase.
+
+
+### Phase 12 — Community Board 1v1 rating (source added, build/runtime test pending)
+
+- The existing PvP Center now shows a separate 1v1 Arena record: rating, matches, wins, losses, current win streak, and best win streak.
+- Added a top-10 1v1 leaderboard ordered by rating, then wins and match count.
+- The general open-world PvP ranking remains separate and unchanged.
+- The page requires `character_arena1v1_stats.sql` and the standard Mobius `characters` table.
+- Source has not been compiled or runtime-tested. Verify the character table column names and HTML rendering on the target revision during final validation.
