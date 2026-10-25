@@ -19,3 +19,16 @@ CREATE TABLE IF NOT EXISTS `character_arena3v3_team_cooldown` (
   PRIMARY KEY (`teamHashLow`, `teamHashHigh`),
   KEY `idx_arena3v3_team_last_rated` (`lastRatedAt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Persistent return locations are required for safe disconnect/server-restart recovery.
+CREATE TABLE IF NOT EXISTS `character_arena3v3_return` (
+  `charId` INT NOT NULL,
+  `x` INT NOT NULL,
+  `y` INT NOT NULL,
+  `z` INT NOT NULL,
+  `heading` INT NOT NULL DEFAULT 0,
+  `instanceId` INT NOT NULL DEFAULT 0,
+  `savedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`charId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
