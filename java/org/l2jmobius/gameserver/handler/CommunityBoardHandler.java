@@ -16,11 +16,16 @@
  */
 package org.l2jmobius.gameserver.handler;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.gameserver.config.GeneralConfig;
 import org.l2jmobius.gameserver.entity.actor.Player;
 import org.l2jmobius.gameserver.network.SystemMessageId;
@@ -113,9 +118,16 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 		
 		// Modern Community Board landing page and personal PvP statistics.
-		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command))
+		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command))
 		{
-			showModernBoard(player, "_bbspvp".equalsIgnoreCase(command));
+			if ("_bbspvptop".equalsIgnoreCase(command))
+			{
+				showPvPRanking(player);
+			}
+			else
+			{
+				showModernBoard(player, "_bbspvp".equalsIgnoreCase(command));
+			}
 			return;
 		}
 		
@@ -170,6 +182,44 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			html.append("</table>");
 		}
 		html.append("<br><font color=777F8F>Community Board  |  Interlude</font>");
+		html.append("</center></body></html>");
+		separateAndSend(html.toString(), player);
+	}
+	
+	/**
+	 * Displays the global Top 10 PvP ranking.
+	 * @param player the active player
+	 */
+	private static void showPvPRanking(Player player)
+	{
+		final StringBuilder html = new StringBuilder(4096);
+		html.append("<html><body><center>");
+		html.append("<table width=600 cellpadding=8 cellspacing=0 bgcolor=10141D><tr><td>");
+		html.append("<font color=E8BD68 name=hs12>ADEN</font> <font color=FFFFFF name=hs12>COMMUNITY</font><br1>");
+		html.append("<font color=888E9B>TOP PVP PLAYERS</font></td></tr></table><br>");
+		html.append("<table width=600 cellpadding=5 cellspacing=1 bgcolor=252B38>");
+		html.append("<tr><td width=45 align=center><font color=E8BD68>#</font></td><td><font color=E8BD68>PLAYER</font></td><td width=80 align=center><font color=E8BD68>LEVEL</font></td><td width=90 align=center><font color=E8BD68>PVP</font></td><td width=90 align=center><font color=E8BD68>PK</font></td></tr>");
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement("SELECT char_name, level, pvpkills, pkkills FROM characters WHERE accesslevel = 0 ORDER BY pvpkills DESC, pkkills ASC LIMIT 10");
+			ResultSet rs = ps.executeQuery())
+		{
+			int rank = 1;
+			while (rs.next())
+			{
+				html.append("<tr><td align=center><font color=BBBBBB>").append(rank++).append("</font></td>");
+				html.append("<td><font color=FFFFFF>").append(escapeBoardText(rs.getString("char_name"))).append("</font></td>");
+				html.append("<td align=center><font color=BBBBBB>").append(rs.getInt("level")).append("</font></td>");
+				html.append("<td align=center><font color=E8BD68>").append(rs.getInt("pvpkills")).append("</font></td>");
+				html.append("<td align=center><font color=BBBBBB>").append(rs.getInt("pkkills")).append("</font></td></tr>");
+			}
+		}
+		catch (SQLException e)
+		{
+			LOG.warning("CommunityBoardHandler: Could not load PvP ranking: " + e.getMessage());
+			html.append("<tr><td colspan=5><font color=FF7777>Ranking is temporarily unavailable.</font></td></tr>");
+		}
+		html.append("</table><br>");
+		html.append("<a action=\"bypass _bbshome\">Back to Community Home</a>");
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
 	}
