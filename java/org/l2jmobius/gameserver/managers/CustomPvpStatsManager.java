@@ -237,9 +237,17 @@ public final class CustomPvpStatsManager
 		final int maxAttempts = Math.max(1, CustomPvpConfig.DB_RETRY_ATTEMPTS);
 		for (int attempt = 1; attempt <= maxAttempts; attempt++)
 		{
-			if (persistKill(record))
+			try
 			{
-				return;
+				if (persistKill(record))
+				{
+					return;
+				}
+			}
+			catch (RuntimeException e)
+			{
+				// A non-SQL runtime failure must not terminate the queue worker and strand later records.
+				LOGGER.log(Level.WARNING, "Unexpected custom PvP persistence failure on attempt " + attempt + " for " + record.killerName + " -> " + record.victimName, e);
 			}
 
 			if (attempt < maxAttempts)
