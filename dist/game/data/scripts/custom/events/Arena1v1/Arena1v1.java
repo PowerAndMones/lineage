@@ -31,6 +31,7 @@ import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.actor.Npc;
 import org.l2jmobius.gameserver.entity.actor.Creature;
 import org.l2jmobius.gameserver.entity.actor.Player;
+import org.l2jmobius.gameserver.entity.instancezone.Instance;
 import org.l2jmobius.gameserver.entity.instancezone.InstanceWorld;
 import org.l2jmobius.gameserver.managers.InstanceManager;
 import org.l2jmobius.gameserver.mechanics.events.EventType;
@@ -487,12 +488,13 @@ public class Arena1v1 extends Event
 					deleteReturnLocation(playerB.getObjectId());
 					return false;
 				}
-				world = new InstanceWorld();
-				world.setInstance(InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID));
-				if (world.getInstanceId() <= 0)
+				final Instance instance = InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID);
+				if ((instance == null) || (instance.getId() <= 0))
 				{
-					throw new IllegalStateException("Invalid 1v1 Arena instance ID.");
+					throw new IllegalStateException("Invalid 1v1 Arena instance.");
 				}
+				world = new InstanceWorld();
+				world.setInstance(instance);
 				InstanceManager.getInstance().addWorld(world);
 				world.addAllowed(playerA);
 				world.addAllowed(playerB);
