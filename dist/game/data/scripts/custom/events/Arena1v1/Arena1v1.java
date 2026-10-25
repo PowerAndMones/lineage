@@ -418,7 +418,11 @@ public class Arena1v1 extends Event
 				world.addAllowed(playerB);
 				playerA.teleToLocation(SPAWN_A, world.getInstanceId(), 50);
 				playerB.teleToLocation(SPAWN_B, world.getInstanceId(), 50);
-				return (playerA.getInstanceId() == world.getInstanceId()) && (playerB.getInstanceId() == world.getInstanceId());
+				if ((playerA.getInstanceId() != world.getInstanceId()) || (playerB.getInstanceId() != world.getInstanceId()))
+				{
+					throw new IllegalStateException("One or both participants did not enter the new arena instance.");
+				}
+				return true;
 			}
 			catch (Exception e)
 			{
