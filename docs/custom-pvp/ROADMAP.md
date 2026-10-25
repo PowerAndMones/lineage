@@ -417,3 +417,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - Each queue now checks the result of spawning its manager NPC. If the NPC template cannot be resolved or the spawn fails, the mode rolls `ACTIVE` back to false and logs a warning instead of reporting a live queue that players cannot access.
 - The three manager templates exist in the custom NPC XML; the failure guard remains valuable for future datapack changes.
+
+
+## Phase 52 — Resolve duplicate instance template ID
+
+- Static review found that the existing Capture the Flag template and 1v1 Arena both used instance template ID `3050`. `InstanceManager` indexes templates by ID, so duplicate IDs could cause one event to load the other's template depending on file traversal order.
+- Preserved Capture the Flag's existing ID `3050` and moved 1v1 Arena to unique template ID `3053`; 3v3 remains `3051` and Last Hero remains `3052`.
+- CI now scans all instance XML files and fails on duplicate template IDs. The new check must pass in the next workflow run.
