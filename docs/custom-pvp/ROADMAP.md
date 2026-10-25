@@ -395,7 +395,7 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - 1v1 and 3v3 now compute one integer Elo delta and apply it with opposite signs to winners and losers, avoiding one-point rating creation on `Math.round` half-point ties.
 - Last Hero now distributes the winner's integer gain across all opponents, randomizing any remainder points to avoid a fixed queue-position bias, so total rating points are conserved even when the gain is not evenly divisible by the number of opponents.
-- CI compilation and custom-script compilation passed in GitHub Actions on 2026-10-25 before Phase 52's template-ID correction. The follow-up CI run for the unique 1v1 template ID is pending; runtime rating behavior and leaderboard effects still require test-server validation.
+- CI compilation and custom-script compilation passed in GitHub Actions on 2026-10-25 before Phase 52's template-ID correction. The follow-up CI run for the unique 1v1 template ID passed on 2026-10-25; runtime rating behavior and leaderboard effects still require test-server validation.
 
 
 ## Phase 49 — Always-on matchmaking startup
@@ -423,4 +423,4 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - Static review found that the existing Capture the Flag template and 1v1 Arena both used instance template ID `3050`. `InstanceManager` indexes templates by ID, so duplicate IDs could cause one event to load the other's template depending on file traversal order.
 - Preserved Capture the Flag's existing ID `3050` and moved 1v1 Arena to unique template ID `3053`; 3v3 remains `3051` and Last Hero remains `3052`.
-- CI now scans all instance XML files and fails on duplicate template IDs. The new check must pass in the next workflow run.
+- CI now scans all instance XML files and fails on duplicate template IDs. This check passed in GitHub Actions run `40223533426` on 2026-10-25, along with the core/custom-script compile and SQL smoke test.
