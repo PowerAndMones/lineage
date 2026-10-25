@@ -68,6 +68,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - Queue lifecycle operations are synchronized to reduce duplicate pairing and stop/start races.
 - Starting the event clears stale queue registrations; stopping it clears queued players' event-registration flags.
 - Players already participating in another event are rejected from registration.
+- A logout listener removes disconnected players from the waiting queue; match eligibility is checked again before pairing.
 - No global announcements, custom rewards, PvP points, or ranking points are issued by this prototype.
 - This is not yet an isolated arena instance and is not production-ready. NPC template `70013`, script discovery, duel rejection behavior, and disconnect races remain unverified until the planned final validation.
 
