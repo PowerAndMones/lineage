@@ -1033,36 +1033,38 @@ public class TvT extends Event
 	@RegisterEvent(EventType.ON_CREATURE_DEATH)
 	public void onPlayerDeath(OnCreatureDeath event)
 	{
-		if (event.getTarget().isPlayer())
+		if (!event.getTarget().isPlayer())
 		{
-			final Player killedPlayer = event.getTarget().asPlayer();
-			final Player killer = event.getAttacker().asPlayer();
-			
-			// Confirm Blue team kill.
+			return;
+		}
+		
+		final Player killedPlayer = event.getTarget().asPlayer();
+		// Ignore deaths outside this event. This listener is registered globally.
+		if (!PLAYER_LIST.contains(killedPlayer))
+		{
+			return;
+		}
+		
+		final Creature attacker = event.getAttacker();
+		final Player killer = (attacker != null) ? attacker.asPlayer() : null;
+		if ((killer != null) && PLAYER_LIST.contains(killer) && PLAYER_SCORES.containsKey(killer))
+		{
 			if ((killer.getTeam() == Team.BLUE) && (killedPlayer.getTeam() == Team.RED))
 			{
 				PLAYER_SCORES.put(killer, PLAYER_SCORES.get(killer) + 1);
 				BLUE_SCORE++;
 				broadcastScoreMessage();
-				
-				// Packet does not exist in Interlude.
-				// PVP_WORLD.broadcastPacket(new ExPVPMatchCCRecord(ExPVPMatchCCRecord.UPDATE, Util.sortByValue(PLAYER_SCORES, true)));
 			}
-			
-			// Confirm Red team kill.
-			if ((killer.getTeam() == Team.RED) && (killedPlayer.getTeam() == Team.BLUE))
+			else if ((killer.getTeam() == Team.RED) && (killedPlayer.getTeam() == Team.BLUE))
 			{
 				PLAYER_SCORES.put(killer, PLAYER_SCORES.get(killer) + 1);
 				RED_SCORE++;
 				broadcastScoreMessage();
-				
-				// Packet does not exist in Interlude.
-				// PVP_WORLD.broadcastPacket(new ExPVPMatchCCRecord(ExPVPMatchCCRecord.UPDATE, Util.sortByValue(PLAYER_SCORES, true)));
 			}
-			
-			// Auto release after 10 seconds.
-			startQuestTimer("ResurrectPlayer", 10000, null, killedPlayer);
 		}
+		
+		// Auto release registered event participants after 10 seconds.
+		startQuestTimer("ResurrectPlayer", 10000, null, killedPlayer);
 	}
 	
 	@Override
