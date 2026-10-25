@@ -1,0 +1,44 @@
+# Custom PvP source review — pre-build notes
+
+Branch: feature/custom-pvp-core
+
+This is a source-level review only. No compilation, test server, database execution, or in-game validation has been performed.
+
+## Corrections made in this review
+
+- Updated 1v1, 3v3, and Last Hero messages so a repeat-opponent/roster cooldown no longer implies that a match result was saved to rated statistics. In the current prototype, the transaction rolls back and the match does not change rating or rated match/win/loss/streak counters.
+
+## Required checks during final validation
+
+### Script and event lifecycle
+
+- Confirm the target Mobius script loader instantiates all three Event scripts and registers their annotated death/login/logout listeners.
+- Confirm the event admin/start-stop mechanism exposes the expected script names and can start/stop each queue.
+- Confirm eventBypass, onEvent, and NPC bypass strings are dispatched as expected by this exact Mobius revision.
+- Confirm custom NPC IDs 70013–70015 are available and not already used by another datapack feature.
+
+### Instance handling
+
+- Confirm instance templates 3050–3052 are loaded from the custom instance directory.
+- Verify the target API's createDynamicInstance, addWorld, addAllowed, teleToLocation, and destroy behavior.
+- Confirm spawn points are inside the playable instance geometry and that return locations preserve the original instance where valid.
+- Test server shutdown/restart with participants inside an arena and confirm login recovery uses the saved return record without leaving a player stuck in an obsolete instance.
+
+### Match and rating integrity
+
+- Test simultaneous death, logout during finalization, timeout, event stop, and failed instance startup.
+- Verify each match can finalize once only, and offline players retain return-location rows until login recovery succeeds.
+- Verify the 1v1 pair cooldown is direction-independent and that 3v3 roster-pair and Last Hero complete-roster cooldowns behave as intended.
+- Verify repeat-match cooldown suppression leaves rating and rated counters unchanged; player messages now state that explicitly.
+- Review the rating formulas with representative ratings and confirm all SQL updates and cooldown changes commit atomically.
+
+### Database and Community Board
+
+- Back up the game database before applying the scripts listed in SQL_INSTALLATION.md.
+- Confirm the Mobius characters table uses the expected charId and char_name columns.
+- Confirm all leaderboard HTML placeholders are replaced and the final page fits the target client's Community Board display.
+- Confirm custom-stat tables are installed before enabling the scripts; missing-table handling is intended to log or show a visible unavailable message, not to be treated as a successful installation.
+
+## Release gate
+
+Do not enable the modes on a live server until the source compiles against the target Mobius revision and the full lifecycle is tested on a separate test server. This review is not a claim that the code is production-ready.
