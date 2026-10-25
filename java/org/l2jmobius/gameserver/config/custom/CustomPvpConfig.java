@@ -29,6 +29,8 @@ public class CustomPvpConfig
 	public static int POINTS_PER_KILL;
 	public static int MINIMUM_REWARD_LEVEL;
 	public static int MAX_REWARD_LEVEL_DIFFERENCE;
+	public static int TVT_REWARD_ADENA;
+	public static int CTF_REWARD_ADENA;
 	public static int QUEUE_WARNING_THRESHOLD;
 	public static int MAX_PENDING_RECORDS;
 	public static int DB_RETRY_ATTEMPTS;
@@ -42,6 +44,8 @@ public class CustomPvpConfig
 		POINTS_PER_KILL = Math.max(0, config.getInt("PointsPerKill", 1));
 		MINIMUM_REWARD_LEVEL = Math.max(1, config.getInt("MinimumRewardLevel", 1));
 		MAX_REWARD_LEVEL_DIFFERENCE = Math.max(0, config.getInt("MaxRewardLevelDifference", 0));
+		TVT_REWARD_ADENA = Math.max(0, config.getInt("TvTRewardAdena", 100000));
+		CTF_REWARD_ADENA = Math.max(0, config.getInt("CtFRewardAdena", 100000));
 		QUEUE_WARNING_THRESHOLD = Math.max(0, config.getInt("QueueWarningThreshold", 1000));
 		MAX_PENDING_RECORDS = Math.max(0, config.getInt("MaxPendingRecords", 10000));
 		DB_RETRY_ATTEMPTS = Math.max(1, Math.min(10, config.getInt("DatabaseRetryAttempts", 3)));
