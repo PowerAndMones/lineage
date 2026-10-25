@@ -38,7 +38,7 @@ import org.l2jmobius.gameserver.network.serverpackets.NpcHtmlMessage;
 
 /**
  * Six-player 3v3 Arena prototype. No items or global PvP points are awarded.
- * Runtime/build validation is intentionally pending.
+ * Core and script compilation passed in CI; database and runtime validation remain pending.
  */
 public class Arena3v3 extends Event
 {
