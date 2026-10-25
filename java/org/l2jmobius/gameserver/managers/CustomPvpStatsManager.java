@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.l2jmobius.commons.database.DatabaseFactory;
+import org.l2jmobius.gameserver.config.custom.CustomPvpConfig;
 import org.l2jmobius.gameserver.entity.actor.Player;
 
 /**
@@ -35,7 +36,6 @@ import org.l2jmobius.gameserver.entity.actor.Player;
 public final class CustomPvpStatsManager
 {
 	private static final Logger LOGGER = Logger.getLogger(CustomPvpStatsManager.class.getName());
-	private static final long REPEAT_KILL_COOLDOWN_MS = 30 * 1000L;
 	private static final ConcurrentHashMap<Long, Long> LAST_PAIR_KILLS = new ConcurrentHashMap<>();
 	private static final String UPSERT_KILLER = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 1, 0, 1, 1, 1, NOW()) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalKills = totalKills + 1, currentStreak = currentStreak + 1, bestStreak = GREATEST(bestStreak, currentStreak), pvpPoints = pvpPoints + 1, lastKillTime = NOW()";
 	private static final String UPSERT_VICTIM = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 0, 1, 0, 0, 0, NULL) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalDeaths = totalDeaths + 1, currentStreak = 0";
@@ -67,7 +67,7 @@ public final class CustomPvpStatsManager
 		final AtomicBoolean accepted = new AtomicBoolean(false);
 		LAST_PAIR_KILLS.compute(pairKey, (key, previous) ->
 		{
-			if ((previous == null) || ((now - previous) >= REPEAT_KILL_COOLDOWN_MS))
+			if ((previous == null) || ((now - previous) >= (CustomPvpConfig.REPEAT_KILL_COOLDOWN_SECONDS * 1000L)))
 			{
 				accepted.set(true);
 				return now;
@@ -82,7 +82,7 @@ public final class CustomPvpStatsManager
 		// Keep the cache bounded during long-running mass-PvP sessions.
 		if (LAST_PAIR_KILLS.size() > 10000)
 		{
-			final long expiry = now - REPEAT_KILL_COOLDOWN_MS;
+			final long expiry = now - (CustomPvpConfig.REPEAT_KILL_COOLDOWN_SECONDS * 1000L);
 			LAST_PAIR_KILLS.entrySet().removeIf(entry -> entry.getValue() < expiry);
 		}
 
