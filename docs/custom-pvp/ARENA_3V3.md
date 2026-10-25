@@ -1,6 +1,6 @@
 # 3v3 Arena — implementation specification
 
-Status: preparation only. No 3v3 matchmaking or combat source is enabled yet.
+Status: prototype source and SQL schema added; build/runtime validation pending.
 
 ## Rules
 
@@ -11,7 +11,7 @@ Status: preparation only. No 3v3 matchmaking or combat source is enabled yet.
 - A team wins when all three opponents are defeated, or when the opposing team forfeits after a disconnect.
 - If all remaining players on both teams die before result resolution, record no winner.
 - A match timeout ends without a winner and without rating/stat changes.
-- Disconnect handling must be deterministic: a single player logout may forfeit the team only after a short reconnect grace period; if reconnect recovery is not safe in the target Mobius revision, use immediate team forfeit and document it.
+- Disconnect handling currently uses immediate team forfeit when any participant logs out. Reconnect grace is not implemented in this prototype.
 - Results must be finalized exactly once and both teams' statistics must update in a single SQL transaction.
 - No global announcements, combat stat bonuses, paid rating boosts, or item rewards. Cosmetic rewards may be considered only after anti-farm and runtime validation.
 
@@ -37,11 +37,11 @@ Status: preparation only. No 3v3 matchmaking or combat source is enabled yet.
 
 ## SQL preparation
 
-Install `dist/db_installer/sql/game/character_arena3v3_stats.sql` only when the 3v3 source implementation is ready to be integrated. It creates independent player statistics and persistent canonical roster-pair cooldown storage. Applying this schema alone does not enable the event.
+Install `dist/db_installer/sql/game/character_arena3v3_stats.sql` before enabling the prototype. It creates independent player statistics, persistent canonical roster-pair cooldown storage, and saved return locations. Applying this schema alone does not enable the event.
 
 ## Validation still required
 
-- Confirm the correct character ID/name column schema and instance APIs for this exact Mobius revision.
+- Confirm the correct character ID/name column schema and instance APIs for this exact Mobius revision.\n- Confirm script auto-discovery, NPC template 70014, instance template 3051, and bypass routing.\n- Consider a reconnect grace period and review team balancing before production use.
 - Verify team spawn coordinates and instance template.
 - Verify logout/reconnect behavior, simultaneous deaths, partial startup failure, event stop, and database transaction rollback.
 - No build or runtime tests have been performed.
