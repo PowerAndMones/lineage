@@ -383,7 +383,7 @@ public class Arena3v3 extends Event
 				{
 					final Location destination = ((saved.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(saved.getInstanceId()) == null)) ? RETURN_FALLBACK : saved;
 					player.teleToLocation(destination, true);
-					if (player.getInstanceId() == destination.getInstanceId())
+					if ((player.getInstanceId() == destination.getInstanceId()) && (Math.abs(player.getX() - destination.getX()) <= 500) && (Math.abs(player.getY() - destination.getY()) <= 500) && (Math.abs(player.getZ() - destination.getZ()) <= 500))
 					{
 						deleteReturnLocation(player.getObjectId());
 					}
