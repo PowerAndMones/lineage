@@ -32,10 +32,18 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - Corrected the best-streak upsert to compare against the next streak value.
 - The queue is currently in-memory; a hard process crash can lose records that have not reached the database. This must be considered in final validation.
 
+### Phase 5 — PvP achievements (code added, runtime test pending)
+
+- Added achievement progress to the existing Community Board PvP page; achievements are quiet and never send global or chat announcements.
+- Kill milestones: First Blood (1), PvP Veteran (100), Arena Legend (500), War Machine (1,000).
+- Best-streak milestones: On a Roll (5), Unstoppable (10), Legendary Streak (20).
+- PvP point milestones: Point Collector (100), Point Hunter (500), Point Master (1,000).
+- Progress is derived from saved statistics, so no extra achievement table or migration is needed.
+
 ### Next phases
 
 1. Add queue/backlog diagnostics and define behavior for database outages; decide separately whether event/instance kills should award points.
-2. Add configurable PvP achievements displayed in the Community Board only (no kill-streak announcements).
+2. Inspect and implement fake-player exclusions using the actual Mobius player model.
 3. Reuse existing TvT and CTF event scripts; add 1v1/3v3 and Last Hero after core tracking is tested.
 
 ## Design constraints
