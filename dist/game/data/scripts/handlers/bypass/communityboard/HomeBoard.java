@@ -363,7 +363,12 @@ public class HomeBoard implements IParseBoardHandler
 			{
 				if (rs.next())
 				{
-					return "<table width=450><tr><td width=110><font color=LEVEL>PvP points:</font></td><td>" + rs.getInt("pvpPoints") + "</td><td width=110><font color=LEVEL>PvP kills:</font></td><td>" + rs.getInt("totalKills") + "</td></tr><tr><td><font color=LEVEL>Deaths:</font></td><td>" + rs.getInt("totalDeaths") + "</td><td><font color=LEVEL>Current streak:</font></td><td>" + rs.getInt("currentStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestStreak") + "</td></tr></table>";
+					final int points = rs.getInt("pvpPoints");
+					final int kills = rs.getInt("totalKills");
+					final int deaths = rs.getInt("totalDeaths");
+					final int currentStreak = rs.getInt("currentStreak");
+					final int bestStreak = rs.getInt("bestStreak");
+					return "<table width=450><tr><td width=110><font color=LEVEL>PvP points:</font></td><td>" + points + "</td><td width=110><font color=LEVEL>PvP kills:</font></td><td>" + kills + "</td></tr><tr><td><font color=LEVEL>Deaths:</font></td><td>" + deaths + "</td><td><font color=LEVEL>Current streak:</font></td><td>" + currentStreak + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + bestStreak + "</td></tr></table><br><font color=LEVEL>PvP ACHIEVEMENTS</font><br>" + getPvpAchievements(kills, bestStreak, points);
 				}
 			}
 		}
@@ -373,6 +378,36 @@ public class HomeBoard implements IParseBoardHandler
 			return "<font color=FF6666>PvP statistics are temporarily unavailable.</font>";
 		}
 		return "<font color=AAAAAA>No PvP statistics yet. Win your first PvP fight to start tracking!</font>";
+	}
+
+	/**
+	 * Builds non-announced PvP achievements directly from saved statistics.
+	 * @param kills total custom PvP kills
+	 * @param bestStreak best kill streak
+	 * @param points earned PvP points
+	 * @return achievement HTML
+	 */
+	private static String getPvpAchievements(int kills, int bestStreak, int points)
+	{
+		final StringBuilder html = new StringBuilder("<table width=450>");
+		html.append("<tr><td width=220><font color=LEVEL>Achievement</font></td><td><font color=LEVEL>Progress</font></td></tr>");
+		appendAchievement(html, "First Blood", kills, 1);
+		appendAchievement(html, "PvP Veteran", kills, 100);
+		appendAchievement(html, "Arena Legend", kills, 500);
+		appendAchievement(html, "War Machine", kills, 1000);
+		appendAchievement(html, "On a Roll", bestStreak, 5);
+		appendAchievement(html, "Unstoppable", bestStreak, 10);
+		appendAchievement(html, "Legendary Streak", bestStreak, 20);
+		appendAchievement(html, "Point Collector", points, 100);
+		appendAchievement(html, "Point Hunter", points, 500);
+		appendAchievement(html, "Point Master", points, 1000);
+		return html.append("</table>").toString();
+	}
+
+	private static void appendAchievement(StringBuilder html, String name, int value, int required)
+	{
+		final boolean unlocked = value >= required;
+		html.append("<tr><td><font color=").append(unlocked ? "LEVEL" : "AAAAAA").append(">").append(unlocked ? "[Unlocked] " : "[Locked] ").append(name).append("</font></td><td>").append(Math.min(value, required)).append(" / ").append(required).append("</td></tr>");
 	}
 
 	/**
