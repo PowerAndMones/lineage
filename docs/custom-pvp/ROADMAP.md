@@ -128,3 +128,12 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The general open-world PvP ranking remains separate and unchanged.
 - The page requires `character_arena1v1_stats.sql` and the standard Mobius `characters` table.
 - Source has not been compiled or runtime-tested. Verify the character table column names and HTML rendering on the target revision during final validation.
+
+
+### Phase 13 — 3v3 Arena groundwork (specification and SQL schema prepared; source not yet implemented)
+
+- Added a 3v3 lifecycle and rating specification in `docs/custom-pvp/ARENA_3V3.md`.
+- Added a separate statistics table for per-player 3v3 matches, wins, losses, Elo-style rating, streaks, and last match time.
+- Added persistent roster-pair cooldown storage for anti-farm protection; roster hashes must be based on sorted character IDs.
+- The SQL schema does not enable the event by itself. No 3v3 matchmaking or combat code has been added yet.
+- The implementation must reuse the isolated-instance/recovery principles from 1v1 but support six players and team-level result resolution.
