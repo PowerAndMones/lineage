@@ -434,22 +434,29 @@ public class LastHero extends Event
 					}
 					final double averageOpponent = match.players.stream().filter(p -> p != winner).mapToInt(p -> ratings.get(p.getObjectId())).average().orElse(1000);
 					final double expectedWinner = 1.0 / (1.0 + Math.pow(10.0, (averageOpponent - ratings.get(winner.getObjectId())) / 400.0));
+					// Distribute one integer winner delta across all opponents so rounding cannot create or destroy rating points.
+					final int winnerDelta = (int) Math.round(K_FACTOR * (1.0 - expectedWinner));
+					final List<Player> opponents = match.players.stream().filter(p -> p != winner).toList();
+					final int baseLoss = winnerDelta / opponents.size();
+					final int remainder = winnerDelta % opponents.size();
+					int opponentIndex = 0;
 					for (Player p : match.players)
 					{
 						if (p == winner)
 						{
 							try (PreparedStatement ps = con.prepareStatement(WIN_SQL))
 							{
-								ps.setInt(1, ratings.get(p.getObjectId()) + (int) Math.round(K_FACTOR * (1.0 - expectedWinner)));
+								ps.setInt(1, ratings.get(p.getObjectId()) + winnerDelta);
 								ps.setInt(2, p.getObjectId());
 								ps.executeUpdate();
 							}
 						}
 						else
 						{
+							final int loss = baseLoss + ((opponentIndex++ < remainder) ? 1 : 0);
 							try (PreparedStatement ps = con.prepareStatement(LOSS_SQL))
 							{
-								ps.setInt(1, ratings.get(p.getObjectId()) - (int) Math.round(K_FACTOR * (1.0 - expectedWinner) / (match.players.size() - 1)));
+								ps.setInt(1, ratings.get(p.getObjectId()) - loss);
 								ps.setInt(2, p.getObjectId());
 								ps.executeUpdate();
 							}
