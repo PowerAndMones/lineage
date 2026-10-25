@@ -43,7 +43,7 @@ The PvP Center leaderboards also read the standard Mobius `characters` table and
 
 ## Queue startup behavior
 
-1v1 Arena, 3v3 Arena, and Last Hero are designed as always-available matchmaking queues. Their scripts open the queues and spawn manager NPCs when loaded; they do not require a schedule entry in `Scripts.xml` or a separate NPC spawn row. If a manager NPC fails to spawn, the mode remains closed and writes a warning to the game log. Reloading scripts stops active matches and removes the old manager before the replacement starts.
+1v1 Arena, 3v3 Arena, and Last Hero are designed as always-available matchmaking queues. Their scripts open the queues and spawn manager NPCs when loaded; they do not require an event schedule in `config.xml` or a separate NPC spawn row. If a manager NPC fails to spawn, the mode remains closed and writes a warning to the game log. Reloading scripts stops active matches and removes the old manager before the replacement starts.
 
 The repository's `dist/db_installer/sql/game/characters.sql` confirms the expected leaderboard columns `charId` and `char_name`; verify the deployed server database is based on the same Mobius revision before production use.
 
