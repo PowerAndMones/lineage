@@ -333,7 +333,14 @@ public class LastHero extends Event
 				{
 					final Location dest = ((saved.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(saved.getInstanceId()) == null)) ? RETURN_FALLBACK : saved;
 					p.teleToLocation(dest, true);
-					deleteReturnLocation(p.getObjectId());
+					if (p.getInstanceId() == dest.getInstanceId())
+					{
+						deleteReturnLocation(p.getObjectId());
+					}
+					else
+					{
+						LOGGER.warning("Last Hero could not restore player " + p.getObjectId() + " to the saved return location; recovery record retained.");
+					}
 				}
 			}, 2000);
 		}
