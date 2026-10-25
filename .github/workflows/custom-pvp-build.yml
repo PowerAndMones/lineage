@@ -62,7 +62,7 @@ jobs:
               assert matches == [npc_file.resolve()], f"NPC ID {npc_id} is duplicated or missing: {matches}"
 
           expected_templates = {
-              "Arena1v1.xml": "3050",
+              "Arena1v1.xml": "3053",
               "Arena3v3.xml": "3051",
               "LastHero.xml": "3052",
           }
@@ -71,10 +71,22 @@ jobs:
               assert tree.getroot().attrib.get("id") == template_id, f"Unexpected template ID in {filename}"
               assert tree.getroot().find("exitPoint") is not None, f"Missing exitPoint in {filename}"
 
+          # InstanceManager indexes templates by ID, so duplicates can silently select the wrong arena.
+          seen_instance_ids = {}
+          for candidate in (root / "data/instances").rglob("*.xml"):
+              tree = ET.parse(candidate)
+              instance_id = tree.getroot().attrib.get("id")
+              if instance_id is None:
+                  continue
+              assert instance_id not in seen_instance_ids, (
+                  f"Duplicate instance template ID {instance_id}: {seen_instance_ids.get(instance_id)} and {candidate}"
+              )
+              seen_instance_ids[instance_id] = candidate
+
           # Guard against scripts compiling successfully but never being loaded by the script engine
           # or leaving their manager NPC interactions unregistered.
           script_specs = {
-              "Arena1v1/Arena1v1.java": ("Arena1v1", "70013", "3050"),
+              "Arena1v1/Arena1v1.java": ("Arena1v1", "70013", "3053"),
               "Arena3v3/Arena3v3.java": ("Arena3v3", "70014", "3051"),
               "LastHero/LastHero.java": ("LastHero", "70015", "3052"),
           }
