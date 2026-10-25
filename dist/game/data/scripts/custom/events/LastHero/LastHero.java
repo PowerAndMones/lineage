@@ -88,6 +88,8 @@ public class LastHero extends Event
 		addTalkId(MANAGER_NPC_ID);
 		addStartNpc(MANAGER_NPC_ID);
 		addFirstTalkId(MANAGER_NPC_ID);
+		// These matchmaking queues are always available after the script loads.
+		eventStart(null);
 	}
 
 	@Override
