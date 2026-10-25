@@ -137,7 +137,7 @@ jobs:
           points=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='game' AND table_name='character_pvp_stats' AND column_name='pvpPoints'")
           echo "pvpPoints column count: $points"
           test "$points" = "1"
-          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='game' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
+          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(DISTINCT index_name) FROM information_schema.statistics WHERE table_schema='game' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
           echo "PvP points index count: $idx"
           test "$idx" = "1"
           echo "SQL smoke test passed: 10 tables, pvpPoints column, and leaderboard index."
