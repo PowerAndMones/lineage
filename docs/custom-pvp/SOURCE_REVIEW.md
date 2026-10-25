@@ -84,3 +84,11 @@ Do not enable the modes on a live server until the source compiles against the t
 - Verify `MinimumRewardLevel` checks the victim level and that `MaxRewardLevelDifference=0` disables the difference gate.
 - Verify that ineligible kills do not award killer kill credit/points but still update victim death count and reset current streak.
 - Confirm default settings preserve previous behavior. These checks are pending the planned combined compile/test pass.
+
+
+## Configurable TvT/CtF reward checks — added after CI snapshot
+
+- Verify default reward values still grant 100,000 Adena to each winning participant, including the existing forfeit-winner path.
+- Verify a configured reward of 0 grants no Adena and does not alter winner selection, scoring, or tie handling.
+- Verify the config loader runs before event scripts initialize their static reward holders.
+- These checks are pending the combined compile and runtime validation pass.
