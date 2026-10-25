@@ -666,6 +666,10 @@ public class Arena3v3 extends Event
 				}
 				world = new InstanceWorld();
 				world.setInstance(InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID));
+				if (world.getInstanceId() <= 0)
+				{
+					throw new IllegalStateException("Invalid 3v3 Arena instance ID.");
+				}
 				InstanceManager.getInstance().addWorld(world);
 				for (Player p : players()) world.addAllowed(p);
 				for (int i = 0; i < 3; i++) teamA.get(i).teleToLocation(SPAWN_A, world.getInstanceId(), 50);
