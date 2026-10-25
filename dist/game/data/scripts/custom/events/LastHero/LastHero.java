@@ -521,7 +521,11 @@ public class LastHero extends Event
 					if (!saveReturn(p.getObjectId(), returnLocations.get(p))) throw new IllegalStateException("Could not persist all return locations.");
 				}
 				final Instance instance = InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID);
-				if ((instance == null) || (instance.getId() <= 0) || (instance.getTemplateId() != INSTANCE_TEMPLATE_ID) || (instance.getExitLoc() == null)) throw new IllegalStateException("Could not load a valid Last Hero instance template.");
+				if ((instance == null) || (instance.getId() <= 0) || (instance.getTemplateId() != INSTANCE_TEMPLATE_ID) || (instance.getExitLoc() == null))
+				{
+					if (instance != null) InstanceManager.getInstance().destroyInstance(instance.getId());
+					throw new IllegalStateException("Could not load a valid Last Hero instance template.");
+				}
 				world = new InstanceWorld();
 				world.setInstance(instance);
 				InstanceManager.getInstance().addWorld(world);
