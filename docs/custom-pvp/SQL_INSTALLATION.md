@@ -53,7 +53,7 @@ The repository's `dist/db_installer/sql/game/characters.sql` confirms the expect
 - [x] Confirm custom NPC templates exist for NPC IDs 70013 (1v1), 70014 (3v3), and 70015 (Last Hero) in `dist/game/data/stats/npcs/custom/custom.xml`.
 - [ ] Verify each queue opens and spawns exactly one manager NPC after script loading; all three constructors now call `eventStart(null)` and require runtime validation.
 - [ ] Confirm instance templates 3050, 3051, and 3052 load without errors and spawn/exit coordinates are valid on the target map.
-- [ ] Confirm the target Mobius APIs used by all three scripts, including instance allow-lists, event listeners, teleport methods, and scheduled tasks.
+- [x] Compile-verify the target Mobius APIs used by all three scripts, including instance allow-lists, event listeners, teleport methods, and scheduled tasks, against this repository revision; runtime behavior still requires test-server validation.
 - [ ] Confirm the Community Board HTML is within client display limits and all placeholders are replaced.
 - [x] Confirm SQL queries against `characters.charId` and `characters.char_name` match this repository's `characters.sql`; verify the deployed database uses the same revision.
 - [ ] Test online/offline return recovery, simultaneous deaths, logout, event stop, timeouts, and duplicate-finalization protection.
@@ -64,4 +64,4 @@ The repository's `dist/db_installer/sql/game/characters.sql` confirms the expect
 
 ## Current status
 
-The source and SQL installers are prepared on `feature/custom-pvp-core`. CI build and custom-script compilation passed on 2026-10-25 before the latest always-on startup edits. The latest CI run previously passed both the compile job and SQL smoke-test job; rerun compilation after source preparation is complete. The installers, database-clock cooldown queries, and streak SQL smoke tests passed against a clean MariaDB 11.4 database in CI. The latest CI run passed both the compile job and SQL smoke-test job. The target server's database has not been accessed, and no live/test server or in-game validation has been performed. The arena modes must not be enabled on a live server until the remaining checklist is completed.
+The source and SQL installers are prepared on `feature/custom-pvp-core`. GitHub Actions run `40223045626` completed successfully on 2026-10-25 after the latest source changes: both the L2J Mobius core/custom-script compile job and the SQL smoke-test job passed. The SQL job applied the installers to a clean MariaDB 11.4 database, verified the expected tables/columns/index, and exercised database-clock cooldown and streak SQL behavior. Later commits only updated documentation. The target server's database has not been accessed, and no live/test server or in-game validation has been performed. The arena modes must not be enabled on a live server until the remaining checklist is completed.
