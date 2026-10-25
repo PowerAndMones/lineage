@@ -27,6 +27,20 @@ The first implementation adds a matchmaking queue using the server's existing na
 Do not consider this feature production-ready until the shared build and runtime test pass.
 
 
+## Isolated arena prototype added to source (validation pending)
+
+- Added a dedicated PvP instance template at `dist/game/data/instances/custom/Arena1v1.xml` with template ID `3050`, separate from TvT's template ID `3049`.
+- Matchmaking now creates a dynamic instance per pair, saves both players' return locations, adds both players to the instance allow-list, and teleports them to opposite Colosseum spawn points.
+- The match uses the instance's PvP rules rather than Mobius' native DuelManager. This avoids the native duel's fixed arena teleport path, which would pull participants out of the custom instance.
+- Death and logout are handled through event listeners. A one-time atomic finish guard prevents duplicate cleanup; online participants are revived if needed and returned to their saved locations. A disconnected participant's return location is held in memory for login restoration.
+- Stopping the event attempts to close active matches, and partial startup failure attempts to return both participants before destroying the instance.
+- No rating, custom PvP points, item rewards, or global announcements are added.
+
+Known limitations before production use:
+- Return locations for disconnected players are in memory only and will not survive a server process crash/restart.
+- Match timeout, restart recovery, full disconnect/death ordering, and instance template/spawn suitability still require validation.
+- The code has not been compiled or runtime-tested, as requested; do not treat the prototype as production-ready.
+
 ## Dedicated arena implementation plan
 
 The isolated-match upgrade must be implemented as a separate phase rather than assuming the native duel API can run inside an instance.
