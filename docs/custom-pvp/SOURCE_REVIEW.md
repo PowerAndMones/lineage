@@ -33,6 +33,7 @@ This is a source-level review only. No compilation, test server, database execut
 
 - Test simultaneous death, logout during finalization, timeout, event stop, and failed instance startup.
 - Verify Last Hero automatically schedules another round when four or more players remain queued after a match starts or eligibility filtering.
+- Stop and restart Last Hero during its 15-second countdown; confirm a callback from the previous run is ignored.
 - The 3v3 finalizer now rejects a winner team unless at least one member is both online and alive, including logout/timeout race paths.
 - Verify each match can finalize once only, and offline players retain return-location rows until login recovery succeeds.
 - Validate the 1v1 startup rollback path when a participant goes offline; the saved return row must remain until recovery on login.
