@@ -200,3 +200,11 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Reviewed the 3v3 team Elo formula and restored the complementary expected-score loss calculation.
 - Corrected Last Hero's loser delta to distribute the winner's rating gain across all opponents rather than scaling losses by the winner's expected score.
 - These changes are source-level only. No compilation, database execution, or runtime tests have been performed; verify rating changes for underdog and favorite scenarios before launch.
+
+
+### Phase 22 — matchmaking failure recovery (source updated; validation pending)
+
+- Prevented 1v1 instance-start failures from immediately looping through the same queue entries on the matchmaking thread; retries now run after a delay.
+- Hardened 3v3 queue processing when ineligible players are removed and more than six queued players remain; match-start retries are delayed to avoid a tight loop if the instance cannot be created.
+- Last Hero now schedules another registration window after a failed match startup when enough eligible players were returned to the queue.
+- These are source-level lifecycle fixes only. No compilation, SQL execution, or runtime tests have been performed.
