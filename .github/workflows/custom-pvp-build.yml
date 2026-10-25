@@ -14,10 +14,12 @@ permissions:
 jobs:
   compile:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 27
         uses: actions/setup-java@v4
@@ -31,7 +33,22 @@ jobs:
           ant -version
 
       - name: Check whitespace errors
-        run: git diff --check
+        run: git diff --check origin/main...HEAD
 
-      - name: Compile L2J Mobius
+      - name: Compile L2J Mobius core
         run: ant -f build.xml compile
+
+      - name: Compile custom PvP scripts
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/custom-pvp-classes"
+          javac --release 27 -encoding UTF-8 \
+            -cp "../build/bin:dist/game/libs/*" \
+            -sourcepath "dist/game/data/scripts" \
+            -d "$RUNNER_TEMP/custom-pvp-classes" \
+            dist/game/data/scripts/custom/events/Arena1v1/Arena1v1.java \
+            dist/game/data/scripts/custom/events/Arena3v3/Arena3v3.java \
+            dist/game/data/scripts/custom/events/LastHero/LastHero.java \
+            dist/game/data/scripts/custom/events/TeamVsTeam/TvT.java \
+            dist/game/data/scripts/custom/events/CaptureTheFlag/CtF.java \
+            dist/game/data/scripts/handlers/bypass/communityboard/HomeBoard.java
