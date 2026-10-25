@@ -112,6 +112,13 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			return;
 		}
 		
+		// Modern Community Board landing page and personal PvP statistics.
+		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command))
+		{
+			showModernBoard(player, "_bbspvp".equalsIgnoreCase(command));
+			return;
+		}
+		
 		final IParseBoardHandler cb = getHandler(command);
 		if (cb == null)
 		{
@@ -120,6 +127,61 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 		
 		cb.onCommand(command, player);
+	}
+	
+	/**
+	 * Displays the modern Community Board landing page or personal PvP statistics.
+	 * Uses HTML elements supported by the legacy Interlude client.
+	 * @param player the active player
+	 * @param showStats whether to display personal PvP statistics
+	 */
+	private static void showModernBoard(Player player, boolean showStats)
+	{
+		final StringBuilder html = new StringBuilder(4096);
+		html.append("<html><body><center>");
+		html.append("<table width=600 cellpadding=8 cellspacing=0 bgcolor=10141D><tr><td>");
+		html.append("<font color=E8BD68 name=hs12>ADEN</font> <font color=FFFFFF name=hs12>COMMUNITY</font><br1>");
+		html.append("<font color=888E9B>INTERLUDE  |  COMMUNITY HUB</font>");
+		html.append("</td><td align=right><font color=E8BD68>").append(escapeBoardText(player.getName())).append("</font><br1>");
+		html.append("<font color=BBBBBB>LEVEL ").append(player.getLevel()).append("</font></td></tr></table><br>");
+		html.append("<table width=600 cellpadding=5 cellspacing=2><tr>");
+		html.append("<td width=195 align=center bgcolor=252B38><font color=E8BD68>HOME</font><br1><a action=\"bypass _bbshome\">Open dashboard</a></td>");
+		html.append("<td width=195 align=center bgcolor=252B38><font color=E8BD68>PVP PROFILE</font><br1><a action=\"bypass _bbspvp\">My statistics</a></td>");
+		html.append("<td width=195 align=center bgcolor=252B38><font color=E8BD68>SERVER</font><br1><font color=BBBBBB>Interlude x10</font></td>");
+		html.append("</tr></table><br>");
+		if (showStats)
+		{
+			html.append("<table width=600 cellpadding=8 cellspacing=1 bgcolor=252B38>");
+			html.append("<tr><td colspan=2><font color=E8BD68 name=hs12>PERSONAL PVP STATISTICS</font></td></tr>");
+			html.append("<tr><td width=300><font color=BBBBBB>Character</font></td><td><font color=FFFFFF>").append(escapeBoardText(player.getName())).append("</font></td></tr>");
+			html.append("<tr><td><font color=BBBBBB>Level</font></td><td><font color=FFFFFF>").append(player.getLevel()).append("</font></td></tr>");
+			html.append("<tr><td><font color=BBBBBB>PvP kills</font></td><td><font color=E8BD68>").append(player.getPvpKills()).append("</font></td></tr>");
+			html.append("<tr><td><font color=BBBBBB>PK kills</font></td><td><font color=E8BD68>").append(player.getPkKills()).append("</font></td></tr>");
+			html.append("</table>");
+		}
+		else
+		{
+			html.append("<table width=600 cellpadding=8 cellspacing=1 bgcolor=252B38>");
+			html.append("<tr><td><font color=E8BD68 name=hs12>WELCOME BACK</font><br1>");
+			html.append("<font color=FFFFFF>").append(escapeBoardText(player.getName())).append("</font>, your Community Board has a new home.</td></tr>");
+			html.append("<tr><td><font color=BBBBBB>Quick access</font><br1>");
+			html.append("<a action=\"bypass _bbspvp\">View my PvP / PK statistics</a><br1>");
+			html.append("<font color=888E9B>Additional services will appear here when their server-side handlers are connected.</font></td></tr>");
+			html.append("</table>");
+		}
+		html.append("<br><font color=777F8F>Community Board  |  Interlude</font>");
+		html.append("</center></body></html>");
+		separateAndSend(html.toString(), player);
+	}
+	
+	/**
+	 * Escapes player-controlled text before inserting it into Community Board HTML.
+	 * @param value text to escape
+	 * @return escaped text
+	 */
+	private static String escapeBoardText(String value)
+	{
+		return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
 	}
 	
 	/**
