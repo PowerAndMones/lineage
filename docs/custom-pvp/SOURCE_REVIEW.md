@@ -19,7 +19,7 @@ CI validation snapshot (2026-10-25): `ant -f build.xml compile` passed on Temuri
 
 ### Instance handling
 
-- Confirm instance templates 3050–3052 are loaded from the custom instance directory.
+- Confirm the 1v1, 3v3, and Last Hero templates (3053, 3051, and 3052 respectively) are loaded from the custom instance directory. Template 3050 belongs to Capture the Flag.
 - Verify the target API's createDynamicInstance, addWorld, addAllowed, teleToLocation, and destroy behavior.
 - Confirm missing/malformed instance templates (wrong template ID or missing exit point) trigger rollback before players enter the instance.
 - Confirm a rejected dynamic instance is removed from `InstanceManager` and does not remain as an orphan.
