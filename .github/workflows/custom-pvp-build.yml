@@ -71,6 +71,23 @@ jobs:
               assert tree.getroot().attrib.get("id") == template_id, f"Unexpected template ID in {filename}"
               assert tree.getroot().find("exitPoint") is not None, f"Missing exitPoint in {filename}"
 
+          # Guard against scripts compiling successfully but never being loaded by the script engine
+          # or leaving their manager NPC interactions unregistered.
+          script_specs = {
+              "Arena1v1/Arena1v1.java": ("Arena1v1", "70013", "3050"),
+              "Arena3v3/Arena3v3.java": ("Arena3v3", "70014", "3051"),
+              "LastHero/LastHero.java": ("LastHero", "70015", "3052"),
+          }
+          scripts_dir = root / "data/scripts/custom/events"
+          for relative_path, (class_name, npc_id, template_id) in script_specs.items():
+              source = (scripts_dir / relative_path).read_text(encoding="utf-8")
+              assert "public static void main(String[] args)" in source, f"Missing script entry point: {relative_path}"
+              assert f"new {class_name}();" in source, f"Entry point does not instantiate {class_name}"
+              assert f"MANAGER_NPC_ID = {npc_id}" in source, f"Wrong manager NPC ID: {relative_path}"
+              assert f"INSTANCE_TEMPLATE_ID = {template_id}" in source, f"Wrong instance template ID: {relative_path}"
+              for registration in ("addTalkId(MANAGER_NPC_ID)", "addStartNpc(MANAGER_NPC_ID)", "addFirstTalkId(MANAGER_NPC_ID)"):
+                  assert registration in source, f"Missing {registration} in {relative_path}"
+
           sql_dir = Path("dist/db_installer/sql/game")
           for filename in (
               "character_pvp_stats.sql",
