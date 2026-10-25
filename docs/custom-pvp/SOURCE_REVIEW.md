@@ -27,6 +27,8 @@ This is a source-level review only. No compilation, test server, database execut
 
 ### Match and rating integrity
 
+- Queue startup-failure paths now defer retries instead of repeatedly attempting a failed instance creation in the same matchmaking loop; verify retry behavior and queue flags during runtime validation.
+
 - Test simultaneous death, logout during finalization, timeout, event stop, and failed instance startup.
 - The 3v3 finalizer now rejects a winner team unless at least one member is both online and alive, including logout/timeout race paths.
 - Verify each match can finalize once only, and offline players retain return-location rows until login recovery succeeds.
