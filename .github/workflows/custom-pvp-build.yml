@@ -42,6 +42,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           import xml.etree.ElementTree as ET
 
           root = Path("dist/game")
@@ -50,6 +51,15 @@ jobs:
           npc_ids = [node.attrib["id"] for node in npc_tree.getroot().findall("npc")]
           for npc_id in ("70013", "70014", "70015"):
               assert npc_ids.count(npc_id) == 1, f"Expected exactly one custom NPC {npc_id}"
+
+          npc_pattern = re.compile(r'<npc\\b[^>]*\\bid=["\\'](70013|70014|70015)["\\']')
+          npc_matches = {"70013": [], "70014": [], "70015": []}
+          for candidate in (root / "data/stats/npcs").rglob("*.xml"):
+              source = candidate.read_text(encoding="utf-8", errors="ignore")
+              for match in npc_pattern.finditer(source):
+                  npc_matches[match.group(1)].append(candidate.resolve())
+          for npc_id, matches in npc_matches.items():
+              assert matches == [npc_file.resolve()], f"NPC ID {npc_id} is duplicated or missing: {matches}"
 
           expected_templates = {
               "Arena1v1.xml": "3050",
