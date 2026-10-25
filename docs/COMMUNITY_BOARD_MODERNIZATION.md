@@ -17,6 +17,7 @@ Replace the default Alt+B landing page with a compact, dark fantasy-themed dashb
 - Added `_bbspvptop`, a Top 10 PvP ranking using a fixed SQL query and a bounded result set.
 - Highlighted the current character in Top PvP when present and added empty/non-top-ten states.
 - Added `_bbsbuffer`, showing the player's saved buffer schemes and configured buffer categories from `SchemeBufferTable`.
+- Added a read-only detail page for each saved scheme, listing configured buff descriptions and levels; the page validates the numeric scheme index server-side.
 - Fixed the buffer page's return-to-home bypass quoting and avoided querying the scheme map twice.
 - Escaped character names before inserting them into HTML.
 - Kept other server services unlinked until their handlers can be confirmed.
