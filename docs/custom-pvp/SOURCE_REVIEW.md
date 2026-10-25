@@ -27,6 +27,7 @@ This is a source-level review only. No compilation, test server, database execut
 - Verify the three Giran manager coordinates are walkable and do not overlap existing NPCs; verify the fallback point is reachable and safe.
 - Match finalizers in 1v1, 3v3, and Last Hero now use the configured fallback if a saved return location points to an instance that no longer exists.
 - Test server shutdown/restart with participants inside an arena and confirm login recovery uses the saved return record without leaving a player stuck in an obsolete instance.
+- Force a return teleport failure and verify the persistent recovery row is retained until the player reaches the saved location or fallback on a later login.
 
 ### Match and rating integrity
 
