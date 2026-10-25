@@ -40,11 +40,17 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - PvP point milestones: Point Collector (100), Point Hunter (500), Point Master (1,000).
 - Progress is derived from saved statistics, so no extra achievement table or migration is needed.
 
+### Phase 6 — fake-player exclusion (code added, build/runtime test pending)
+
+- Mobius fake players are represented as NPCs, while custom PvP stats are entered through the Player-to-Player kill path.
+- Added an explicit defensive fake-player check in `CustomPvpStatsManager` so fake players cannot receive custom PvP kill credit or points if the call path changes later.
+- Existing `AntiFeedManager` validation remains in front of the custom stats call.
+
 ### Next phases
 
-1. Add queue/backlog diagnostics and define behavior for database outages; decide separately whether event/instance kills should award points.
-2. Inspect and implement fake-player exclusions using the actual Mobius player model.
-3. Reuse existing TvT and CTF event scripts; add 1v1/3v3 and Last Hero after core tracking is tested.
+1. Add queue/backlog diagnostics and define behavior for database outages.
+2. Specify event participation rules and reuse the existing TvT/CTF scripts before adding 1v1/3v3 and Last Hero.
+3. Review PvP rewards for anti-farm abuse; keep all rewards cosmetic/convenience-only.
 
 ## Design constraints
 
