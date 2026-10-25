@@ -33,6 +33,7 @@ This is a source-level review only. No compilation, test server, database execut
 - Queue startup-failure paths now defer retries instead of repeatedly attempting a failed instance creation in the same matchmaking loop; verify retry behavior and queue flags during runtime validation.
 
 - Test simultaneous death, logout during finalization, timeout, event stop, and failed instance startup.
+- Test teleporting out of each arena: the leaver must be eliminated/forfeit, while the normal finalizer's return teleport must not trigger a second result.
 - Verify Last Hero automatically schedules another round when four or more players remain queued after a match starts or eligibility filtering.
 - Stop and restart Last Hero during its 15-second countdown; confirm a callback from the previous run is ignored.
 - The 3v3 finalizer now rejects a winner team unless at least one member is both online and alive, including logout/timeout race paths.
