@@ -39,6 +39,7 @@ import org.l2jmobius.commons.time.SchedulingPattern;
 import org.l2jmobius.commons.time.TimeUtil;
 import org.l2jmobius.commons.util.IXmlReader;
 import org.l2jmobius.gameserver.config.custom.DualboxCheckConfig;
+import org.l2jmobius.gameserver.config.custom.CustomPvpConfig;
 import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.World;
 import org.l2jmobius.gameserver.entity.actor.Creature;
@@ -178,7 +179,7 @@ public class CtF extends Event
 	private static final int MINIMUM_PARTICIPANT_COUNT = 4;
 	private static final int MAXIMUM_PARTICIPANT_COUNT = 24; // Scoreboard has 25 slots
 	private static final int PARTY_MEMBER_COUNT = 7;
-	private static final ItemHolder REWARD = new ItemHolder(57, 100000); // Adena
+	private static final ItemHolder REWARD = new ItemHolder(57, CustomPvpConfig.CTF_REWARD_ADENA); // Configurable Adena reward
 	
 	// Misc
 	private static final Map<Player, Integer> PLAYER_SCORES = new ConcurrentHashMap<>();
@@ -624,7 +625,7 @@ public class CtF extends Event
 						{
 							participant.broadcastPacket(new MagicSkillUse(participant, participant, skill.getId(), skill.getLevel(), skill.getHitTime(), skill.getReuseDelay()));
 							participant.broadcastSocialAction(3);
-							giveItems(participant, REWARD);
+							giveEventReward(participant);
 						}
 					}
 				}
@@ -639,7 +640,7 @@ public class CtF extends Event
 						{
 							participant.broadcastPacket(new MagicSkillUse(participant, participant, skill.getId(), skill.getLevel(), skill.getHitTime(), skill.getReuseDelay()));
 							participant.broadcastSocialAction(3);
-							giveItems(participant, REWARD);
+							giveEventReward(participant);
 						}
 					}
 				}
@@ -654,7 +655,7 @@ public class CtF extends Event
 						{
 							participant.broadcastPacket(new MagicSkillUse(participant, participant, skill.getId(), skill.getLevel(), skill.getHitTime(), skill.getReuseDelay()));
 							participant.broadcastSocialAction(3);
-							giveItems(participant, REWARD);
+							giveEventReward(participant);
 						}
 					}
 				}
@@ -1670,7 +1671,15 @@ public class CtF extends Event
 		return false;
 	}
 	
-	public static void main(String[] args)
+		private void giveEventReward(Player player)
+	{
+		if (CustomPvpConfig.CTF_REWARD_ADENA > 0)
+		{
+			giveItems(player, REWARD);
+		}
+	}
+
+public static void main(String[] args)
 	{
 		new CtF();
 	}
