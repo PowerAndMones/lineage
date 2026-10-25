@@ -33,12 +33,14 @@ Do not consider this feature production-ready until the shared build and runtime
 - Matchmaking now creates a dynamic instance per pair, saves both players' return locations, adds both players to the instance allow-list, and teleports them to opposite Colosseum spawn points.
 - The match uses the instance's PvP rules rather than Mobius' native DuelManager. This avoids the native duel's fixed arena teleport path, which would pull participants out of the custom instance.
 - Death and logout are handled through event listeners. A one-time atomic finish guard prevents duplicate cleanup; online participants are revived if needed and returned to their saved locations. A disconnected participant's return location is held in memory for login restoration.
+- Matches have a five-minute time limit. When it expires, the match is closed without declaring a winner or granting a reward.
 - Stopping the event attempts to close active matches, and partial startup failure attempts to return both participants before destroying the instance.
 - No rating, custom PvP points, item rewards, or global announcements are added.
 
 Known limitations before production use:
 - Return locations for disconnected players are in memory only and will not survive a server process crash/restart.
-- Match timeout, restart recovery, full disconnect/death ordering, and instance template/spawn suitability still require validation.
+- Disconnected return locations still exist only in memory and will not survive a server process crash/restart.
+- Timeout handling is now present, but restart recovery, full disconnect/death ordering, and instance template/spawn suitability still require validation.
 - The code has not been compiled or runtime-tested, as requested; do not treat the prototype as production-ready.
 
 ## Dedicated arena implementation plan
