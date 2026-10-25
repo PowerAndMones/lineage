@@ -84,6 +84,10 @@ public class Arena1v1 extends Event
 	{
 		ACTIVE = false;
 		clearWaitingPlayers("1v1 Arena queue has been stopped.");
+		for (ArenaMatch match : Set.copyOf(MATCHES_BY_PLAYER.values()))
+		{
+			finishMatch(match, null, null);
+		}
 		if (MANAGER_NPC != null)
 		{
 			MANAGER_NPC.deleteMe();
@@ -397,6 +401,8 @@ public class Arena1v1 extends Event
 			catch (Exception e)
 			{
 				LOGGER.warning("1v1 Arena failed to create isolated match: " + e.getMessage());
+				playerA.teleToLocation(returnA, true);
+				playerB.teleToLocation(returnB, true);
 				if (world != null)
 				{
 					world.destroy();
