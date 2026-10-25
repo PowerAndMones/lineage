@@ -72,6 +72,8 @@ public class HomeBoard implements IParseBoardHandler
 	{
 		"_bbshome",
 		"_bbstop",
+		"_bbspvp",
+		"_bbspvptop",
 	};
 	
 	private static final String[] CUSTOM_COMMANDS =
@@ -161,6 +163,15 @@ public class HomeBoard implements IParseBoardHandler
 			if (!path.isEmpty() && path.endsWith(".html"))
 			{
 				returnHtml = HtmCache.getInstance().getHtm(player, "data/html/CommunityBoard/" + customPath + path);
+			}
+		}
+		else if (command.equals("_bbspvp") || command.equals("_bbspvptop"))
+		{
+			returnHtml = HtmCache.getInstance().getHtm(player, "data/html/CommunityBoard/Custom/pvp.html");
+			if (returnHtml != null)
+			{
+				returnHtml = returnHtml.replace("%my_stats%", getPvpStats(player));
+				returnHtml = returnHtml.replace("%top_list%", getPvpTop());
 			}
 		}
 		else if (command.startsWith("_bbsmultisell"))
@@ -336,6 +347,67 @@ public class HomeBoard implements IParseBoardHandler
 		return false;
 	}
 	
+	/**
+	 * Returns the current player's custom PvP statistics as Community Board HTML.
+	 * @param player the player
+	 * @return HTML fragment
+	 */
+	private static String getPvpStats(Player player)
+	{
+		final String query = "SELECT totalKills, totalDeaths, currentStreak, bestStreak FROM character_pvp_stats WHERE charId = ?";
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query))
+		{
+			ps.setInt(1, player.getObjectId());
+			try (ResultSet rs = ps.executeQuery())
+			{
+				if (rs.next())
+				{
+					return "<table width=450><tr><td width=110><font color=LEVEL>PvP kills:</font></td><td>" + rs.getInt("totalKills") + "</td><td width=110><font color=LEVEL>Deaths:</font></td><td>" + rs.getInt("totalDeaths") + "</td></tr><tr><td><font color=LEVEL>Current streak:</font></td><td>" + rs.getInt("currentStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestStreak") + "</td></tr></table>";
+				}
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			player.sendMessage("PvP statistics table is missing or unavailable. Install character_pvp_stats.sql first.");
+			return "<font color=FF6666>PvP statistics are temporarily unavailable.</font>";
+		}
+		return "<font color=AAAAAA>No PvP statistics yet. Win your first PvP fight to start tracking!</font>";
+	}
+
+	/**
+	 * Returns the top ten PvP players as Community Board HTML.
+	 * @return HTML fragment
+	 */
+	private static String getPvpTop()
+	{
+		final String query = "SELECT charName, totalKills, totalDeaths, bestStreak FROM character_pvp_stats ORDER BY totalKills DESC, bestStreak DESC, charName ASC LIMIT 10";
+		final StringBuilder html = new StringBuilder("<table width=450><tr><td width=35><font color=LEVEL>#</font></td><td width=180><font color=LEVEL>Player</font></td><td width=75><font color=LEVEL>Kills</font></td><td width=75><font color=LEVEL>Deaths</font></td><td><font color=LEVEL>Best streak</font></td></tr>");
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query);
+			ResultSet rs = ps.executeQuery())
+		{
+			int rank = 1;
+			while (rs.next())
+			{
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(rs.getString("charName")).append("</td><td>").append(rs.getInt("totalKills")).append("</td><td>").append(rs.getInt("totalDeaths")).append("</td><td>").append(rs.getInt("bestStreak")).append("</td></tr>");
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>Ranking unavailable. Install character_pvp_stats.sql first.</font></table>";
+		}
+		if (html.toString().endsWith("</table>"))
+		{
+			// Header-only table means no PvP records exist yet.
+			if (html.toString().contains("<tr><td width=35><font color=LEVEL>#</font></td>"))
+			{
+				// Keep the table valid; the first row is the header.
+			}
+		}
+		return html.append("</table>").toString();
+	}
+
 	/**
 	 * Gets the Favorite links for the given player.
 	 * @param player the player
