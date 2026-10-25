@@ -33,6 +33,8 @@ Do not consider this feature production-ready until the shared build and runtime
 - Matchmaking now creates a dynamic instance per pair, saves both players' return locations, adds both players to the instance allow-list, and teleports them to opposite Colosseum spawn points.
 - The match uses the instance's PvP rules rather than Mobius' native DuelManager. This avoids the native duel's fixed arena teleport path, which would pull participants out of the custom instance.
 - Death and logout are handled through event listeners. A one-time atomic finish guard prevents duplicate cleanup; online participants are revived if needed and returned to their saved locations.
+- Match start is synchronized with queue/stop/logout lifecycle operations. Death events are ignored until the match is fully registered, then player death/online state is rechecked immediately after startup.
+- If a saved return location references an instance that no longer exists after restart, login recovery uses the configured safe fallback location. A pending recovery record is not deleted if the player disconnects before the recovery task runs.
 - Each participant's original location is persisted in `character_arena1v1_return` before teleporting. On login, a pending location is restored and then deleted, allowing recovery after disconnects and server restarts.
 - Matches have a five-minute time limit. When it expires, the match is closed without declaring a winner or granting a reward.
 - Stopping the event attempts to close active matches, and partial startup failure attempts to return both participants before destroying the instance.
@@ -41,7 +43,7 @@ Do not consider this feature production-ready until the shared build and runtime
 Known limitations before production use:
 - Install `dist/db_installer/sql/game/character_arena1v1_return.sql` before enabling the event; the script requires this table to persist recovery locations.
 - Durable return-location storage and login restoration are now implemented in source, but their runtime behavior still requires validation.
-- Timeout handling is present; full disconnect/death ordering and instance template/spawn suitability still require validation.
+- Timeout and additional startup/death/logout guards are present in source; exact server-thread ordering, instance template/spawn suitability, and database recovery still require runtime validation.
 - The code has not been compiled or runtime-tested, as requested; do not treat the prototype as production-ready.
 
 ## Dedicated arena implementation plan
