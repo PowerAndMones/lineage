@@ -627,16 +627,6 @@ public class LastHero extends Event
 	}
 
 	/**
-	 * Stop the queue and remove its manager NPC before a script reload replaces this instance.
-	 */
-	@Override
-	public void unload()
-	{
-		eventStop();
-		super.unload();
-	}
-
-	/**
 	 * Loads the event script and registers its NPC interactions.
 	 * @param args unused script arguments
 	 */
