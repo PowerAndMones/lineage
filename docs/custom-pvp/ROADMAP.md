@@ -244,3 +244,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added explicit validation that the dynamic instance ID is positive before registering an arena world or teleporting participants in 1v1, 3v3, and Last Hero.
 - A failed or invalid instance creation now follows the existing rollback path instead of potentially treating instance ID zero as a successful match.
 - No build or runtime tests have been performed; confirm the target Mobius `createDynamicInstance` failure behavior and `InstanceWorld.destroy()` cleanup during final validation.
+
+
+### Phase 28 — PvP leaderboard index (SQL updated; validation pending)
+
+- Added a composite index on `pvpPoints`, `totalKills`, and `bestStreak` to support the Community Board's top-10 global PvP ranking.
+- Added `character_pvp_stats_add_points_index.sql` for existing installations where the column exists but the index is absent; the migration must be run only after confirming the index does not already exist.
+- No SQL execution or performance benchmark has been performed. Confirm the index with `SHOW INDEX` and compare the leaderboard query plan on representative data.
