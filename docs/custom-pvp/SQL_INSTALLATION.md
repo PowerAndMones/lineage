@@ -57,4 +57,4 @@ The PvP Center leaderboards also read the standard Mobius `characters` table and
 
 ## Current status
 
-The source and SQL installers are prepared on `feature/custom-pvp-core`. CI build and custom-script compilation passed on 2026-10-25. The installers, database-clock cooldown queries, and streak SQL smoke tests passed against a clean MariaDB 11.4 database in CI. The target server's database has not been accessed, and no live/test server or in-game validation has been performed. The arena modes must not be enabled on a live server until the remaining checklist is completed.
+The source and SQL installers are prepared on `feature/custom-pvp-core`. CI build and custom-script compilation passed on 2026-10-25. The installers, database-clock cooldown queries, and streak SQL smoke tests passed against a clean MariaDB 11.4 database in CI. The latest CI run passed both the compile job and SQL smoke-test job. The target server's database has not been accessed, and no live/test server or in-game validation has been performed. The arena modes must not be enabled on a live server until the remaining checklist is completed.
