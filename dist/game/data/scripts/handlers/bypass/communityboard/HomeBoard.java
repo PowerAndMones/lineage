@@ -354,7 +354,7 @@ public class HomeBoard implements IParseBoardHandler
 	 */
 	private static String getPvpStats(Player player)
 	{
-		final String query = "SELECT totalKills, totalDeaths, currentStreak, bestStreak FROM character_pvp_stats WHERE charId = ?";
+		final String query = "SELECT totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints FROM character_pvp_stats WHERE charId = ?";
 		try (Connection con = DatabaseFactory.getConnection();
 			PreparedStatement ps = con.prepareStatement(query))
 		{
@@ -363,7 +363,7 @@ public class HomeBoard implements IParseBoardHandler
 			{
 				if (rs.next())
 				{
-					return "<table width=450><tr><td width=110><font color=LEVEL>PvP kills:</font></td><td>" + rs.getInt("totalKills") + "</td><td width=110><font color=LEVEL>Deaths:</font></td><td>" + rs.getInt("totalDeaths") + "</td></tr><tr><td><font color=LEVEL>Current streak:</font></td><td>" + rs.getInt("currentStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestStreak") + "</td></tr></table>";
+					return "<table width=450><tr><td width=110><font color=LEVEL>PvP points:</font></td><td>" + rs.getInt("pvpPoints") + "</td><td width=110><font color=LEVEL>PvP kills:</font></td><td>" + rs.getInt("totalKills") + "</td></tr><tr><td><font color=LEVEL>Deaths:</font></td><td>" + rs.getInt("totalDeaths") + "</td><td><font color=LEVEL>Current streak:</font></td><td>" + rs.getInt("currentStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestStreak") + "</td></tr></table>";
 				}
 			}
 		}
@@ -381,8 +381,8 @@ public class HomeBoard implements IParseBoardHandler
 	 */
 	private static String getPvpTop()
 	{
-		final String query = "SELECT charName, totalKills, totalDeaths, bestStreak FROM character_pvp_stats ORDER BY totalKills DESC, bestStreak DESC, charName ASC LIMIT 10";
-		final StringBuilder html = new StringBuilder("<table width=450><tr><td width=35><font color=LEVEL>#</font></td><td width=180><font color=LEVEL>Player</font></td><td width=75><font color=LEVEL>Kills</font></td><td width=75><font color=LEVEL>Deaths</font></td><td><font color=LEVEL>Best streak</font></td></tr>");
+		final String query = "SELECT charName, totalKills, totalDeaths, bestStreak, pvpPoints FROM character_pvp_stats ORDER BY pvpPoints DESC, totalKills DESC, bestStreak DESC, charName ASC LIMIT 10";
+		final StringBuilder html = new StringBuilder("<table width=450><tr><td width=35><font color=LEVEL>#</font></td><td width=150><font color=LEVEL>Player</font></td><td width=75><font color=LEVEL>Points</font></td><td width=65><font color=LEVEL>Kills</font></td><td width=65><font color=LEVEL>Deaths</font></td><td><font color=LEVEL>Best streak</font></td></tr>");
 		try (Connection con = DatabaseFactory.getConnection();
 			PreparedStatement ps = con.prepareStatement(query);
 			ResultSet rs = ps.executeQuery())
@@ -390,7 +390,7 @@ public class HomeBoard implements IParseBoardHandler
 			int rank = 1;
 			while (rs.next())
 			{
-				html.append("<tr><td>").append(rank++).append("</td><td>").append(rs.getString("charName")).append("</td><td>").append(rs.getInt("totalKills")).append("</td><td>").append(rs.getInt("totalDeaths")).append("</td><td>").append(rs.getInt("bestStreak")).append("</td></tr>");
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(rs.getString("charName")).append("</td><td>").append(rs.getInt("pvpPoints")).append("</td><td>").append(rs.getInt("totalKills")).append("</td><td>").append(rs.getInt("totalDeaths")).append("</td><td>").append(rs.getInt("bestStreak")).append("</td></tr>");
 			}
 		}
 		catch (java.sql.SQLException e)
