@@ -398,7 +398,14 @@ public class Arena1v1 extends Event
 				{
 					final Location returnLocation = ((savedLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(savedLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : savedLocation;
 					player.teleToLocation(returnLocation, true);
-					deleteReturnLocation(player.getObjectId());
+					if (player.getInstanceId() == returnLocation.getInstanceId())
+					{
+						deleteReturnLocation(player.getObjectId());
+					}
+					else
+					{
+						LOGGER.warning("1v1 Arena could not restore player " + player.getObjectId() + " to the saved return location; recovery record retained.");
+					}
 				}
 			}, 2000);
 		}
