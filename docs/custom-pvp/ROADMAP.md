@@ -7,20 +7,26 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 ### Phase 1 — persistent PvP statistics (code added, build/runtime test pending)
 
 - `Player.increasePvpKills()` now calls `CustomPvpStatsManager` only after the existing `AntiFeedManager` check succeeds.
-- `CustomPvpStatsManager` atomically stores killer/victim totals, current streak, best streak, and kill timestamp in one database transaction.
-- `dist/db_installer/sql/game/character_pvp_stats.sql` creates the required InnoDB table.
-- This phase does not yet display the statistics in-game; Community Board and ranking UI are next.
+- `CustomPvpStatsManager` stores killer/victim totals, current streak, best streak, PvP points, and kill timestamp in one database transaction.
+- `dist/db_installer/sql/game/character_pvp_stats.sql` creates the required InnoDB table, including `pvpPoints`.
+- `dist/db_installer/sql/game/character_pvp_stats_add_points.sql` adds the points column to an existing table; run it only once on an existing installation.
 
 ### Phase 2 — Community Board PvP stats and ranking (code added, runtime test pending)
 
 - Added `_bbspvp` and `_bbspvptop` commands to `HomeBoard.java`.
 - Added `Custom/pvp.html` with personal stats and a top-10 leaderboard.
 - Added a `PvP Ranking` navigation button.
-- The page reads from `character_pvp_stats`; install the SQL file before testing.
+- The page reads from `character_pvp_stats` and ranks players by PvP points, then kills and best streak. Install the SQL file before testing.
+
+### Phase 3 — anti-farm and PvP points (code added, build/runtime test pending)
+
+- The same killer-victim pair can award custom stats and one PvP point only once per 10 minutes.
+- The cooldown is currently in memory and resets on server restart; it does not change the core PvP counter.
+- The Community Board ranking is sorted by PvP points first.
 
 ### Next phases
 
-1. Add configurable anti-farm rules before granting custom points or rewards: repeated-kill cooldown and exclusions for events/instances/PvP zones.
+1. Make the cooldown configurable and persist it across server restarts; exclude event/instance/PvP-zone kills according to server rules.
 2. Improve ranking filters and add kill-streak announcements.
 3. Reuse existing TvT and CTF event scripts; add 1v1/3v3 and Last Hero after core tracking is tested.
 
