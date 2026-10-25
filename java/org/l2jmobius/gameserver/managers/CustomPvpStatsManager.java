@@ -47,7 +47,7 @@ public final class CustomPvpStatsManager
 	private static final AtomicBoolean WORKER_RUNNING = new AtomicBoolean(false);
 	private static final AtomicBoolean BACKLOG_WARNING_ACTIVE = new AtomicBoolean(false);
 	private static final AtomicBoolean QUEUE_FULL_WARNING_ACTIVE = new AtomicBoolean(false);
-	private static final String UPSERT_KILLER = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 1, 0, 1, 1, 1, NOW()) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalKills = totalKills + 1, bestStreak = GREATEST(bestStreak, currentStreak + 1), currentStreak = currentStreak + 1, pvpPoints = pvpPoints + 1, lastKillTime = NOW()";
+	private static final String UPSERT_KILLER = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 1, 0, 1, 1, ?, NOW()) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalKills = totalKills + 1, bestStreak = GREATEST(bestStreak, currentStreak + 1), currentStreak = currentStreak + 1, pvpPoints = pvpPoints + ?, lastKillTime = NOW()";
 	private static final String UPSERT_VICTIM = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 0, 1, 0, 0, 0, NULL) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalDeaths = totalDeaths + 1, currentStreak = 0";
 	private static final CustomPvpStatsManager INSTANCE = new CustomPvpStatsManager();
 
@@ -96,7 +96,7 @@ public final class CustomPvpStatsManager
 		// do not earn global custom kills or points unless explicitly enabled.
 		final boolean eventRewardAllowed = CustomPvpConfig.REWARD_EVENT_KILLS || (!killer.isOnEvent() && !victim.isOnEvent() && !killer.isRegisteredOnEvent() && !victim.isRegisteredOnEvent());
 		final boolean instanceRewardAllowed = CustomPvpConfig.REWARD_INSTANCE_KILLS || ((killer.getInstanceId() == 0) && (victim.getInstanceId() == 0));
-		boolean awardKiller = eventRewardAllowed && instanceRewardAllowed;
+		boolean awardKiller = eventRewardAllowed && instanceRewardAllowed && (victim.getLevel() >= CustomPvpConfig.MINIMUM_REWARD_LEVEL) && ((CustomPvpConfig.MAX_REWARD_LEVEL_DIFFERENCE <= 0) || (Math.abs(killer.getLevel() - victim.getLevel()) <= CustomPvpConfig.MAX_REWARD_LEVEL_DIFFERENCE));
 
 		// Only reward-eligible kills consume the killer-victim anti-farm cooldown.
 		if (awardKiller)
@@ -284,6 +284,8 @@ public final class CustomPvpStatsManager
 					{
 						ps.setInt(1, record.killerId);
 						ps.setString(2, record.killerName);
+						ps.setInt(3, CustomPvpConfig.POINTS_PER_KILL);
+						ps.setInt(4, CustomPvpConfig.POINTS_PER_KILL);
 						ps.executeUpdate();
 					}
 				}
