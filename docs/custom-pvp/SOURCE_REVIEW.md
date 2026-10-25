@@ -12,7 +12,7 @@ This is a source-level review only. No compilation, test server, database execut
 
 ### Script and event lifecycle
 
-- Confirm the target Mobius script loader instantiates all three Event scripts and registers their annotated death/login/logout listeners.
+- Confirm the target Mobius script loader invokes each custom Event script's `main` entry point exactly once and registers its annotated death/login/logout listeners.
 - Confirm the event admin/start-stop mechanism exposes the expected script names and can start/stop each queue.
 - Confirm eventBypass, onEvent, and NPC bypass strings are dispatched as expected by this exact Mobius revision.
 - Confirm custom NPC IDs 70013–70015 are available and not already used by another datapack feature.
