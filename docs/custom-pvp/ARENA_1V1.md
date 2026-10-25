@@ -6,7 +6,7 @@ Status: core and custom-script compilation passed in CI; database and in-game va
 
 - Event script: `dist/game/data/scripts/custom/events/Arena1v1/Arena1v1.java`; manager NPC ID 70013.
 - Eligible players join a FIFO queue through the NPC's Join, Leave, and Status actions.
-- Each match gets a separate dynamic PvP instance using template 3050, with opposite Colosseum spawn points.
+- Each match gets a separate dynamic PvP instance using template 3053, with opposite Colosseum spawn points. Template 3050 is already assigned to the existing Capture the Flag event.
 - The script saves both return locations before teleporting players and verifies that each participant entered the expected instance.
 - Death, logout, leaving the arena, timeout, and event stop converge on an atomic finalizer. A match can be finalized only once.
 - Match timeout is five minutes and produces no winner or rating change.
