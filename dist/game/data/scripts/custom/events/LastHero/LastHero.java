@@ -326,7 +326,8 @@ public class LastHero extends Event
 			{
 				if (p.isDead()) p.doRevive();
 				final Location dest = match.returnLocations.get(p.getObjectId());
-				p.teleToLocation(dest != null ? dest : RETURN_FALLBACK, true);
+				final Location safeDestination = (dest == null) || ((dest.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(dest.getInstanceId()) == null)) ? RETURN_FALLBACK : dest;
+				p.teleToLocation(safeDestination, true);
 				deleteReturnLocation(p.getObjectId());
 				p.sendMessage(winner == null ? (timeout ? "Last Hero ended without a winner (time limit)." : "Last Hero ended without a winner.") : (p == winner ? "You won Last Hero!" : "Last Hero winner: " + winner.getName() + "."));
 			}
