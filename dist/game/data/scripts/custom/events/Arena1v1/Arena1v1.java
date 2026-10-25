@@ -398,7 +398,7 @@ public class Arena1v1 extends Event
 				{
 					final Location returnLocation = ((savedLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(savedLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : savedLocation;
 					player.teleToLocation(returnLocation, true);
-					if (player.getInstanceId() == returnLocation.getInstanceId())
+					if ((player.getInstanceId() == returnLocation.getInstanceId()) && (Math.abs(player.getX() - returnLocation.getX()) <= 500) && (Math.abs(player.getY() - returnLocation.getY()) <= 500) && (Math.abs(player.getZ() - returnLocation.getZ()) <= 500))
 					{
 						deleteReturnLocation(player.getObjectId());
 					}
