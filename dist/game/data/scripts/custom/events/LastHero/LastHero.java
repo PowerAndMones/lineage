@@ -511,6 +511,7 @@ public class LastHero extends Event
 				}
 				world = new InstanceWorld();
 				world.setInstance(InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID));
+				if (world.getInstanceId() <= 0) throw new IllegalStateException("Invalid Last Hero instance ID.");
 				InstanceManager.getInstance().addWorld(world);
 				for (Player p : players) world.addAllowed(p);
 				for (int i = 0; i < players.size(); i++) players.get(i).teleToLocation(SPAWNS[i], world.getInstanceId(), 50);
