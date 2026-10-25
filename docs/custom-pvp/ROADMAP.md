@@ -74,7 +74,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 ## Next phases
 
-1. Upgrade 1v1 from queue-to-native-duel to a dedicated isolated match lifecycle: arena entry/exit, disconnect and timeout handling, winner detection, and cleanup.
+1. Upgrade 1v1 from queue-to-native-duel to a dedicated isolated match lifecycle. The required lifecycle and known Mobius integration points are now documented in `docs/custom-pvp/ARENA_1V1.md`; source implementation must first resolve instance-duel compatibility, template/spawn selection, saved return locations, disconnect handling, and one-time result finalization.
 2. Add a dedicated 1v1 rating/statistics table and anti-farm-safe reward rules; keep rewards cosmetic/convenience only.
 3. Extend the stable match lifecycle to 3v3 and Last Hero.
 4. Add durable recovery for custom PvP-stat records that exceed retry attempts if lossless persistence is required through long database outages.
