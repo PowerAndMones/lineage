@@ -256,7 +256,7 @@ public class Arena1v1 extends Event
 		}
 	}
 
-	private void startMatch(Player playerA, Player playerB)
+	private synchronized void startMatch(Player playerA, Player playerB)
 	{
 		final ArenaMatch match = new ArenaMatch(playerA, playerB);
 		if (!match.start())
@@ -273,9 +273,24 @@ public class Arena1v1 extends Event
 		playerB.setRegisteredOnEvent(false);
 		playerA.setOnEvent(true);
 		playerB.setOnEvent(true);
+		match.markStarted();
 		playerA.sendMessage("1v1 Arena match started against " + playerB.getName() + ".");
 		playerB.sendMessage("1v1 Arena match started against " + playerA.getName() + ".");
 		ThreadPool.schedule(() -> finishMatch(match, null, null, true), MATCH_TIMEOUT_MILLIS);
+		if (playerA.isDead() && !playerB.isDead())
+		{
+			finishMatch(match, playerA, playerB);
+		}
+		else if (playerB.isDead() && !playerA.isDead())
+		{
+			finishMatch(match, playerB, playerA);
+		}
+		else if ((playerA.isOnlineInt() != 1) || (playerB.isOnlineInt() != 1))
+		{
+			final Player disconnected = playerA.isOnlineInt() != 1 ? playerA : playerB;
+			final Player opponent = match.getOpponent(disconnected);
+			finishMatch(match, disconnected, (opponent.isOnlineInt() == 1) ? opponent : null);
+		}
 	}
 
 	private synchronized void queueAgainIfEligible(Player player)
@@ -297,7 +312,7 @@ public class Arena1v1 extends Event
 		}
 		final Player loser = target.asPlayer();
 		final ArenaMatch match = MATCHES_BY_PLAYER.get(loser.getObjectId());
-		if (match != null)
+		if ((match != null) && match.isStarted())
 		{
 			ThreadPool.schedule(() -> finishMatch(match, loser, match.getOpponent(loser)), 1000);
 		}
@@ -320,7 +335,7 @@ public class Arena1v1 extends Event
 		if (match != null)
 		{
 			final Player opponent = match.getOpponent(player);
-			ThreadPool.schedule(() -> finishMatch(match, player, opponent), 100);
+			ThreadPool.schedule(() -> finishMatch(match, player, (opponent.isOnlineInt() == 1) ? opponent : null), 100);
 		}
 	}
 
@@ -332,11 +347,12 @@ public class Arena1v1 extends Event
 		{
 			return;
 		}
-		final Location returnLocation = loadReturnLocation(player.getObjectId());
-		if (returnLocation != null)
+		final Location savedLocation = loadReturnLocation(player.getObjectId());
+		if (savedLocation != null)
 		{
 			ThreadPool.schedule(() ->
 			{
+				final Location returnLocation = ((savedLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(savedLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : savedLocation;
 				player.teleToLocation(returnLocation, true);
 				deleteReturnLocation(player.getObjectId());
 			}, 2000);
@@ -391,6 +407,7 @@ public class Arena1v1 extends Event
 		private final Location returnA;
 		private final Location returnB;
 		private final AtomicBoolean finished = new AtomicBoolean();
+		private volatile boolean started;
 		private InstanceWorld world;
 
 		private ArenaMatch(Player playerA, Player playerB)
@@ -447,6 +464,16 @@ public class Arena1v1 extends Event
 		private Location getReturnLocation(Player player)
 		{
 			return player == playerA ? returnA : returnB;
+		}
+
+		private void markStarted()
+		{
+			started = true;
+		}
+
+		private boolean isStarted()
+		{
+			return started && !finished.get();
 		}
 
 		private boolean finish()
