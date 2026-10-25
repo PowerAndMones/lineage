@@ -326,8 +326,8 @@ public class Arena3v3 extends Event
 		{
 			return;
 		}
-		final boolean teamAAlive = match.teamA.stream().anyMatch(p -> (p.isOnlineInt() == 1) && !p.isDead());
-		final boolean teamBAlive = match.teamB.stream().anyMatch(p -> (p.isOnlineInt() == 1) && !p.isDead());
+		final boolean teamAAlive = match.teamA.stream().anyMatch(p -> (p.isOnlineInt() == 1) && !p.isDead() && (p.getInstanceId() == match.world.getInstanceId()));
+		final boolean teamBAlive = match.teamB.stream().anyMatch(p -> (p.isOnlineInt() == 1) && !p.isDead() && (p.getInstanceId() == match.world.getInstanceId()));
 		if (!teamAAlive && !teamBAlive)
 		{
 			finishMatch(match, null, false);
@@ -395,7 +395,7 @@ public class Arena3v3 extends Event
 		{
 			return;
 		}
-		if ((winningTeam != null) && winningTeam.stream().noneMatch(p -> (p.isOnlineInt() == 1) && !p.isDead()))
+		if ((winningTeam != null) && winningTeam.stream().noneMatch(p -> (p.isOnlineInt() == 1) && !p.isDead() && (p.getInstanceId() == match.world.getInstanceId())))
 		{
 			// A winner team must have at least one living, connected player.
 			winningTeam = null;
