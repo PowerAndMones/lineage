@@ -472,7 +472,7 @@ public class Arena3v3 extends Event
 					}
 					for (Player p : losingTeam)
 					{
-						final int next = ratings.get(p.getObjectId()) + (int) Math.round(RATING_K_FACTOR * (0.0 - (1.0 - expectedWin)));
+						final int next = ratings.get(p.getObjectId()) + (int) Math.round(RATING_K_FACTOR * (0.0 - expectedWin));
 						try (PreparedStatement ps = con.prepareStatement(UPDATE_LOSS))
 						{
 							ps.setInt(1, next);
