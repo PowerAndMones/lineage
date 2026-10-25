@@ -314,3 +314,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Throttled the in-memory killer-victim cooldown-cache cleanup so a cache larger than 10,000 entries is not fully scanned on every PvP kill during a large, active mass battle.
 - Cleanup now runs at most once per configured cooldown interval, with a 10-second minimum interval when the cooldown is disabled or very short.
 - No load test has been performed; measure CPU and memory under high pair diversity and verify expired entries are still reclaimed.
+
+
+### Phase 38 — null instance creation rollback (source updated; validation pending)
+
+- The arena startup paths now validate the `Instance` returned by `createDynamicInstance` before assigning it to an `InstanceWorld`. A null or invalid instance is rejected before the world is registered, so rollback does not try to destroy a world whose internal instance reference is null.
+- This complements the earlier positive-ID guard for all three match types.
+- No build or runtime test has been performed; verify the exact Mobius instance manager's failure behavior and cleanup path.
