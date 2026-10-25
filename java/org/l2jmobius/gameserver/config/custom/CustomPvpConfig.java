@@ -26,6 +26,9 @@ public class CustomPvpConfig
 	private static final String CUSTOM_PVP_CONFIG_FILE = "./config/Custom/CustomPvp.ini";
 
 	public static int REPEAT_KILL_COOLDOWN_SECONDS;
+	public static int POINTS_PER_KILL;
+	public static int MINIMUM_REWARD_LEVEL;
+	public static int MAX_REWARD_LEVEL_DIFFERENCE;
 	public static int QUEUE_WARNING_THRESHOLD;
 	public static int MAX_PENDING_RECORDS;
 	public static int DB_RETRY_ATTEMPTS;
@@ -36,6 +39,9 @@ public class CustomPvpConfig
 	{
 		final ConfigReader config = new ConfigReader(CUSTOM_PVP_CONFIG_FILE);
 		REPEAT_KILL_COOLDOWN_SECONDS = Math.max(0, config.getInt("RepeatKillCooldownSeconds", 30));
+		POINTS_PER_KILL = Math.max(0, config.getInt("PointsPerKill", 1));
+		MINIMUM_REWARD_LEVEL = Math.max(1, config.getInt("MinimumRewardLevel", 1));
+		MAX_REWARD_LEVEL_DIFFERENCE = Math.max(0, config.getInt("MaxRewardLevelDifference", 0));
 		QUEUE_WARNING_THRESHOLD = Math.max(0, config.getInt("QueueWarningThreshold", 1000));
 		MAX_PENDING_RECORDS = Math.max(0, config.getInt("MaxPendingRecords", 10000));
 		DB_RETRY_ATTEMPTS = Math.max(1, Math.min(10, config.getInt("DatabaseRetryAttempts", 3)));
