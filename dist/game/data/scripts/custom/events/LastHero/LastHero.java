@@ -72,7 +72,7 @@ public class LastHero extends Event
 		new Location(149750, 45722, -3416, 16384)
 	};
 	private static final Location RETURN_FALLBACK = new Location(83425, 148585, -3406);
-	private static final Location MANAGER_SPAWN = new Location(83425, 148585, -3406, 32938);
+	private static final Location MANAGER_SPAWN = new Location(83600, 148585, -3406, 32938);
 	private static final ConcurrentLinkedQueue<Player> WAITING = new ConcurrentLinkedQueue<>();
 	private static final Set<Integer> WAITING_IDS = ConcurrentHashMap.newKeySet();
 	private static final Map<Integer, HeroMatch> MATCHES = new ConcurrentHashMap<>();
