@@ -53,6 +53,15 @@ The custom PvP reward rules are configured in `dist/game/config/Custom/CustomPvp
 
 The new reward-level settings affect only the custom PvP stats and points; core PvP/PK counters and event-specific scores are unchanged. These latest config additions are not yet included in the earlier CI validation snapshot and must be covered by the combined validation pass.
 
+## TvT and Capture the Flag reward settings
+
+The existing TvT and Capture the Flag winner rewards are now configurable in `dist/game/config/Custom/CustomPvp.ini`:
+
+- `TvTRewardAdena = 100000`
+- `CtFRewardAdena = 100000`
+
+Each amount is paid to each winning participant, including a team that wins by forfeit. Set the corresponding amount to `0` to disable that event's Adena payout. These settings do not change event scoring or global custom PvP points. The latest source changes still need the planned combined compile and runtime validation.
+
 ## Queue startup behavior
 
 1v1 Arena, 3v3 Arena, and Last Hero are designed as always-available matchmaking queues. Their scripts open the queues and spawn manager NPCs when loaded; they do not require an event schedule in `config.xml` or a separate NPC spawn row. If a manager NPC fails to spawn, the mode remains closed and writes a warning to the game log. Reloading scripts stops active matches and removes the old manager before the replacement starts.
