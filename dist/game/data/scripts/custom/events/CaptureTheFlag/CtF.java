@@ -1386,14 +1386,14 @@ public class CtF extends Event
 		{
 			return;
 		}
-		
+
 		final Player killedPlayer = event.getTarget().asPlayer();
 		// Ignore deaths outside this event. This listener is registered globally.
 		if (!PLAYER_LIST.contains(killedPlayer))
 		{
 			return;
 		}
-		
+
 		final Creature attacker = event.getAttacker();
 		final Player killer = (attacker != null) ? attacker.asPlayer() : null;
 		if ((killer != null) && PLAYER_LIST.contains(killer) && PLAYER_SCORES.containsKey(killer))
@@ -1415,7 +1415,7 @@ public class CtF extends Event
 				}
 			}
 		}
-		
+
 		if (playerIsCarrier(killedPlayer))
 		{
 			removeFlagCarrier(killedPlayer);
@@ -1423,7 +1423,7 @@ public class CtF extends Event
 			final String killerName = (killer != null) ? killer.getName() : "A player";
 			broadcastScreenMessage(killerName + " has killed " + killedPlayer.getName() + ". Flag returned to base!", 7);
 		}
-		
+
 		// Auto release registered event participants after 10 seconds.
 		startQuestTimer("ResurrectPlayer", 10000, null, killedPlayer);
 	}
