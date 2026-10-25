@@ -172,3 +172,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added `docs/custom-pvp/SOURCE_REVIEW.md` with a focused checklist for script discovery, event lifecycle, instances, recovery, rating integrity, database schema, and Community Board rendering.
 - Corrected the 1v1, 3v3, and Last Hero repeat-match cooldown messages to state that rating and rated counters remain unchanged; the cooldown transaction rolls back rather than recording a rated result.
 - This is still source-level review only. No compilation, database execution, or in-game testing has been performed.
+
+### Phase 18 — Community Board leaderboard output hardening (source updated; validation pending)
+
+- Escaped character names in the general PvP leaderboard and the 1v1 Arena leaderboard before inserting them into Community Board HTML.
+- These paths now use the same shared escaping helper already used by the 3v3 and Last Hero rating leaderboards.
+- Added `docs/custom-pvp/COMMUNITY_BOARD_REVIEW.md` with HTML-safety and release checks.
+- No compilation, SQL execution, or runtime tests have been performed.
