@@ -1,6 +1,15 @@
-# Custom PvP Core — initial design
+# Custom PvP Core — roadmap and validation status
 
 This branch is for the custom x1000 Interlude PvP feature set. The upstream `main` branch remains unchanged.
+
+## Current validation snapshot — 2026-10-25
+
+- GitHub Actions passed: L2J Mobius core compilation on Temurin JDK 27.
+- GitHub Actions passed: compilation of 1v1 Arena, 3v3 Arena, Last Hero, TvT, CtF, and Community Board scripts against the current core/libraries.
+- GitHub Actions passed: XML parsing, expected NPC/template ID checks, SQL installer file-presence checks, and whitespace validation.
+- Not yet done: execute SQL against the target database, start the game server, test event/NPC loading, or run in-game match and recovery scenarios.
+- The phase entries below are a chronological implementation record; earlier notes saying “build pending” describe the status at that historical point. This snapshot supersedes those earlier build-status notes.
+
 
 ## Implementation status
 
@@ -85,13 +94,14 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - Spawn validation and full lifecycle testing remain outstanding.
 - No custom rewards, rating, PvP points, or global announcements are issued.
 
-## Next phases
+## Remaining work before production
 
-1. Harden the isolated 1v1 prototype and rated result integration: validate instance/spawn behavior, database recovery, transaction locking, and death/logout/timeout race conditions.
-2. Add Community Board display for 1v1 rating, wins/losses, and leaderboard after source integration is validated.
-3. Harden and validate the 1v1, 3v3 and Last Hero prototypes before enabling them on a live server.
-4. Add durable recovery for custom PvP-stat records that exceed retry attempts if lossless persistence is required through long database outages.
-5. Prepare full build and runtime validation only after the planned source changes are complete.
+1. Apply the documented SQL installers to a backed-up test database and verify every query and transaction.
+2. Start the server and confirm script discovery, event admin start/stop, NPC spawn and bypass routing.
+3. Test 1v1, 3v3, and Last Hero with real players: wins, simultaneous deaths, disconnects, teleport-out, timeouts, stop/restart, and failed instance startup.
+4. Validate spawn/fallback coordinates and verify return-location recovery after disconnect and server restart.
+5. Review Community Board rendering and leaderboards on the target Interlude client.
+6. Keep the features disabled on production until all runtime and database checks pass.
 
 ## Design constraints
 
