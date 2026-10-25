@@ -284,6 +284,7 @@ public class LastHero extends Event
 		final HeroMatch match = MATCHES.get(player.getObjectId());
 		if ((match != null) && match.started && !match.finished.get() && (match.world != null) && (player.getInstanceId() != match.world.getInstanceId()))
 		{
+			match.eliminated.add(player.getObjectId());
 			ThreadPool.schedule(() -> resolveWinner(match), 100);
 		}
 	}
@@ -291,7 +292,7 @@ public class LastHero extends Event
 	private void resolveWinner(HeroMatch match)
 	{
 		if (!match.started || match.finished.get()) return;
-		final List<Player> alive = match.players.stream().filter(p -> (p.isOnlineInt() == 1) && !p.isDead() && (match.world != null) && (p.getInstanceId() == match.world.getInstanceId())).toList();
+		final List<Player> alive = match.players.stream().filter(p -> !match.eliminated.contains(p.getObjectId()) && (p.isOnlineInt() == 1) && !p.isDead() && (match.world != null) && (p.getInstanceId() == match.world.getInstanceId())).toList();
 		if (alive.size() == 1) finishMatch(match, alive.get(0), false);
 		else if (alive.isEmpty()) finishMatch(match, null, false);
 	}
@@ -310,7 +311,12 @@ public class LastHero extends Event
 			}
 		}
 		final HeroMatch match = MATCHES.get(p.getObjectId());
-		if (match != null) ThreadPool.schedule(() -> resolveWinner(match), 100);
+		if (match != null)
+		{
+			// A logout event can fire before isOnlineInt() flips to offline; mark the player eliminated explicitly.
+			match.eliminated.add(p.getObjectId());
+			ThreadPool.schedule(() -> resolveWinner(match), 100);
+		}
 	}
 
 	@RegisterEvent(EventType.ON_PLAYER_LOGIN)
@@ -516,6 +522,7 @@ public class LastHero extends Event
 	{
 		private final List<Player> players;
 		private final Map<Integer, Location> returnLocations = new ConcurrentHashMap<>();
+		private final Set<Integer> eliminated = ConcurrentHashMap.newKeySet();
 		private final AtomicBoolean finished = new AtomicBoolean();
 		private volatile boolean started;
 		private InstanceWorld world;
