@@ -223,3 +223,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Custom PvP reward eligibility now checks both active event participation and event registration, so queued players do not earn global kill credit or points while waiting.
 - Victim death and streak-reset tracking remains governed by the existing policy when killer rewards are suppressed.
 - No build or runtime tests have been run. Confirm the target Mobius `isRegisteredOnEvent()` semantics before release.
+
+
+### Phase 25 — database-clock cooldown checks (source updated; validation pending)
+
+- The 1v1, 3v3, and Last Hero rating transactions now calculate cooldown age with `TIMESTAMPDIFF` and the database's `CURRENT_TIMESTAMP`, instead of comparing SQL `DATETIME` values to the game JVM clock.
+- This avoids cooldown decisions changing when the database and game server use different time zones or clock settings.
+- No SQL execution or runtime tests have been performed; verify the query syntax against the exact MySQL/MariaDB version used by the target server.
