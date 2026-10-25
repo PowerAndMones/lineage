@@ -18,7 +18,7 @@ Replace the default Alt+B landing page with a compact, dark fantasy-themed dashb
 - Highlighted the current character in Top PvP when present and added empty/non-top-ten states.
 - Added `_bbsbuffer`, showing the player's saved buffer schemes and configured buffer categories from `SchemeBufferTable`.
 - Added a read-only detail page for each saved scheme, listing configured buff descriptions and levels; the page validates the numeric scheme index server-side.
-- Added a per-skill and estimated total cost preview using the configured static cost or each buff's configured price, and displayed the configured cost item ID; this is informational only and does not charge items or apply buffs.
+- Added a per-skill and estimated total cost preview using the configured static cost or each buff's configured price, and displayed the configured cost item ID; negative configured prices are clamped to zero in the display and total. This is informational only and does not charge items or apply buffs.
 - Reused one ordered snapshot of scheme entries when rendering the list and resolving the selected scheme, avoiding repeated list construction and keeping the displayed indexes aligned with the detail view.
 - Fixed the buffer page's return-to-home bypass quoting and avoided querying the scheme map twice.
 - Escaped character names before inserting them into HTML.
