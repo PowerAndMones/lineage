@@ -349,3 +349,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added creature-teleport listeners to the 1v1, 3v3, and Last Hero modes. A participant who leaves the match instance is treated as a forfeit or elimination.
 - Winner and survivor checks now require the player to remain in that match's dynamic instance.
 - No in-game validation has been performed; verify normal return teleports are not mistaken for exits and that escape attempts cannot keep a match alive.
+
+
+### Phase 43 — remove undefined arena door references (XML updated; validation pending)
+
+- Removed the four placeholder door IDs from all three custom instance templates. No matching door definitions were found in the branch, and these arenas do not require doors to run their core matchmaking flow.
+- This avoids loading instance templates with references to undefined doors. If physical arena gates are desired later, add actual door definitions first and then reference those IDs from the instance templates.
+- XML parsing and instance-loader validation have not yet been run against the server.
