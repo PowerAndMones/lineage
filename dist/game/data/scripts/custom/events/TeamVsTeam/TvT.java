@@ -1037,14 +1037,14 @@ public class TvT extends Event
 		{
 			return;
 		}
-		
+
 		final Player killedPlayer = event.getTarget().asPlayer();
 		// Ignore deaths outside this event. This listener is registered globally.
 		if (!PLAYER_LIST.contains(killedPlayer))
 		{
 			return;
 		}
-		
+
 		final Creature attacker = event.getAttacker();
 		final Player killer = (attacker != null) ? attacker.asPlayer() : null;
 		if ((killer != null) && PLAYER_LIST.contains(killer) && PLAYER_SCORES.containsKey(killer))
@@ -1062,11 +1062,11 @@ public class TvT extends Event
 				broadcastScoreMessage();
 			}
 		}
-		
+
 		// Auto release registered event participants after 10 seconds.
 		startQuestTimer("ResurrectPlayer", 10000, null, killedPlayer);
 	}
-	
+
 	@Override
 	public boolean eventStart(Player eventMaker)
 	{
