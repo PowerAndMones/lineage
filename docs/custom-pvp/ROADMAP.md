@@ -321,3 +321,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The arena startup paths now validate the `Instance` returned by `createDynamicInstance` before assigning it to an `InstanceWorld`. A null or invalid instance is rejected before the world is registered, so rollback does not try to destroy a world whose internal instance reference is null.
 - This complements the earlier positive-ID guard for all three match types.
 - No build or runtime test has been performed; verify the exact Mobius instance manager's failure behavior and cleanup path.
+
+
+### Phase 39 — reject unloaded arena templates (source updated; validation pending)
+
+- Match startup now verifies the returned dynamic instance has the expected template ID and a non-null exit location, in addition to a valid instance ID.
+- This catches missing or malformed instance XML before players are teleported into an empty/unconfigured instance.
+- No runtime test has been performed; temporarily remove or corrupt a template on a test server and confirm startup rolls back cleanly without leaving players in an instance.
