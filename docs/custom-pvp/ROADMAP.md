@@ -197,6 +197,6 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 ### Phase 21 — rating formula correction (source updated; validation pending)
 
-- Corrected the 3v3 losing-team rating delta to use the complementary expected score, matching the winner's Elo calculation.
+- Reviewed the 3v3 team Elo formula and restored the complementary expected-score loss calculation.
 - Corrected Last Hero's loser delta to distribute the winner's rating gain across all opponents rather than scaling losses by the winner's expected score.
 - These changes are source-level only. No compilation, database execution, or runtime tests have been performed; verify rating changes for underdog and favorite scenarios before launch.
