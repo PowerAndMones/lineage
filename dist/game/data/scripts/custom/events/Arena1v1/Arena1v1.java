@@ -417,7 +417,7 @@ public class Arena1v1 extends Event
 			loser = null;
 			winner = null;
 		}
-		if ((winner != null) && ((loser == null) || (winner == loser) || winner.isDead() || (winner.isOnlineInt() != 1)))
+		if ((winner != null) && ((loser == null) || (winner == loser) || winner.isDead() || (winner.isOnlineInt() != 1) || (match.world == null) || (winner.getInstanceId() != match.world.getInstanceId())))
 		{
 			loser = null;
 			winner = null;
