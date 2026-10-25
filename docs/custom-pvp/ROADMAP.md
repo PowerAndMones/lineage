@@ -179,3 +179,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - These paths now use the same shared escaping helper already used by the 3v3 and Last Hero rating leaderboards.
 - Added `docs/custom-pvp/COMMUNITY_BOARD_REVIEW.md` with HTML-safety and release checks.
 - No compilation, SQL execution, or runtime tests have been performed.
+
+### Phase 19 — arena return-location safety (source updated; validation pending)
+
+- Hardened match finalization in 1v1 Arena, 3v3 Arena, and Last Hero: if a participant's saved return location points to an instance that no longer exists, the finalizer sends them to the configured safe fallback instead of attempting to return them to the stale instance.
+- The existing login-recovery fallback remains in place for players who disconnect or reconnect after an instance has been destroyed.
+- Updated `docs/custom-pvp/SOURCE_REVIEW.md` with the corresponding release check.
+- This is source-level hardening only. No build, SQL execution, or runtime test was run; exact Mobius API compatibility and in-game teleport behavior remain unverified.
