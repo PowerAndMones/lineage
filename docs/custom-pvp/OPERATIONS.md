@@ -46,7 +46,7 @@ The event names must match the loaded script names. If a command reports that th
 
 | Mode | Manager NPC | Instance template | Match rules |
 |---|---:|---:|---|
-| 1v1 Arena | 70013 | 3050 | FIFO pair queue; 5-minute timeout; 30-minute rated pair cooldown |
+| 1v1 Arena | 70013 | 3053 | FIFO pair queue; 5-minute timeout; 30-minute rated pair cooldown |
 | 3v3 Arena | 70014 | 3051 | FIFO six-player queue; team wipe or forfeit; 10-minute timeout; 30-minute roster-pair cooldown |
 | Last Hero | 70015 | 3052 | 4–10 players; 15-second start window; last living connected player wins; 10-minute timeout; 30-minute roster cooldown |
 
