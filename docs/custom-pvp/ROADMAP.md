@@ -433,3 +433,11 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added `MaxRewardLevelDifference` (default `0`, disabled) to reject custom kill credit and points when the absolute killer/victim level difference exceeds the configured threshold.
 - These gates affect only the custom PvP leaderboard credit; existing core PvP/PK counters and event-specific scores are unchanged. Ineligible kills still record the victim's death and reset their custom current streak.
 - The default values preserve the prior reward behavior. This phase has not been compiled or runtime-tested yet; verify config loading, level checks, and SQL parameter binding in the later combined validation pass.
+
+
+## Phase 54 — configurable TvT and Capture the Flag rewards
+
+- Added `TvTRewardAdena` and `CtFRewardAdena` to `config/Custom/CustomPvp.ini`, both defaulting to the existing `100000` Adena winner reward.
+- Setting either value to `0` disables that event's Adena reward without changing event scoring, registration, or winner selection.
+- Replaced direct reward grants with guarded helper methods so a disabled reward is never passed to the item-grant routine.
+- The settings are loaded through the existing custom PvP config loader. This source change has not been compiled or runtime-tested yet; include it in the later combined validation pass.
