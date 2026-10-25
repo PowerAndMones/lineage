@@ -60,7 +60,7 @@ public class Arena1v1 extends Event
 	private static final String UPDATE_ARENA_WINNER = "UPDATE character_arena1v1_stats SET matches = matches + 1, wins = wins + 1, rating = ?, bestWinStreak = GREATEST(bestWinStreak, winStreak + 1), winStreak = winStreak + 1, lastMatchAt = CURRENT_TIMESTAMP WHERE charId = ?";
 	private static final String UPDATE_ARENA_LOSER = "UPDATE character_arena1v1_stats SET matches = matches + 1, losses = losses + 1, rating = ?, winStreak = 0, lastMatchAt = CURRENT_TIMESTAMP WHERE charId = ?";
 	private static final String ENSURE_PAIR_COOLDOWN = "INSERT IGNORE INTO character_arena1v1_pair_cooldown (charIdLow, charIdHigh, lastRatedAt) VALUES (?, ?, '1970-01-01 00:00:00')";
-	private static final String SELECT_PAIR_COOLDOWN = "SELECT lastRatedAt FROM character_arena1v1_pair_cooldown WHERE charIdLow = ? AND charIdHigh = ? FOR UPDATE";
+	private static final String SELECT_PAIR_COOLDOWN = "SELECT TIMESTAMPDIFF(SECOND, lastRatedAt, CURRENT_TIMESTAMP) AS secondsSinceRated FROM character_arena1v1_pair_cooldown WHERE charIdLow = ? AND charIdHigh = ? FOR UPDATE";
 	private static final String UPDATE_PAIR_COOLDOWN = "UPDATE character_arena1v1_pair_cooldown SET lastRatedAt = CURRENT_TIMESTAMP WHERE charIdLow = ? AND charIdHigh = ?";
 	private static final long RATED_PAIR_COOLDOWN_MILLIS = 30 * 60 * 1000L;
 	private static final int RATING_K_FACTOR = 32;
