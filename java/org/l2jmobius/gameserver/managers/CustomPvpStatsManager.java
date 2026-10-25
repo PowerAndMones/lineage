@@ -61,7 +61,9 @@ public final class CustomPvpStatsManager
 	 */
 	public void recordKill(Player killer, Player victim)
 	{
-		if ((killer == null) || (victim == null) || (killer.getObjectId() == victim.getObjectId()))
+		// Fake players are implemented as NPCs in Mobius and normally cannot reach this
+		// Player-to-Player path. Keep an explicit guard so they can never earn custom rewards.
+		if ((killer == null) || (victim == null) || killer.isFakePlayer() || victim.isFakePlayer() || (killer.getObjectId() == victim.getObjectId()))
 		{
 			return;
 		}
