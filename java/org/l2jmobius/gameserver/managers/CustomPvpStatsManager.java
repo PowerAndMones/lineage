@@ -80,6 +80,16 @@ public final class CustomPvpStatsManager
 			return;
 		}
 
+		final int maxPending = CustomPvpConfig.MAX_PENDING_RECORDS;
+		if (!reserveQueueSlot(maxPending))
+		{
+			if (QUEUE_FULL_WARNING_ACTIVE.compareAndSet(false, true))
+			{
+				LOGGER.severe("Custom PvP persistence queue is full (" + PENDING_COUNT.get() + " records). New custom PvP records are being dropped until the queue drains. Increase MaxPendingRecords only after checking database performance.");
+			}
+			return;
+		}
+
 		// Event and instance kills can still update the victim's death/streak data, but
 		// do not earn global custom kills or points unless explicitly enabled.
 		final boolean eventRewardAllowed = CustomPvpConfig.REWARD_EVENT_KILLS || (!killer.isOnEvent() && !victim.isOnEvent() && !killer.isRegisteredOnEvent() && !victim.isRegisteredOnEvent());
@@ -115,16 +125,6 @@ public final class CustomPvpStatsManager
 		// Even when a kill does not earn global credit, the victim's death is recorded
 		// and their current streak is reset.
 		final KillRecord record = new KillRecord(killer.getObjectId(), killer.getName(), victim.getObjectId(), victim.getName(), awardKiller);
-		final int maxPending = CustomPvpConfig.MAX_PENDING_RECORDS;
-		if (!reserveQueueSlot(maxPending))
-		{
-			if (QUEUE_FULL_WARNING_ACTIVE.compareAndSet(false, true))
-			{
-				LOGGER.severe("Custom PvP persistence queue is full (" + PENDING_COUNT.get() + " records). New custom PvP records are being dropped until the queue drains. Increase MaxPendingRecords only after checking database performance.");
-			}
-			return;
-		}
-
 		PENDING_KILLS.add(record);
 		checkQueueBacklog();
 		scheduleWorker();
