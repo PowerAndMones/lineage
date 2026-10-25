@@ -377,7 +377,7 @@ public class Arena3v3 extends Event
 			final int rated = recordRatedResult(winningTeam, losingTeam);
 			for (Player p : match.players())
 			{
-				p.sendMessage(rated == 1 ? "3v3 Arena: result and rating saved." : rated == 0 ? "3v3 Arena: result saved without rating change (repeat-roster cooldown)." : "3v3 Arena: result could not be saved; contact an administrator.");
+				p.sendMessage(rated == 1 ? "3v3 Arena: result and rating saved." : rated == 0 ? "3v3 Arena: repeat-roster cooldown active; this match did not change rating or rated statistics." : "3v3 Arena: result could not be saved; contact an administrator.");
 			}
 		}
 		for (Player p : match.players())
