@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `character_pvp_stats` (
   `totalDeaths` INT UNSIGNED NOT NULL DEFAULT 0,
   `currentStreak` INT UNSIGNED NOT NULL DEFAULT 0,
   `bestStreak` INT UNSIGNED NOT NULL DEFAULT 0,
+  `pvpPoints` INT UNSIGNED NOT NULL DEFAULT 0,
   `lastKillTime` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`charId`),
   KEY `idx_pvp_stats_rank` (`totalKills`),
