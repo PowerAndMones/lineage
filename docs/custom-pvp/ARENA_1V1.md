@@ -1,93 +1,42 @@
-# 1v1 Arena — implementation notes
+# 1v1 Arena — implementation and validation status
 
-## Initial feature
+Status: core and custom-script compilation passed in CI; database and in-game validation pending.
 
-The first implementation adds a matchmaking queue using the server's existing native duel system.
+## Current behavior
 
-- Players join or leave through the Arena Manager NPC.
-- When two eligible players are waiting, they are paired and passed to `DuelManager`.
-- The native duel system remains responsible for duel mechanics and ending the fight.
-- No custom items, PvP points, ranking points, or global announcements are awarded by this initial version.
-- Players cannot register while already registered on another event, in a duel, in Olympiad, in an instance, in a siege, flagged for PvP, fishing, flying, in combat, carrying karma, or using a cursed weapon.
-- Queue start/stop and join/leave operations are synchronized to reduce lifecycle races; stale queued registrations are cleared on start/stop.
-- Registration rejects players already marked as participating in another event.
-- A logout event listener removes disconnected players from the waiting queue and clears their registration flag.
-- Match eligibility is rechecked before pairing, including that a player is not already participating in another event.
-- This remains a queue-to-native-duel prototype, not an isolated arena instance. The queue now confirms that the native duel actually starts, but it does not yet capture results or manage a dedicated match lifecycle. Isolated arena teleportation, winner/result capture, a dedicated ranking table, reward rules, disconnect recovery, and full lifecycle testing remain future work.
+- Event script: `dist/game/data/scripts/custom/events/Arena1v1/Arena1v1.java`; manager NPC ID 70013.
+- Eligible players join a FIFO queue through the NPC's Join, Leave, and Status actions.
+- Each match gets a separate dynamic PvP instance using template 3050, with opposite Colosseum spawn points.
+- The script saves both return locations before teleporting players and verifies that each participant entered the expected instance.
+- Death, logout, leaving the arena, timeout, and event stop converge on an atomic finalizer. A match can be finalized only once.
+- Match timeout is five minutes and produces no winner or rating change.
+- Rated wins use an Elo-style K-factor of 32. Initial rating is 1000.
+- The same character pair cannot produce another rated result within 30 minutes. The pair key is direction-independent.
+- A repeated-pair cooldown suppresses the rating and rated statistics for that match; the player message states that no rated result was saved.
+- Return locations are persisted in `character_arena1v1_return`. Login recovery uses the saved location or Giran fallback if the saved instance no longer exists. Recovery records are retained if a return teleport does not reach the expected location.
+- No item rewards, combat bonuses, global kill-streak announcements, or open-world PvP points are awarded by the arena.
 
-## Integration checks required during the planned final build
+## Required SQL
 
-- Confirm the script loader discovers `custom.events.Arena1v1.Arena1v1`.
-- Confirm NPC template `70013` exists in the datapack; if not, assign an existing dedicated custom NPC ID.
-- Confirm the HTML bypass resolves to the script name `Arena1v1`.
-- The queue now waits for the native duel countdown and checks that both players entered the same duel before reporting that the fight started. If that check fails, both players receive a failure message rather than a false success message.
-- Verify matchmaking behavior when duel creation is rejected and when a player disconnects at the same moment a match is formed.
-- Confirm the new synchronization, event-participation, and logout-listener code compiles against this exact Mobius revision.
+Apply these scripts to the game database while the server is stopped and after taking a backup:
 
-Do not consider this feature production-ready until the shared build and runtime test pass.
+1. `dist/db_installer/sql/game/character_arena1v1_stats.sql`
+2. `dist/db_installer/sql/game/character_arena1v1_return.sql`
 
+See `SQL_INSTALLATION.md` for the full installation order and existing-database migrations.
 
-## Isolated arena prototype added to source (validation pending)
+## CI verification completed
 
-- Added a dedicated PvP instance template at `dist/game/data/instances/custom/Arena1v1.xml` with template ID `3050`, separate from TvT's template ID `3049`.
-- Matchmaking now creates a dynamic instance per pair, saves both players' return locations, adds both players to the instance allow-list, and teleports them to opposite Colosseum spawn points.
-- The match uses the instance's PvP rules rather than Mobius' native DuelManager. This avoids the native duel's fixed arena teleport path, which would pull participants out of the custom instance.
-- Death and logout are handled through event listeners. A one-time atomic finish guard prevents duplicate cleanup; online participants are revived if needed and returned to their saved locations.
-- Match start is synchronized with queue/stop/logout lifecycle operations. Death events are ignored until the match is fully registered, then player death/online state is rechecked immediately after startup.
-- If a saved return location references an instance that no longer exists after restart, login recovery uses the configured safe fallback location. A pending recovery record is not deleted if the player disconnects before the recovery task runs.
-- Each participant's original location is persisted in `character_arena1v1_return` before teleporting. On login, a pending location is restored and then deleted, allowing recovery after disconnects and server restarts.
-- Matches have a five-minute time limit. When it expires, the match is closed without declaring a winner or granting a reward.
-- Stopping the event attempts to close active matches, and partial startup failure attempts to return both participants before destroying the instance.
-- No rating, custom PvP points, item rewards, or global announcements are added.
+- L2J Mobius core compiled with Temurin JDK 27.
+- The 1v1 script compiled against the current branch's core and libraries.
+- Custom PvP XML and SQL file-presence checks passed.
 
-Known limitations before production use:
-- Install `dist/db_installer/sql/game/character_arena1v1_return.sql` before enabling the event; the script requires this table to persist recovery locations.
-- Durable return-location storage and login restoration are now implemented in source, but their runtime behavior still requires validation.
-- Timeout and additional startup/death/logout guards are present in source; exact server-thread ordering, instance template/spawn suitability, and database recovery still require runtime validation.
-- The code has not been compiled or runtime-tested, as requested; do not treat the prototype as production-ready.
+## Still required before production
 
-## Dedicated arena implementation plan
+- Apply the SQL and verify the rating/cooldown transaction against the deployed MySQL/MariaDB version.
+- Start and stop the event through the server's admin event mechanism; verify script loading and NPC interaction.
+- Test normal win, simultaneous death, logout, teleport-out, timeout, stop/restart, and failed instance startup.
+- Verify Colosseum spawn points, manager/fallback coordinates, and Community Board display on the target client.
+- Test disconnect and server-restart recovery with a real database.
 
-The isolated-match upgrade must be implemented as a separate phase rather than assuming the native duel API can run inside an instance.
-
-### Reuse verified project patterns
-
-- The existing TvT script creates dynamic worlds through `InstanceManager.getInstance().createDynamicInstance(INSTANCE_ID)`, wraps them in `InstanceWorld`, registers the world, adds participants with `addAllowed`, and teleports using `teleToLocation(location, instanceId, offset)`.
-- TvT uses instance template `3049` and the Colosseum spawn coordinates `(147447, 46722, -3416)` and `(151536, 46722, -3416)`. These are reference coordinates only; suitability for a 1v1 arena must be confirmed before use.
-- TvT demonstrates global `ON_CREATURE_DEATH` and `ON_PLAYER_LOGOUT` event handlers, plus `InstanceWorld.destroy()` for cleanup.
-
-### Required match lifecycle
-
-1. Reserve both players atomically and create one dynamic instance per match.
-2. Save each player's original location and instance ID before teleporting.
-3. Add both players to the instance allow-list and teleport them to opposite spawn points.
-4. Decide on exactly one combat controller: either use native DuelManager if this Mobius revision supports instance duels safely, or use a dedicated 1v1 match state machine. Do not combine two independent result controllers.
-5. Resolve winner/forfeit exactly once on death, logout, or timeout; guard against duplicate death/logout events.
-6. Remove event flags/listeners, restore both players to a safe location, destroy the instance, and release the match reservation.
-7. Handle partial startup failure by returning any player already teleported and destroying the partially created instance.
-
-### Explicitly unresolved before source implementation
-
-- Whether the native duel system supports duels inside dynamically created instances and exposes a reliable result callback in this exact revision.
-- Which instance template and spawn coordinates should be dedicated to 1v1.
-- The exact return-location behavior when a participant disconnects and later reconnects.
-- Whether instance template `3049` is appropriate to share as a template for concurrent dynamic 1v1 instances.
-
-No build or runtime validation has been performed. The isolated match should not be considered implemented until these integration points are handled in source and then validated in the planned final build.
-
-
-## Rated 1v1 results (source added, build/runtime test pending)
-
-- Added `character_arena1v1_stats` for independent 1v1 matches, wins, losses, Elo-style rating, current win streak, best win streak, and last match time. New characters start at rating 1000.
-- Added `character_arena1v1_pair_cooldown` to suppress rating changes when the same two characters have a rated result within 30 minutes. Character IDs are stored in sorted order so the cooldown applies regardless of who wins.
-- A valid death or online-opponent forfeit result updates both participants in one SQL transaction using an Elo-style K-factor of 32. Timeouts and simultaneous deaths do not affect rating/statistics.
-- Repeat-opponent matches still end normally but do not increment rated match totals or streaks during cooldown; no items or PvP points are granted.
-- Install `dist/db_installer/sql/game/character_arena1v1_stats.sql` before enabling rated matches. The code has not been compiled or runtime-tested; validate transaction locking, database compatibility, and match-result edge cases during the planned final validation.
-
-
-## Community Board rating display (source added, build/runtime test pending)
-
-- The PvP Center now includes the character's dedicated 1v1 rating, match count, wins, losses, current win streak, and best win streak.
-- Added a top-10 rated 1v1 leaderboard, separate from the general PvP points leaderboard.
-- The display reads from `character_arena1v1_stats` and joins the Mobius `characters` table for player names.
-- Install `dist/db_installer/sql/game/character_arena1v1_stats.sql` first. Compilation and in-game HTML rendering have not been tested.
+Do not enable this arena on a live server until the remaining database and runtime checks pass.
