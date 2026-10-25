@@ -4,7 +4,7 @@ Status: prototype source and SQL added; build/runtime validation pending.
 
 ## Rules
 - Free-for-all mode with 4–10 players per match.
-- Queue is FIFO; when at least four eligible players are waiting, the event starts with up to ten queued players.
+- Queue is FIFO; once four eligible players are waiting, a 15-second registration window begins. At the end of the window, the event starts with up to ten queued players.
 - Every match uses its own dynamic PvP instance. Each participant receives an individual spawn.
 - Last connected, living player wins. If nobody remains alive, the match ends without a winner.
 - Ten-minute timeout ends the match without a winner and without rating/stat updates.
