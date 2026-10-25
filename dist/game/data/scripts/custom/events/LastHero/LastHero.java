@@ -238,6 +238,7 @@ public class LastHero extends Event
 					p.setRegisteredOnEvent(true);
 				}
 			}
+			scheduleStartIfReady();
 			return;
 		}
 		for (Player p : players)
