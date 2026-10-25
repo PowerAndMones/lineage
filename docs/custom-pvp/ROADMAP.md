@@ -307,3 +307,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The asynchronous PvP persistence worker now treats a successful SQL commit as success even if restoring the connection's auto-commit setting subsequently fails; the restore problem is logged separately.
 - This avoids retrying a transaction that may already have committed and thereby incrementing kills, deaths, streaks, or points twice.
 - No database-failure injection or runtime test has been performed; validate connection-pool behavior and transaction commit/reset failures before release.
+
+
+### Phase 37 — throttle anti-farm cache cleanup (source updated; validation pending)
+
+- Throttled the in-memory killer-victim cooldown-cache cleanup so a cache larger than 10,000 entries is not fully scanned on every PvP kill during a large, active mass battle.
+- Cleanup now runs at most once per configured cooldown interval, with a 10-second minimum interval when the cooldown is disabled or very short.
+- No load test has been performed; measure CPU and memory under high pair diversity and verify expired entries are still reclaimed.
