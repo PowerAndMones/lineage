@@ -13,13 +13,14 @@ The first implementation adds a matchmaking queue using the server's existing na
 - Registration rejects players already marked as participating in another event.
 - A logout event listener removes disconnected players from the waiting queue and clears their registration flag.
 - Match eligibility is rechecked before pairing, including that a player is not already participating in another event.
-- This remains a queue-to-native-duel prototype, not an isolated arena instance. Teleportation, winner/result capture, a dedicated ranking table, reward rules, disconnect recovery, and full lifecycle testing remain future work.
+- This remains a queue-to-native-duel prototype, not an isolated arena instance. The queue now confirms that the native duel actually starts, but it does not yet capture results or manage a dedicated match lifecycle. Isolated arena teleportation, winner/result capture, a dedicated ranking table, reward rules, disconnect recovery, and full lifecycle testing remain future work.
 
 ## Integration checks required during the planned final build
 
 - Confirm the script loader discovers `custom.events.Arena1v1.Arena1v1`.
 - Confirm NPC template `70013` exists in the datapack; if not, assign an existing dedicated custom NPC ID.
 - Confirm the HTML bypass resolves to the script name `Arena1v1`.
+- The queue now waits for the native duel countdown and checks that both players entered the same duel before reporting that the fight started. If that check fails, both players receive a failure message rather than a false success message.
 - Verify matchmaking behavior when duel creation is rejected and when a player disconnects at the same moment a match is formed.
 - Confirm the new synchronization, event-participation, and logout-listener code compiles against this exact Mobius revision.
 
