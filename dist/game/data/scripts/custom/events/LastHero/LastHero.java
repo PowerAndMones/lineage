@@ -38,7 +38,7 @@ import org.l2jmobius.gameserver.network.serverpackets.NpcHtmlMessage;
 
 /**
  * Last Hero free-for-all prototype. No items or open-world PvP points are awarded.
- * Build and runtime validation are pending.
+ * Core and script compilation passed in CI; database and runtime validation remain pending.
  */
 public class LastHero extends Event
 {
