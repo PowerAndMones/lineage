@@ -142,6 +142,66 @@ jobs:
           test "$idx" = "1"
           echo "SQL smoke test passed: 10 tables, pvpPoints column, and leaderboard index."
 
+
+      - name: Exercise database-clock rating cooldown queries
+        env:
+          MYSQL_PWD: root
+        run: |
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot game <<'SQL'
+          INSERT INTO character_arena1v1_pair_cooldown (charIdLow, charIdHigh, lastRatedAt) VALUES (900010, 900011, CURRENT_TIMESTAMP);
+          INSERT INTO character_arena3v3_team_cooldown (teamHashLow, teamHashHigh, lastRatedAt) VALUES (REPEAT('a', 64), REPEAT('b', 64), CURRENT_TIMESTAMP);
+          INSERT INTO character_lasthero_roster_cooldown (rosterHash, lastRatedAt) VALUES (REPEAT('c', 64), CURRENT_TIMESTAMP);
+          SQL
+
+          cooldowns=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "START TRANSACTION; SELECT IF(TIMESTAMPDIFF(SECOND,lastRatedAt,CURRENT_TIMESTAMP)>=0,1,0) FROM character_arena1v1_pair_cooldown WHERE charIdLow=900010 AND charIdHigh=900011 FOR UPDATE; SELECT IF(TIMESTAMPDIFF(SECOND,lastRatedAt,CURRENT_TIMESTAMP)>=0,1,0) FROM character_arena3v3_team_cooldown WHERE teamHashLow=REPEAT('a',64) AND teamHashHigh=REPEAT('b',64) FOR UPDATE; SELECT IF(TIMESTAMPDIFF(SECOND,lastRatedAt,CURRENT_TIMESTAMP)>=0,1,0) FROM character_lasthero_roster_cooldown WHERE rosterHash=REPEAT('c',64) FOR UPDATE; ROLLBACK;")
+          test "$cooldowns" =         env:
+          MYSQL_PWD: root
+        run: |
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot game <<'SQL'
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 1, 0, 1, 1, 1, NOW());
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 1, 0, 1, 1, 1, NOW())
+          ON DUPLICATE KEY UPDATE charName=VALUES(charName), totalKills=totalKills+1, bestStreak=GREATEST(bestStreak,currentStreak+1), currentStreak=currentStreak+1, pvpPoints=pvpPoints+1, lastKillTime=NOW();
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 1, 0, 1, 1, 1, NOW())
+          ON DUPLICATE KEY UPDATE charName=VALUES(charName), totalKills=totalKills+1, bestStreak=GREATEST(bestStreak,currentStreak+1), currentStreak=currentStreak+1, pvpPoints=pvpPoints+1, lastKillTime=NOW();
+
+          INSERT IGNORE INTO character_arena1v1_stats (charId) VALUES (900002);
+          UPDATE character_arena1v1_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+          UPDATE character_arena1v1_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+          UPDATE character_arena1v1_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+
+          INSERT IGNORE INTO character_arena3v3_stats (charId) VALUES (900003);
+          UPDATE character_arena3v3_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+          UPDATE character_arena3v3_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+          UPDATE character_arena3v3_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+
+          INSERT IGNORE INTO character_lasthero_stats (charId) VALUES (900004);
+          UPDATE character_lasthero_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+          UPDATE character_lasthero_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+          UPDATE character_lasthero_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 0, 1, 0, 0, 0, NULL)
+          ON DUPLICATE KEY UPDATE charName=VALUES(charName), totalDeaths=totalDeaths+1, currentStreak=0;
+          UPDATE character_arena1v1_stats SET matches=matches+1,losses=losses+1,rating=1000,winStreak=0,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+          UPDATE character_arena3v3_stats SET matches=matches+1,losses=losses+1,rating=1000,winStreak=0,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+          UPDATE character_lasthero_stats SET matches=matches+1,losses=losses+1,rating=1000,winStreak=0,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+          SQL
+
+          general=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(currentStreak, ':', bestStreak) FROM character_pvp_stats WHERE charId=900001")
+          arena1=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(winStreak, ':', bestWinStreak) FROM character_arena1v1_stats WHERE charId=900002")
+          arena3=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(winStreak, ':', bestWinStreak) FROM character_arena3v3_stats WHERE charId=900003")
+          last_hero=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(winStreak, ':', bestWinStreak) FROM character_lasthero_stats WHERE charId=900004")
+          test "$general" = "0:3"
+          test "$arena1" = "0:3"
+          test "$arena3" = "0:3"
+          test "$last_hero" = "0:3"
+          echo "Streak SQL smoke test passed: a loss resets current streak to 0 while preserving best streak at 3 in all four systems."
+1\n1\n1'
+          echo "Database-clock cooldown queries passed for 1v1, 3v3, and Last Hero."
+
       - name: Exercise streak SQL assignment order
         env:
           MYSQL_PWD: root
