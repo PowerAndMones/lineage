@@ -1,8 +1,8 @@
-# Custom PvP source review — pre-build notes
+# Custom PvP source review — CI compile passed; runtime validation pending
 
 Branch: feature/custom-pvp-core
 
-This is a source-level review only. No compilation, test server, database execution, or in-game validation has been performed.
+CI validation snapshot (2026-10-25): `ant -f build.xml compile` passed on Temurin JDK 27; custom PvP, TvT, CtF, and Community Board scripts compiled; XML/SQL presence checks and whitespace checks passed. No live game-server, database transaction, or in-game validation has been performed.
 
 ## Corrections made in this review
 
@@ -61,4 +61,4 @@ This is a source-level review only. No compilation, test server, database execut
 
 ## Release gate
 
-Do not enable the modes on a live server until the source compiles against the target Mobius revision and the full lifecycle is tested on a separate test server. This review is not a claim that the code is production-ready.
+Do not enable the modes on a live server until the source compiles against the target Mobius revision and the full lifecycle is tested on a separate test server. The current CI compile gate is green, but this is not a claim that the code is production-ready. This review is not a claim that the code is production-ready.
