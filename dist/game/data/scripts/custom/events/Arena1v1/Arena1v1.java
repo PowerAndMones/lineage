@@ -344,6 +344,22 @@ public class Arena1v1 extends Event
 		}
 	}
 
+	@RegisterEvent(EventType.ON_CREATURE_TELEPORTED)
+	private void onCreatureTeleported(OnCreatureTeleported event)
+	{
+		final Creature creature = event.getCreature();
+		if ((creature == null) || !creature.isPlayer())
+		{
+			return;
+		}
+		final Player player = creature.asPlayer();
+		final ArenaMatch match = MATCHES_BY_PLAYER.get(player.getObjectId());
+		if ((match != null) && match.isStarted() && (match.world != null) && (player.getInstanceId() != match.world.getInstanceId()))
+		{
+			ThreadPool.schedule(() -> finishMatch(match, player, match.getOpponent(player)), 100);
+		}
+	}
+
 	@RegisterEvent(EventType.ON_PLAYER_LOGOUT)
 	private synchronized void onMatchLogout(OnPlayerLogout event)
 	{
