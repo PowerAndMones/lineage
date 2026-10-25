@@ -661,8 +661,10 @@ public class Arena1v1 extends Event
 					}
 				}
 				final double expectedWinner = 1.0 / (1.0 + Math.pow(10.0, (loserRating - winnerRating) / 400.0));
-				final int winnerNewRating = winnerRating + (int) Math.round(RATING_K_FACTOR * (1.0 - expectedWinner));
-				final int loserNewRating = loserRating + (int) Math.round(RATING_K_FACTOR * (0.0 - (1.0 - expectedWinner)));
+				// Use one integer delta for both sides so Math.round cannot create rating points on half-point ties.
+				final int ratingDelta = (int) Math.round(RATING_K_FACTOR * (1.0 - expectedWinner));
+				final int winnerNewRating = winnerRating + ratingDelta;
+				final int loserNewRating = loserRating - ratingDelta;
 				try (PreparedStatement ps = con.prepareStatement(UPDATE_ARENA_WINNER))
 				{
 					ps.setInt(1, winnerNewRating);
