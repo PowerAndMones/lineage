@@ -333,7 +333,7 @@ public class LastHero extends Event
 				{
 					final Location dest = ((saved.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(saved.getInstanceId()) == null)) ? RETURN_FALLBACK : saved;
 					p.teleToLocation(dest, true);
-					if (p.getInstanceId() == dest.getInstanceId())
+					if ((p.getInstanceId() == dest.getInstanceId()) && (Math.abs(p.getX() - dest.getX()) <= 500) && (Math.abs(p.getY() - dest.getY()) <= 500) && (Math.abs(p.getZ() - dest.getZ()) <= 500))
 					{
 						deleteReturnLocation(p.getObjectId());
 					}
