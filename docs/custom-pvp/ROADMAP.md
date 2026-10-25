@@ -20,7 +20,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 ### Phase 3 — anti-farm and PvP points (code added, build/runtime test pending)
 
-- The same killer-victim pair can award custom stats and one PvP point only once per 10 minutes.
+- The same killer-victim pair can award custom stats and one PvP point only once per 30 seconds.
 - The cooldown is currently in memory and resets on server restart; it does not change the core PvP counter.
 - The Community Board ranking is sorted by PvP points first.
 
