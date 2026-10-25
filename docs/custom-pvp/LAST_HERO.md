@@ -1,6 +1,6 @@
 # Last Hero — implementation specification
 
-Status: prototype source and SQL added; build/runtime validation pending.
+Status: core and custom-script compilation passed in CI; database and runtime validation pending.
 
 ## Rules
 - Free-for-all mode with 4–10 players per match.
@@ -34,4 +34,4 @@ Status: prototype source and SQL added; build/runtime validation pending.
 - Confirm script auto-discovery, NPC template 70015, instance template 3052, bypass routing and the target Mobius API.
 - Validate coordinates, rating formula and transaction behavior.
 - Review queue start policy and consider a reconnect grace period.
-- No build or runtime tests have been performed.
+- CI compile passed; runtime, SQL transaction, coordinate, and in-game tests have not been performed.
