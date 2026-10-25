@@ -293,3 +293,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Last Hero now schedules another registration window when enough players remain in the waiting queue after a match starts, allowing queued players to enter subsequent rounds without requiring an additional person to join.
 - The same rescheduling occurs when eligibility checks leave fewer than four selected players but enough other players remain queued.
 - No runtime test has been performed; verify multiple isolated Last Hero matches can coexist and that queue registrations remain unique.
+
+
+### Phase 35 — stale Last Hero countdown protection (source updated; validation pending)
+
+- Added a generation token to invalidate delayed Last Hero countdown callbacks when the event is stopped or restarted.
+- A countdown scheduled by a previous event run can no longer start a match early in a newly started run.
+- No runtime test has been performed; stop/restart the event while a countdown is pending and verify the stale task is ignored.
