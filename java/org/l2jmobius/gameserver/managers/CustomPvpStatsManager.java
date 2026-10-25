@@ -35,7 +35,7 @@ import org.l2jmobius.gameserver.entity.actor.Player;
 public final class CustomPvpStatsManager
 {
 	private static final Logger LOGGER = Logger.getLogger(CustomPvpStatsManager.class.getName());
-	private static final long REPEAT_KILL_COOLDOWN_MS = 10 * 60 * 1000L;
+	private static final long REPEAT_KILL_COOLDOWN_MS = 30 * 1000L;
 	private static final ConcurrentHashMap<Long, Long> LAST_PAIR_KILLS = new ConcurrentHashMap<>();
 	private static final String UPSERT_KILLER = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 1, 0, 1, 1, 1, NOW()) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalKills = totalKills + 1, currentStreak = currentStreak + 1, bestStreak = GREATEST(bestStreak, currentStreak), pvpPoints = pvpPoints + 1, lastKillTime = NOW()";
 	private static final String UPSERT_VICTIM = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 0, 1, 0, 0, 0, NULL) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalDeaths = totalDeaths + 1, currentStreak = 0";
