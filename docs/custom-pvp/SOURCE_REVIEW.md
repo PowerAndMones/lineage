@@ -76,3 +76,11 @@ Do not enable the modes on a live server until the source compiles against the t
 
 - The base Mobius `Quest.unload()` cancels timers and unregisters listeners but does not remove NPCs created with a zero despawn delay or invoke custom `eventStop()` automatically.
 - The arena scripts now override `unload(boolean)` to stop their queue/matches and remove the manager NPC whenever the script is unloaded, including full script reloads. They only remove the script-manager entry when it still points to that same instance, preventing a replaced script from accidentally removing its successor. Validate active-match cleanup on a test server.
+
+
+## Configurable reward rules — added after CI snapshot
+
+- Verify `PointsPerKill` supports 0 and positive values, and the initial insert and duplicate-key update apply the configured value exactly once.
+- Verify `MinimumRewardLevel` checks the victim level and that `MaxRewardLevelDifference=0` disables the difference gate.
+- Verify that ineligible kills do not award killer kill credit/points but still update victim death count and reset current streak.
+- Confirm default settings preserve previous behavior. These checks are pending the planned combined compile/test pass.
