@@ -41,6 +41,12 @@ The scripts use `CREATE TABLE IF NOT EXISTS`, but that does not update an existi
 
 The PvP Center leaderboards also read the standard Mobius `characters` table and expect `charId` and `char_name`. Confirm those names against the exact Mobius revision before production use.
 
+## Queue startup behavior
+
+1v1 Arena, 3v3 Arena, and Last Hero are designed as always-available matchmaking queues. Their scripts open the queues and spawn manager NPCs when loaded; they do not require a schedule entry in `Scripts.xml` or a separate NPC spawn row. If a manager NPC fails to spawn, the mode remains closed and writes a warning to the game log. Reloading scripts stops active matches and removes the old manager before the replacement starts.
+
+The repository's `dist/db_installer/sql/game/characters.sql` confirms the expected leaderboard columns `charId` and `char_name`; verify the deployed server database is based on the same Mobius revision before production use.
+
 ## Pre-release integration checklist
 
 - [x] Confirm script discovery: `Scripts.xml` does not exclude the custom event folders, `ScriptEngine` scans the script tree recursively, and `ScriptExecutor` invokes public static `main(String[])` methods. The manager HTML paths follow the existing TvT datapack convention.
@@ -49,7 +55,7 @@ The PvP Center leaderboards also read the standard Mobius `characters` table and
 - [ ] Confirm instance templates 3050, 3051, and 3052 load without errors and spawn/exit coordinates are valid on the target map.
 - [ ] Confirm the target Mobius APIs used by all three scripts, including instance allow-lists, event listeners, teleport methods, and scheduled tasks.
 - [ ] Confirm the Community Board HTML is within client display limits and all placeholders are replaced.
-- [ ] Confirm SQL queries against `characters.charId` and `characters.char_name` match the target schema.
+- [x] Confirm SQL queries against `characters.charId` and `characters.char_name` match this repository's `characters.sql`; verify the deployed database uses the same revision.
 - [ ] Test online/offline return recovery, simultaneous deaths, logout, event stop, timeouts, and duplicate-finalization protection.
 - [ ] Test repeat-opponent/roster cooldowns and verify unrated outcomes do not change ratings.
 - [x] Build the L2J Mobius core and compile the custom PvP, TvT, CtF, and Community Board scripts in CI (Temurin JDK 27).
