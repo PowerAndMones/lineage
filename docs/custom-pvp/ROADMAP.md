@@ -208,3 +208,11 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Hardened 3v3 queue processing when ineligible players are removed and more than six queued players remain; match-start retries are delayed to avoid a tight loop if the instance cannot be created.
 - Last Hero now schedules another registration window after a failed match startup when enough eligible players were returned to the queue.
 - These are source-level lifecycle fixes only. No compilation, SQL execution, or runtime tests have been performed.
+
+
+### Phase 23 — PvP persistence queue contention (source updated; validation pending)
+
+- Replaced repeated `ConcurrentLinkedQueue.size()` calls in the custom PvP kill path with an `AtomicInteger` pending counter, avoiding linear-time queue scans during mass PvP.
+- Queue slot reservation is now atomic, so concurrent kill events cannot exceed `MaxPendingRecords` through a check-then-add race.
+- The counter tracks queued records and is decremented when the worker removes a record for processing. Database retry/drop behavior remains unchanged.
+- No compilation, load testing, or runtime tests have been performed; verify counter consistency under concurrent producers and worker shutdown/restart conditions.
