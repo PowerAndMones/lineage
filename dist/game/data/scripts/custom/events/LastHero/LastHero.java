@@ -223,6 +223,7 @@ public class LastHero extends Event
 					p.setRegisteredOnEvent(true);
 				}
 			}
+			scheduleStartIfReady();
 			return;
 		}
 		final HeroMatch match = new HeroMatch(players);
@@ -249,6 +250,7 @@ public class LastHero extends Event
 		match.started = true;
 		ThreadPool.schedule(() -> finishMatch(match, null, true), MATCH_TIMEOUT_MILLIS);
 		resolveWinner(match);
+		scheduleStartIfReady();
 	}
 
 	@RegisterEvent(EventType.ON_CREATURE_DEATH)
