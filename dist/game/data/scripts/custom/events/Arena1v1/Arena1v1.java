@@ -16,7 +16,9 @@
  */
 package custom.events.Arena1v1;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -24,10 +26,15 @@ import org.l2jmobius.commons.threads.ThreadPool;
 import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.actor.Npc;
 import org.l2jmobius.gameserver.entity.actor.Player;
-import org.l2jmobius.gameserver.managers.DuelManager;
+import org.l2jmobius.gameserver.entity.actor.Creature;
+import org.l2jmobius.gameserver.entity.instancezone.InstanceWorld;
+import org.l2jmobius.gameserver.managers.InstanceManager;
+
 import org.l2jmobius.gameserver.mechanics.events.EventType;
 import org.l2jmobius.gameserver.mechanics.events.annotations.RegisterEvent;
 import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogout;
+import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogin;
+import org.l2jmobius.gameserver.mechanics.events.holders.actor.creature.OnCreatureDeath;
 import org.l2jmobius.gameserver.mechanics.script.Event;
 import org.l2jmobius.gameserver.network.serverpackets.NpcHtmlMessage;
 
@@ -39,9 +46,15 @@ public class Arena1v1 extends Event
 {
 	private static final String HTML_PATH = "data/scripts/custom/events/Arena1v1/";
 	private static final int MANAGER_NPC_ID = 70013;
+	private static final int INSTANCE_TEMPLATE_ID = 3050;
+	private static final Location SPAWN_A = new Location(147447, 46722, -3416, 0);
+	private static final Location SPAWN_B = new Location(151536, 46722, -3416, 32768);
+	private static final Location RETURN_FALLBACK = new Location(83425, 148585, -3406);
 	private static final Location MANAGER_SPAWN = new Location(83425, 148585, -3406, 32938);
 	private static final ConcurrentLinkedQueue<Player> WAITING_PLAYERS = new ConcurrentLinkedQueue<>();
 	private static final Set<Integer> WAITING_IDS = ConcurrentHashMap.newKeySet();
+	private static final Map<Integer, ArenaMatch> MATCHES_BY_PLAYER = new ConcurrentHashMap<>();
+	private static final Map<Integer, Location> PENDING_RETURN_LOCATIONS = new ConcurrentHashMap<>();
 	private static volatile boolean ACTIVE;
 	private static Npc MANAGER_NPC;
 
@@ -229,25 +242,182 @@ public class Arena1v1 extends Event
 				continue;
 			}
 
-			DuelManager.getInstance().addDuel(playerA, playerB, 0);
-			playerA.sendMessage("1v1 opponent found: " + playerB.getName() + ". Preparing the standard duel...");
-			playerB.sendMessage("1v1 opponent found: " + playerA.getName() + ". Preparing the standard duel...");
-			
-			// DuelManager.addDuel() returns void and the duel starts asynchronously.
-			// Confirm the actual duel state after the native countdown instead of assuming it succeeded.
-			ThreadPool.schedule(() ->
+			startMatch(playerA, playerB);
+		}
+	}
+
+	private void startMatch(Player playerA, Player playerB)
+	{
+		final ArenaMatch match = new ArenaMatch(playerA, playerB);
+		if (!match.start())
+		{
+			playerA.sendMessage("1v1 Arena could not create a match. You were returned to the queue.");
+			playerB.sendMessage("1v1 Arena could not create a match. You were returned to the queue.");
+			queueAgainIfEligible(playerA);
+			queueAgainIfEligible(playerB);
+			return;
+		}
+		MATCHES_BY_PLAYER.put(playerA.getObjectId(), match);
+		MATCHES_BY_PLAYER.put(playerB.getObjectId(), match);
+		playerA.setRegisteredOnEvent(false);
+		playerB.setRegisteredOnEvent(false);
+		playerA.setOnEvent(true);
+		playerB.setOnEvent(true);
+		playerA.sendMessage("1v1 Arena match started against " + playerB.getName() + ".");
+		playerB.sendMessage("1v1 Arena match started against " + playerA.getName() + ".");
+	}
+
+	private synchronized void queueAgainIfEligible(Player player)
+	{
+		if (ACTIVE && canRegister(player) && WAITING_IDS.add(player.getObjectId()))
+		{
+			player.setRegisteredOnEvent(true);
+			WAITING_PLAYERS.add(player);
+		}
+	}
+
+	@RegisterEvent(EventType.ON_CREATURE_DEATH)
+	private void onCreatureDeath(OnCreatureDeath event)
+	{
+		final Creature target = event.getTarget();
+		if ((target == null) || !target.isPlayer())
+		{
+			return;
+		}
+		final Player loser = target.asPlayer();
+		final ArenaMatch match = MATCHES_BY_PLAYER.get(loser.getObjectId());
+		if (match != null)
+		{
+			ThreadPool.schedule(() -> finishMatch(match, loser, match.getOpponent(loser)), 1000);
+		}
+	}
+
+	@RegisterEvent(EventType.ON_PLAYER_LOGOUT)
+	private synchronized void onMatchLogout(OnPlayerLogout event)
+	{
+		final Player player = event.getPlayer();
+		if (player == null)
+		{
+			return;
+		}
+		if (WAITING_IDS.remove(player.getObjectId()))
+		{
+			WAITING_PLAYERS.remove(player);
+			player.setRegisteredOnEvent(false);
+		}
+		final ArenaMatch match = MATCHES_BY_PLAYER.get(player.getObjectId());
+		if (match != null)
+		{
+			final Player opponent = match.getOpponent(player);
+			ThreadPool.schedule(() -> finishMatch(match, player, opponent), 100);
+		}
+	}
+
+	@RegisterEvent(EventType.ON_PLAYER_LOGIN)
+	private void onPlayerLogin(OnPlayerLogin event)
+	{
+		final Player player = event.getPlayer();
+		if (player == null)
+		{
+			return;
+		}
+		final Location returnLocation = PENDING_RETURN_LOCATIONS.remove(player.getObjectId());
+		if (returnLocation != null)
+		{
+			ThreadPool.schedule(() -> player.teleToLocation(returnLocation, true), 2000);
+		}
+	}
+
+	private void finishMatch(ArenaMatch match, Player loser, Player winner)
+	{
+		if (!match.finish())
+		{
+			return;
+		}
+		final Player playerA = match.playerA;
+		final Player playerB = match.playerB;
+		MATCHES_BY_PLAYER.remove(playerA.getObjectId(), match);
+		MATCHES_BY_PLAYER.remove(playerB.getObjectId(), match);
+		for (Player participant : new Player[] { playerA, playerB })
+		{
+			participant.setOnEvent(false);
+			participant.setRegisteredOnEvent(false);
+			if (participant.isOnlineInt() == 1)
 			{
-				if (playerA.isInDuel() && playerB.isInDuel() && (playerA.getDuelId() == playerB.getDuelId()))
+				if (participant.isDead())
 				{
-					playerA.sendMessage("1v1 Arena duel started against " + playerB.getName() + ".");
-					playerB.sendMessage("1v1 Arena duel started against " + playerA.getName() + ".");
+					participant.doRevive();
 				}
-				else
+				final Location returnLocation = match.getReturnLocation(participant);
+				participant.teleToLocation(returnLocation != null ? returnLocation : RETURN_FALLBACK, true);
+				participant.sendMessage((winner != null) ? ("1v1 Arena: " + winner.getName() + " won the match.") : "1v1 Arena match ended without a winner.");
+			}
+			else
+			{
+				final Location returnLocation = match.getReturnLocation(participant);
+				PENDING_RETURN_LOCATIONS.put(participant.getObjectId(), returnLocation != null ? returnLocation : RETURN_FALLBACK);
+			}
+		}
+		if (match.world != null)
+		{
+			match.world.destroy();
+		}
+	}
+
+	private static final class ArenaMatch
+	{
+		private final Player playerA;
+		private final Player playerB;
+		private final Location returnA;
+		private final Location returnB;
+		private final AtomicBoolean finished = new AtomicBoolean();
+		private InstanceWorld world;
+
+		private ArenaMatch(Player playerA, Player playerB)
+		{
+			this.playerA = playerA;
+			this.playerB = playerB;
+			returnA = new Location(playerA);
+			returnB = new Location(playerB);
+		}
+
+		private boolean start()
+		{
+			try
+			{
+				world = new InstanceWorld();
+				world.setInstance(InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID));
+				InstanceManager.getInstance().addWorld(world);
+				world.addAllowed(playerA);
+				world.addAllowed(playerB);
+				playerA.teleToLocation(SPAWN_A, world.getInstanceId(), 50);
+				playerB.teleToLocation(SPAWN_B, world.getInstanceId(), 50);
+				return (playerA.getInstanceId() == world.getInstanceId()) && (playerB.getInstanceId() == world.getInstanceId());
+			}
+			catch (Exception e)
+			{
+				LOGGER.warning("1v1 Arena failed to create isolated match: " + e.getMessage());
+				if (world != null)
 				{
-					playerA.sendMessage("The 1v1 duel could not be started. Please check your status and try again.");
-					playerB.sendMessage("The 1v1 duel could not be started. Please check your status and try again.");
+					world.destroy();
 				}
-			}, 10000);
+				return false;
+			}
+		}
+
+		private Player getOpponent(Player player)
+		{
+			return player == playerA ? playerB : playerA;
+		}
+
+		private Location getReturnLocation(Player player)
+		{
+			return player == playerA ? returnA : returnB;
+		}
+
+		private boolean finish()
+		{
+			return finished.compareAndSet(false, true);
 		}
 	}
 
