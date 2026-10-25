@@ -2,7 +2,7 @@
 
 Branch: feature/custom-pvp-core
 
-CI validation snapshot (2026-10-25): `ant -f build.xml compile` passed on Temurin JDK 27; custom PvP, TvT, CtF, and Community Board scripts compiled; XML/SQL presence checks and whitespace checks passed. The SQL installers also executed successfully against a clean MariaDB 11.4 database; the smoke test verified all 10 tables, the `pvpPoints` column/index, and current/best streak progression plus loss reset in all four stats systems. No live game-server, target-database, or in-game validation has been performed.
+CI validation snapshot (2026-10-25): `ant -f build.xml compile` passed on Temurin JDK 27; custom PvP, TvT, CtF, and Community Board scripts compiled; XML/SQL presence checks and whitespace checks passed. The SQL installers also executed successfully against a clean MariaDB 11.4 database; smoke tests verified all 10 tables, the `pvpPoints` column/index, current/best streak progression plus loss reset in all four stats systems, and all three database-clock cooldown queries under row locks. No live game-server, target-database, or in-game validation has been performed.
 
 ## Corrections made in this review
 
