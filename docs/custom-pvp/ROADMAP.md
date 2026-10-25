@@ -186,3 +186,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The existing login-recovery fallback remains in place for players who disconnect or reconnect after an instance has been destroyed.
 - Updated `docs/custom-pvp/SOURCE_REVIEW.md` with the corresponding release check.
 - This is source-level hardening only. No build, SQL execution, or runtime test was run; exact Mobius API compatibility and in-game teleport behavior remain unverified.
+
+### Phase 20 — 3v3 winner validation (source updated; validation pending)
+
+- Tightened the 3v3 finalizer so it only records a winning team when at least one member is both connected and alive.
+- The previous check could skip this requirement when no team member was marked dead, even if the team had no connected survivor during a logout/finalization race.
+- Updated the source review checklist to cover this race path.
+- No compilation or runtime tests were run; validate concurrent logout/death scenarios on a test server.
