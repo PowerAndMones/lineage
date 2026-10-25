@@ -369,6 +369,12 @@ public class Arena1v1 extends Event
 
 	private void finishMatch(ArenaMatch match, Player loser, Player winner, boolean timedOut)
 	{
+		// If both participants died before the finish task runs, do not award a win based on event ordering.
+		if ((loser != null) && (winner != null) && winner.isDead())
+		{
+			loser = null;
+			winner = null;
+		}
 		if (!match.finish())
 		{
 			return;
