@@ -507,10 +507,17 @@ public class Arena1v1 extends Event
 			catch (Exception e)
 			{
 				LOGGER.warning("1v1 Arena failed to create isolated match: " + e.getMessage());
-				playerA.teleToLocation(returnA, true);
-				playerB.teleToLocation(returnB, true);
-				deleteReturnLocation(playerA.getObjectId());
-				deleteReturnLocation(playerB.getObjectId());
+				if (playerA.isOnlineInt() == 1)
+				{
+					playerA.teleToLocation(returnA, true);
+					deleteReturnLocation(playerA.getObjectId());
+				}
+				if (playerB.isOnlineInt() == 1)
+				{
+					playerB.teleToLocation(returnB, true);
+					deleteReturnLocation(playerB.getObjectId());
+				}
+				// Preserve the return record for any participant who disconnected during startup.
 				if (world != null)
 				{
 					world.destroy();
