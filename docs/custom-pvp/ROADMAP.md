@@ -395,25 +395,25 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - 1v1 and 3v3 now compute one integer Elo delta and apply it with opposite signs to winners and losers, avoiding one-point rating creation on `Math.round` half-point ties.
 - Last Hero now distributes the winner's integer gain across all opponents, randomizing any remainder points to avoid a fixed queue-position bias, so total rating points are conserved even when the gain is not evenly divisible by the number of opponents.
-- CI compilation must pass after these source changes; runtime rating behavior and leaderboard effects still require test-server validation.
+- CI compilation and custom-script compilation passed after these source changes in GitHub Actions on 2026-10-25; runtime rating behavior and leaderboard effects still require test-server validation.
 
 
-## Phase 43 — Always-on matchmaking startup
+## Phase 49 — Always-on matchmaking startup
 
 - 1v1 Arena, 3v3 Arena, and Last Hero now call `eventStart(null)` from their script constructors after registering NPC interactions.
 - This is required because these queues are designed to be continuously available; merely loading the event script does not invoke `eventStart` automatically.
 - On successful script load, each mode opens its queue and spawns its manager NPC. Event lifecycle and duplicate-manager behavior must still be validated on the target Mobius runtime.
-- Source edits are not yet build-validated; perform the agreed compile/fix pass after source preparation is complete.
+- CI compiled the Mobius core and all custom PvP scripts successfully after these source edits on 2026-10-25. Runtime startup and duplicate-manager behavior still require test-server validation.
 
 
-## Phase 44 — Manager cleanup on script reload
+## Phase 50 — Manager cleanup on script reload
 
 - All three arena scripts override `unload(boolean)` to call `eventStop()` whenever the script is unloaded or replaced, including a full script reload. The override checks whether the current script instance is still registered before allowing the base method to remove it, avoiding deletion of a replacement instance from ScriptManager.
 - This prevents their always-on manager NPCs and active match state from being left behind when the script is replaced or reloaded.
 - Reload cleanup may return online participants to saved/fallback locations and preserve offline recovery records; this behavior still needs test-server validation.
 
 
-## Phase 45 — Fail-fast manager NPC startup
+## Phase 51 — Fail-fast manager NPC startup
 
 - Each queue now checks the result of spawning its manager NPC. If the NPC template cannot be resolved or the spawn fails, the mode rolls `ACTIVE` back to false and logs a warning instead of reporting a live queue that players cannot access.
 - The three manager templates exist in the custom NPC XML; the failure guard remains valuable for future datapack changes.
