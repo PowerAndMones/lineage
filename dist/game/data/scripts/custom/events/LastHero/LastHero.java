@@ -333,7 +333,7 @@ public class LastHero extends Event
 				{
 					final Location dest = ((saved.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(saved.getInstanceId()) == null)) ? RETURN_FALLBACK : saved;
 					p.teleToLocation(dest, true);
-					if ((p.getInstanceId() == dest.getInstanceId()) && (Math.abs(p.getX() - dest.getX()) <= 500) && (Math.abs(p.getY() - dest.getY()) <= 500) && (Math.abs(p.getZ() - dest.getZ()) <= 500))
+					if (isAtLocation(p, dest))
 					{
 						deleteReturnLocation(p.getObjectId());
 					}
@@ -344,6 +344,11 @@ public class LastHero extends Event
 				}
 			}, 2000);
 		}
+	}
+
+	private static boolean isAtLocation(Player player, Location destination)
+	{
+		return (player != null) && (destination != null) && (player.getInstanceId() == destination.getInstanceId()) && (Math.abs(player.getX() - destination.getX()) <= 500) && (Math.abs(player.getY() - destination.getY()) <= 500) && (Math.abs(player.getZ() - destination.getZ()) <= 500);
 	}
 
 	private void finishMatch(HeroMatch match, Player winner, boolean timeout)
@@ -366,7 +371,14 @@ public class LastHero extends Event
 				final Location dest = match.returnLocations.get(p.getObjectId());
 				final Location safeDestination = (dest == null) || ((dest.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(dest.getInstanceId()) == null)) ? RETURN_FALLBACK : dest;
 				p.teleToLocation(safeDestination, true);
-				deleteReturnLocation(p.getObjectId());
+				if (isAtLocation(p, safeDestination))
+				{
+					deleteReturnLocation(p.getObjectId());
+				}
+				else
+				{
+					LOGGER.warning("Last Hero return teleport failed for " + p.getObjectId() + "; recovery record retained.");
+				}
 				p.sendMessage(winner == null ? (timeout ? "Last Hero ended without a winner (time limit)." : "Last Hero ended without a winner.") : (p == winner ? "You won Last Hero!" : "Last Hero winner: " + winner.getName() + "."));
 			}
 		}
@@ -573,8 +585,9 @@ public class LastHero extends Event
 					if (p.isOnlineInt() == 1)
 					{
 						final Location loc = returnLocations.get(p.getObjectId());
-						p.teleToLocation(loc != null ? loc : RETURN_FALLBACK, true);
-						deleteReturnLocation(p.getObjectId());
+						final Location destination = loc != null ? loc : RETURN_FALLBACK;
+						p.teleToLocation(destination, true);
+						if (isAtLocation(p, destination)) deleteReturnLocation(p.getObjectId());
 					}
 				}
 				if (world != null) world.destroy();
