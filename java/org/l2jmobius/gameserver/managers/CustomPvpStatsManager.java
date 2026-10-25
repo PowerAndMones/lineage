@@ -45,7 +45,7 @@ public final class CustomPvpStatsManager
 	private static final AtomicBoolean WORKER_RUNNING = new AtomicBoolean(false);
 	private static final AtomicBoolean BACKLOG_WARNING_ACTIVE = new AtomicBoolean(false);
 	private static final AtomicBoolean QUEUE_FULL_WARNING_ACTIVE = new AtomicBoolean(false);
-	private static final String UPSERT_KILLER = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 1, 0, 1, 1, 1, NOW()) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalKills = totalKills + 1, currentStreak = currentStreak + 1, bestStreak = GREATEST(bestStreak, currentStreak + 1), pvpPoints = pvpPoints + 1, lastKillTime = NOW()";
+	private static final String UPSERT_KILLER = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 1, 0, 1, 1, 1, NOW()) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalKills = totalKills + 1, bestStreak = GREATEST(bestStreak, currentStreak + 1), currentStreak = currentStreak + 1, pvpPoints = pvpPoints + 1, lastKillTime = NOW()";
 	private static final String UPSERT_VICTIM = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 0, 1, 0, 0, 0, NULL) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalDeaths = totalDeaths + 1, currentStreak = 0";
 	private static final CustomPvpStatsManager INSTANCE = new CustomPvpStatsManager();
 
