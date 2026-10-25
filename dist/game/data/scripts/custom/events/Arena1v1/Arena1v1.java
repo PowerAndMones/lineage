@@ -262,11 +262,14 @@ public class Arena1v1 extends Event
 				continue;
 			}
 
-			startMatch(playerA, playerB);
+			if (!startMatch(playerA, playerB))
+			{
+				return;
+			}
 		}
 	}
 
-	private synchronized void startMatch(Player playerA, Player playerB)
+	private synchronized boolean startMatch(Player playerA, Player playerB)
 	{
 		final ArenaMatch match = new ArenaMatch(playerA, playerB);
 		if (!match.start())
@@ -275,7 +278,18 @@ public class Arena1v1 extends Event
 			playerB.sendMessage("1v1 Arena could not create a match. You were returned to the queue.");
 			queueAgainIfEligible(playerA);
 			queueAgainIfEligible(playerB);
-			return;
+			// Retry outside the current matchmaking loop to avoid a tight failure loop.
+			ThreadPool.schedule(() ->
+			{
+				synchronized (Arena1v1.this)
+				{
+					if (ACTIVE)
+					{
+						matchPlayers();
+					}
+				}
+			}, 10000);
+			return false;
 		}
 		MATCHES_BY_PLAYER.put(playerA.getObjectId(), match);
 		MATCHES_BY_PLAYER.put(playerB.getObjectId(), match);
@@ -301,6 +315,7 @@ public class Arena1v1 extends Event
 			final Player opponent = match.getOpponent(disconnected);
 			finishMatch(match, disconnected, (opponent.isOnlineInt() == 1) ? opponent : null);
 		}
+		return true;
 	}
 
 	private synchronized void queueAgainIfEligible(Player player)
