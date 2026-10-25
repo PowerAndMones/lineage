@@ -147,3 +147,13 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added instance template `3052`, manager NPC interface `70015`, and SQL installer `character_lasthero_stats.sql`.
 - No global announcements, item rewards, combat bonuses, or open-world PvP points are awarded.
 - Prototype is not production-ready. Script discovery, NPC template, instance template, target API compatibility, coordinates, queue policy and rating math require validation. No build/runtime tests have been run.
+
+
+### Phase 15 — Unified PvP Center (source and HTML added; runtime validation pending)
+
+- Extended the existing Community Board PvP Center with personal statistics and top-10 leaderboards for 3v3 Arena and Last Hero.
+- The page now keeps open-world PvP ranking, 1v1 Arena, 3v3 Arena, and Last Hero ratings in separate sections.
+- Added shared leaderboard rendering and escaped character names before inserting them into HTML.
+- The 3v3 and Last Hero sections require their respective SQL installers, as well as the standard Mobius `characters` table for character names.
+- Updated `dist/game/data/html/CommunityBoard/Custom/pvp.html` and `HomeBoard.java`.
+- No build or runtime tests have been performed. Verify Community Board rendering, database column names, and HTML size/scrolling on the target client.
