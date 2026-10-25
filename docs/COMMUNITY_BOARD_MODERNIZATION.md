@@ -10,13 +10,19 @@ Replace the default Alt+B landing page with a compact, dark fantasy-themed dashb
 - Feature areas: Home, PvP rankings, Teleport, Buffer, Events, Services.
 - Keep each rendered page comfortably below the Community Board 16,383-character HTML limit.
 
-## Functional implementation plan
-1. Confirm existing Community Board handlers and their actual bypass names in this source snapshot.
-2. Implement the home page and register its handler through the project's existing handler bootstrap.
-3. Wire each shortcut only after the target feature handler exists; do not expose dead buttons.
-4. Add PvP/PK ranking queries with bounded result counts and parameterized SQL.
-5. Add teleport/buffer integrations only by calling existing server-side managers; never trust client-provided prices, item IDs, or destinations.
-6. Build the project and test every bypass, permissions, disabled-board behavior, and HTML packet size before opening a PR.
+## Implemented in this branch
+- Intercepted `_bbshome` and `_bbspvp` in the existing Community Board dispatcher.
+- Added a dark, table-based home dashboard with player name and level.
+- Added a personal PvP/PK statistics page.
+- Added `_bbspvptop`, a Top 10 PvP ranking using a fixed SQL query and a bounded result set.
+- Escaped character names before inserting them into HTML.
+- Kept other server services unlinked until their handlers can be confirmed.
+
+## Remaining verification and follow-up
+1. Build the server against this source snapshot and resolve any compile issues.
+2. Verify the characters table columns against the deployed database schema.
+3. Test `_bbshome`, `_bbspvp`, `_bbspvptop`, disabled-board behavior, ranking SQL, and HTML packet size in an Interlude client.
+4. Add teleport/buffer integrations only by calling existing server-side managers; never trust client-provided prices, item IDs, or destinations.
 
 ## Safety and compatibility requirements
 - Never mutate `main` directly.
