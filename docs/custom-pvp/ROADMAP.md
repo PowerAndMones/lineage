@@ -89,7 +89,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 1. Harden the isolated 1v1 prototype and rated result integration: validate instance/spawn behavior, database recovery, transaction locking, and death/logout/timeout race conditions.
 2. Add Community Board display for 1v1 rating, wins/losses, and leaderboard after source integration is validated.
-3. Extend the stable match lifecycle to 3v3 and Last Hero.
+3. Harden and validate the 1v1, 3v3 and Last Hero prototypes before enabling them on a live server.
 4. Add durable recovery for custom PvP-stat records that exceed retry attempts if lossless persistence is required through long database outages.
 5. Prepare full build and runtime validation only after the planned source changes are complete.
 
@@ -137,3 +137,13 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added persistent roster-pair cooldown storage for anti-farm protection; roster hashes must be based on sorted character IDs.
 - Added `Arena3v3.java`: FIFO queue reserves six eligible players, assigns the first three to Team A and next three to Team B, creates an isolated dynamic instance, and persists each return location before teleporting.\n- Added a separate PvP instance template (3051), manager HTML (NPC 70014), and persistent return-location table.\n- Team wipe, timeout, logout-forfeit, one-time finish guard, team-level Elo calculation, and 30-minute canonical roster-hash cooldown are implemented in the prototype.\n- The SQL schema does not enable the event by itself; the script must be discovered/registered by the target Mobius script loader and NPC template 70014 must exist.\n- Source has not been compiled or runtime-tested; lifecycle/API integration remains unverified.
 - The implementation must reuse the isolated-instance/recovery principles from 1v1 but support six players and team-level result resolution.
+
+
+### Phase 14 — Last Hero free-for-all prototype (source and SQL added; build/runtime validation pending)
+
+- Added `LastHero.java` with FIFO queue, 4–10 players per match, individual spawn points, isolated dynamic instance, death-based survivor detection, timeout and event-stop cleanup.
+- Last connected living participant wins; a match with no surviving player or a timeout has no winner and no rating changes.
+- Added independent Last Hero rating/statistics, persistent order-independent full-roster anti-farm cooldown (30 minutes), and saved return locations.
+- Added instance template `3052`, manager NPC interface `70015`, and SQL installer `character_lasthero_stats.sql`.
+- No global announcements, item rewards, combat bonuses, or open-world PvP points are awarded.
+- Prototype is not production-ready. Script discovery, NPC template, instance template, target API compatibility, coordinates, queue policy and rating math require validation. No build/runtime tests have been run.
