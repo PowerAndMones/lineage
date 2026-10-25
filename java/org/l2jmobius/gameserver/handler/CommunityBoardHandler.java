@@ -119,11 +119,15 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 		
 		// Modern Community Board landing page and personal PvP statistics.
-		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command))
+		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase().startsWith("_bbsbuffer;view;"))
 		{
 			if ("_bbspvptop".equalsIgnoreCase(command))
 			{
 				showPvPRanking(player);
+			}
+			else if (command.toLowerCase().startsWith("_bbsbuffer;view;"))
+			{
+				showBufferScheme(player, command.substring("_bbsbuffer;view;".length()));
 			}
 			else if ("_bbsbuffer".equalsIgnoreCase(command))
 			{
@@ -214,7 +218,8 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		{
 			for (Map.Entry<String, java.util.List<Integer>> entry : schemes.entrySet())
 			{
-				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font></td>");
+				final int schemeIndex = new java.util.ArrayList<>(schemes.keySet()).indexOf(entry.getKey());
+				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font><br1><a action=\"bypass _bbsbuffer;view;").append(schemeIndex).append("\">View skills</a></td>");
 				html.append("<td align=center><font color=E8BD68>").append(entry.getValue().size()).append("</font></td></tr>");
 			}
 		}
@@ -237,6 +242,66 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		separateAndSend(html.toString(), player);
 	}
 	
+	/**
+	 * Displays a read-only preview of a saved buffer scheme.
+	 * @param player the active player
+	 * @param indexText zero-based scheme index
+	 */
+	private static void showBufferScheme(Player player, String indexText)
+	{
+		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
+		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
+		final int index;
+		try
+		{
+			index = Integer.parseInt(indexText);
+		}
+		catch (NumberFormatException e)
+		{
+			separateAndSend("<html><body><center>Invalid buffer scheme.<br><a action=\"bypass _bbsbuffer\">Back to Buffer</a></center></body></html>", player);
+			return;
+		}
+		if ((index < 0) || (index >= schemes.size()))
+		{
+			separateAndSend("<html><body><center>Buffer scheme not found.<br><a action=\"bypass _bbsbuffer\">Back to Buffer</a></center></body></html>", player);
+			return;
+		}
+		final Map.Entry<String, java.util.List<Integer>> scheme = new java.util.ArrayList<>(schemes.entrySet()).get(index);
+		final StringBuilder html = new StringBuilder(4096);
+		html.append("<html><body><center>");
+		html.append("<table width=600 cellpadding=8 cellspacing=0 bgcolor=10141D><tr><td>");
+		html.append("<font color=E8BD68 name=hs12>ADEN</font> <font color=FFFFFF name=hs12>BUFFER</font><br1>");
+		html.append("<font color=888E9B>SAVED SCHEME DETAILS</font></td></tr></table><br>");
+		html.append("<table width=600 cellpadding=6 cellspacing=1 bgcolor=252B38>");
+		html.append("<tr><td colspan=2><font color=E8BD68>").append(escapeBoardText(scheme.getKey())).append("</font></td></tr>");
+		html.append("<tr><td width=420><font color=E8BD68>BUFF</font></td><td align=center><font color=E8BD68>LEVEL</font></td></tr>");
+		if (scheme.getValue().isEmpty())
+		{
+			html.append("<tr><td colspan=2><font color=BBBBBB>This scheme contains no skills.</font></td></tr>");
+		}
+		else
+		{
+			for (int skillId : scheme.getValue())
+			{
+				final org.l2jmobius.gameserver.entity.actor.holders.npc.BuffSkillHolder buff = SchemeBufferTable.getInstance().getAvailableBuff(skillId);
+				html.append("<tr><td><font color=FFFFFF>");
+				if ((buff != null) && !buff.getDescription().isEmpty())
+				{
+					html.append(escapeBoardText(buff.getDescription()));
+				}
+				else
+				{
+					html.append("Skill #").append(skillId);
+				}
+				html.append("</font></td><td align=center><font color=E8BD68>").append((buff != null) ? buff.getLevel() : 0).append("</font></td></tr>");
+			}
+		}
+		html.append("</table><br><font color=888E9B>This is a read-only preview; buffs are not applied here.</font><br>");
+		html.append("<a action=\"bypass _bbsbuffer\">Back to Buffer</a>");
+		html.append("</center></body></html>");
+		separateAndSend(html.toString(), player);
+	}
+
 	/**
 	 * Displays the global Top 10 PvP ranking.
 	 * @param player the active player
