@@ -171,7 +171,7 @@ jobs:
             dist/game/data/scripts/custom/events/TeamVsTeam/TvT.java \
             dist/game/data/scripts/custom/events/CaptureTheFlag/CtF.java \
             dist/game/data/scripts/handlers/bypass/communityboard/HomeBoard.java
-      
+
       - name: Package full server distribution
         run: ant -f build.xml cleanup
 
