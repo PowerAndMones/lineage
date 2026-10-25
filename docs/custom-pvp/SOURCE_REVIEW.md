@@ -28,6 +28,7 @@ This is a source-level review only. No compilation, test server, database execut
 ### Match and rating integrity
 
 - Test simultaneous death, logout during finalization, timeout, event stop, and failed instance startup.
+- The 3v3 finalizer now rejects a winner team unless at least one member is both online and alive, including logout/timeout race paths.
 - Verify each match can finalize once only, and offline players retain return-location rows until login recovery succeeds.
 - Verify the 1v1 pair cooldown is direction-independent and that 3v3 roster-pair and Last Hero complete-roster cooldowns behave as intended.
 - Verify repeat-match cooldown suppression leaves rating and rated counters unchanged; player messages now state that explicitly.
