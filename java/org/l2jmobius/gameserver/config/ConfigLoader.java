@@ -32,6 +32,7 @@ import org.l2jmobius.gameserver.config.custom.ChatModerationConfig;
 import org.l2jmobius.gameserver.config.custom.ClassBalanceConfig;
 import org.l2jmobius.gameserver.config.custom.CommunityBoardConfig;
 import org.l2jmobius.gameserver.config.custom.CustomMailManagerConfig;
+import org.l2jmobius.gameserver.config.custom.CustomPvpConfig;
 import org.l2jmobius.gameserver.config.custom.DelevelManagerConfig;
 import org.l2jmobius.gameserver.config.custom.DualboxCheckConfig;
 import org.l2jmobius.gameserver.config.custom.FactionSystemConfig;
@@ -104,6 +105,7 @@ public class ConfigLoader
 		ClassBalanceConfig.load();
 		CommunityBoardConfig.load();
 		CustomMailManagerConfig.load();
+		CustomPvpConfig.load();
 		DelevelManagerConfig.load();
 		DualboxCheckConfig.load();
 		FactionSystemConfig.load();
