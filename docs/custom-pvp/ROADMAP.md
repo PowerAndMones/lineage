@@ -328,3 +328,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Match startup now verifies the returned dynamic instance has the expected template ID and a non-null exit location, in addition to a valid instance ID.
 - This catches missing or malformed instance XML before players are teleported into an empty/unconfigured instance.
 - No runtime test has been performed; temporarily remove or corrupt a template on a test server and confirm startup rolls back cleanly without leaving players in an instance.
+
+
+### Phase 40 — clean up rejected dynamic instances (source updated; validation pending)
+
+- If an arena template fails validation after `createDynamicInstance` has already registered the dynamic instance, the startup path now explicitly removes that invalid instance before aborting.
+- This prevents invalid or missing template data from leaving orphaned dynamic instances in `InstanceManager`.
+- No runtime test has been performed; force a missing/malformed template and verify the instance registry is clean after startup rollback.
