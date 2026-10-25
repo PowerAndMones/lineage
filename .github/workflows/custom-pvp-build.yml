@@ -131,10 +131,13 @@ jobs:
         env:
           MYSQL_PWD: root
         run: |
-          tables=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='game' AND table_name IN ('character_pvp_stats','character_arena1v1_stats','character_arena1v1_pair_cooldown','character_arena1v1_return','character_arena3v3_stats','character_arena3v3_team_cooldown','character_arena3v3_return','character_lasthero_stats','character_lasthero_roster_cooldown','character_lasthero_return')")
+          tables=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='game' AND table_name IN ('character_pvp_stats','character_arena1v1_stats','character_arena1v1_pair_cooldown','character_arena1v1_return','character_arena3v3_stats','character_arena3v3_team_cooldown','character_arena3v3_return','character_lasthero_stats','character_lasthero_roster_cooldown','character_lasthero_return')")
+          echo "Custom PvP table count: $tables"
           test "$tables" = "10"
-          points=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot -Nse "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='game' AND table_name='character_pvp_stats' AND column_name='pvpPoints'")
+          points=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='game' AND table_name='character_pvp_stats' AND column_name='pvpPoints'")
+          echo "pvpPoints column count: $points"
           test "$points" = "1"
-          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot -Nse "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='game' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
+          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='game' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
+          echo "PvP points index count: $idx"
           test "$idx" = "1"
           echo "SQL smoke test passed: 10 tables, pvpPoints column, and leaderboard index."
