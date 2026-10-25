@@ -436,10 +436,15 @@ public class LastHero extends Event
 					final double expectedWinner = 1.0 / (1.0 + Math.pow(10.0, (averageOpponent - ratings.get(winner.getObjectId())) / 400.0));
 					// Distribute one integer winner delta across all opponents so rounding cannot create or destroy rating points.
 					final int winnerDelta = (int) Math.round(K_FACTOR * (1.0 - expectedWinner));
-					final List<Player> opponents = match.players.stream().filter(p -> p != winner).toList();
+					final List<Player> opponents = new ArrayList<>(match.players.stream().filter(p -> p != winner).toList());
+					java.util.Collections.shuffle(opponents);
 					final int baseLoss = winnerDelta / opponents.size();
 					final int remainder = winnerDelta % opponents.size();
-					int opponentIndex = 0;
+					final Map<Integer, Integer> losses = new ConcurrentHashMap<>();
+					for (int i = 0; i < opponents.size(); i++)
+					{
+						losses.put(opponents.get(i).getObjectId(), baseLoss + ((i < remainder) ? 1 : 0));
+					}
 					for (Player p : match.players)
 					{
 						if (p == winner)
@@ -453,10 +458,9 @@ public class LastHero extends Event
 						}
 						else
 						{
-							final int loss = baseLoss + ((opponentIndex++ < remainder) ? 1 : 0);
 							try (PreparedStatement ps = con.prepareStatement(LOSS_SQL))
 							{
-								ps.setInt(1, ratings.get(p.getObjectId()) - loss);
+								ps.setInt(1, ratings.get(p.getObjectId()) - losses.get(p.getObjectId()));
 								ps.setInt(2, p.getObjectId());
 								ps.executeUpdate();
 							}
