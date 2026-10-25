@@ -61,11 +61,23 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - Event/instance kills do not consume the open-world killer-victim anti-farm cooldown.
 - Existing core PvP counters and event-specific scoring are left unchanged.
 
+### Phase 9 — 1v1 Arena matchmaking prototype (code added, build/runtime test pending)
+
+- Added an Arena Manager NPC interface with Join, Leave, and Status actions.
+- Eligible players are queued and paired through Mobius' native `DuelManager`; the native duel flow remains responsible for the fight itself.
+- Queue lifecycle operations are synchronized to reduce duplicate pairing and stop/start races.
+- Starting the event clears stale queue registrations; stopping it clears queued players' event-registration flags.
+- Players already participating in another event are rejected from registration.
+- No global announcements, custom rewards, PvP points, or ranking points are issued by this prototype.
+- This is not yet an isolated arena instance and is not production-ready. NPC template `70013`, script discovery, duel rejection behavior, and disconnect races remain unverified until the planned final validation.
+
 ## Next phases
 
-1. Add durable recovery for records that exceed retry attempts if lossless statistics are required through long database outages.
-2. Add 1v1/3v3 and Last Hero using established registration, teleport, cleanup, and AntiFeed patterns.
-3. Prepare full build and runtime validation after the planned features are complete.
+1. Upgrade 1v1 from queue-to-native-duel to a dedicated isolated match lifecycle: arena entry/exit, disconnect and timeout handling, winner detection, and cleanup.
+2. Add a dedicated 1v1 rating/statistics table and anti-farm-safe reward rules; keep rewards cosmetic/convenience only.
+3. Extend the stable match lifecycle to 3v3 and Last Hero.
+4. Add durable recovery for custom PvP-stat records that exceed retry attempts if lossless persistence is required through long database outages.
+5. Prepare full build and runtime validation only after the planned source changes are complete.
 
 ## Design constraints
 
