@@ -5440,6 +5440,7 @@ public class Player extends Playable
 		if (target.isPlayer() && AntiFeedManager.getInstance().check(this, target))
 		{
 			setPvpKills(_pvpKills + 1);
+			org.l2jmobius.gameserver.managers.CustomPvpStatsManager.getInstance().recordKill(this, target.asPlayer());
 			updatePvpTitleAndColor(true);
 			
 			// Send a Server->Client UserInfo packet to attacker with its Karma and PK Counter.
