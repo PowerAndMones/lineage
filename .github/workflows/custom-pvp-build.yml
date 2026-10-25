@@ -1,0 +1,37 @@
+name: Custom PvP build
+
+on:
+  push:
+    branches:
+      - feature/custom-pvp-core
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 27
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '27'
+
+      - name: Verify Java and Ant
+        run: |
+          java -version
+          ant -version
+
+      - name: Check whitespace errors
+        run: git diff --check
+
+      - name: Compile L2J Mobius
+        run: ant -f build.xml compile
