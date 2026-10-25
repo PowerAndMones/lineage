@@ -511,9 +511,11 @@ public class Arena3v3 extends Event
 					final double avgWin = winningTeam.stream().mapToInt(p -> ratings.get(p.getObjectId())).average().orElse(1000);
 					final double avgLoss = losingTeam.stream().mapToInt(p -> ratings.get(p.getObjectId())).average().orElse(1000);
 					final double expectedWin = 1.0 / (1.0 + Math.pow(10.0, (avgLoss - avgWin) / 400.0));
+					// Apply the same integer delta with opposite signs to avoid rating-point creation on half-point ties.
+					final int ratingDelta = (int) Math.round(RATING_K_FACTOR * (1.0 - expectedWin));
 					for (Player p : winningTeam)
 					{
-						final int next = ratings.get(p.getObjectId()) + (int) Math.round(RATING_K_FACTOR * (1.0 - expectedWin));
+						final int next = ratings.get(p.getObjectId()) + ratingDelta;
 						try (PreparedStatement ps = con.prepareStatement(UPDATE_WIN))
 						{
 							ps.setInt(1, next);
@@ -523,7 +525,7 @@ public class Arena3v3 extends Event
 					}
 					for (Player p : losingTeam)
 					{
-						final int next = ratings.get(p.getObjectId()) + (int) Math.round(RATING_K_FACTOR * (0.0 - (1.0 - expectedWin)));
+						final int next = ratings.get(p.getObjectId()) - ratingDelta;
 						try (PreparedStatement ps = con.prepareStatement(UPDATE_LOSS))
 						{
 							ps.setInt(1, next);
