@@ -356,3 +356,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Removed the four placeholder door IDs from all three custom instance templates. No matching door definitions were found in the branch, and these arenas do not require doors to run their core matchmaking flow.
 - This avoids loading instance templates with references to undefined doors. If physical arena gates are desired later, add actual door definitions first and then reference those IDs from the instance templates.
 - XML parsing and instance-loader validation have not yet been run against the server.
+
+
+### Phase 44 — persistence worker resilience (source updated; validation pending)
+
+- Added a per-attempt runtime-exception guard around custom PvP persistence. Unexpected runtime failures are logged and retried under the existing bounded retry policy instead of terminating the worker before later queued records are processed.
+- The current record can still be dropped after all retries fail; this queue is in-memory and is not a durable outbox.
+- No fault-injection or runtime tests have been performed. Simulate connection acquisition failures and scheduler shutdown to verify the worker resets its running flag and subsequent records can restart processing.
