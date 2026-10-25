@@ -396,3 +396,11 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - 1v1 and 3v3 now compute one integer Elo delta and apply it with opposite signs to winners and losers, avoiding one-point rating creation on `Math.round` half-point ties.
 - Last Hero now distributes the winner's integer gain across all opponents, randomizing any remainder points to avoid a fixed queue-position bias, so total rating points are conserved even when the gain is not evenly divisible by the number of opponents.
 - CI compilation must pass after these source changes; runtime rating behavior and leaderboard effects still require test-server validation.
+
+
+## Phase 43 — Always-on matchmaking startup
+
+- 1v1 Arena, 3v3 Arena, and Last Hero now call `eventStart(null)` from their script constructors after registering NPC interactions.
+- This is required because these queues are designed to be continuously available; merely loading the event script does not invoke `eventStart` automatically.
+- On successful script load, each mode opens its queue and spawns its manager NPC. Event lifecycle and duplicate-manager behavior must still be validated on the target Mobius runtime.
+- Source edits are not yet build-validated; perform the agreed compile/fix pass after source preparation is complete.
