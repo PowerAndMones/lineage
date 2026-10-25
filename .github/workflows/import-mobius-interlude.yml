@@ -54,7 +54,8 @@ jobs:
           echo "Imported file count:"
           find . -type f -not -path './.git/*' | wc -l
           echo "Largest files:"
-          find . -type f -not -path './.git/*' -printf '%s %p\n' | sort -nr | head -20
+          find . -type f -not -path './.git/*' -printf '%s %p\\n' | sort -nr > /tmp/largest-files.txt
+          sed -n '1,20p' /tmp/largest-files.txt
 
       - name: Validate repository limits
         run: |
