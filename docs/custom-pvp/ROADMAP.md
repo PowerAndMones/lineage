@@ -24,9 +24,16 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - The cooldown is configured in `config/Custom/CustomPvp.ini` (`RepeatKillCooldownSeconds`, default 30; `0` disables the cooldown). It is currently in memory and resets on server restart; it does not change the core PvP counter.
 - The Community Board ranking is sorted by PvP points first.
 
+### Phase 4 — asynchronous persistence (code added, build/runtime test pending)
+
+- PvP kill records are queued and persisted by one background worker rather than writing to SQL on the combat thread.
+- A single queue consumer preserves kill order so current/best streak calculations remain consistent.
+- Corrected the best-streak upsert to compare against the next streak value.
+- The queue is currently in-memory; a hard process crash can lose records that have not reached the database. This must be considered in final validation.
+
 ### Next phases
 
-1. Move custom-stat database writes off the combat thread and test mass-PvP load; decide separately whether event/instance kills should award points.
+1. Add queue/backlog diagnostics and define behavior for database outages; decide separately whether event/instance kills should award points.
 2. Improve ranking filters and add kill-streak announcements.
 3. Reuse existing TvT and CTF event scripts; add 1v1/3v3 and Last Hero after core tracking is tested.
 
