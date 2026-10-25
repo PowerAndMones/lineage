@@ -193,3 +193,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The previous check could skip this requirement when no team member was marked dead, even if the team had no connected survivor during a logout/finalization race.
 - Updated the source review checklist to cover this race path.
 - No compilation or runtime tests were run; validate concurrent logout/death scenarios on a test server.
+
+
+### Phase 21 — rating formula correction (source updated; validation pending)
+
+- Corrected the 3v3 losing-team rating delta to use the complementary expected score, matching the winner's Elo calculation.
+- Corrected Last Hero's loser delta to distribute the winner's rating gain across all opponents rather than scaling losses by the winner's expected score.
+- These changes are source-level only. No compilation, database execution, or runtime tests have been performed; verify rating changes for underdog and favorite scenarios before launch.
