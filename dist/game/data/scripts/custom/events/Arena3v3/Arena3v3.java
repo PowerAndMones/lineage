@@ -392,7 +392,8 @@ public class Arena3v3 extends Event
 					p.doRevive();
 				}
 				final Location destination = match.getReturnLocation(p);
-				p.teleToLocation(destination != null ? destination : RETURN_FALLBACK, true);
+				final Location safeDestination = (destination == null) || ((destination.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(destination.getInstanceId()) == null)) ? RETURN_FALLBACK : destination;
+				p.teleToLocation(safeDestination, true);
 				deleteReturnLocation(p.getObjectId());
 				p.sendMessage(winningTeam == null ? (timeout ? "3v3 Arena ended without a winner (time limit)." : "3v3 Arena ended without a winner.") : (winningTeam == match.teamA ? "3v3 Arena: Team A won." : "3v3 Arena: Team B won."));
 			}
