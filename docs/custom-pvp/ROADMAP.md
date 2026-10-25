@@ -272,3 +272,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Moved the 1v1, 3v3, and Last Hero manager NPCs to separate nearby Giran coordinates instead of spawning all three at the same point.
 - The saved-return fallback remains separate from the three manager positions.
 - Coordinates are provisional and must be checked in-game for walkability, ground height, collision, and proximity to existing NPCs before release.
+
+
+### Phase 32 — avoid consuming anti-farm cooldown on queue overflow (source updated; validation pending)
+
+- PvP persistence queue capacity is now reserved before mutating the in-memory killer-victim cooldown map.
+- When the queue is full, the kill record is dropped without consuming that pair's anti-farm cooldown, so a later eligible kill is not suppressed because of a record that never entered the queue.
+- No load test or runtime validation has been performed; verify capacity accounting and pair cooldown behavior under concurrent producers.
