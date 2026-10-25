@@ -108,13 +108,6 @@ public class Arena3v3 extends Event
 	}
 
 	@Override
-	public void onSave()
-	{
-		// Ensure script reload/shutdown removes the manager NPC and closes active matches.
-		eventStop();
-	}
-
-	@Override
 	public boolean eventBypass(Player player, String bypass)
 	{
 		if (bypass == null)
