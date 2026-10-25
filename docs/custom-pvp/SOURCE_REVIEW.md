@@ -21,6 +21,7 @@ This is a source-level review only. No compilation, test server, database execut
 
 - Confirm instance templates 3050–3052 are loaded from the custom instance directory.
 - Verify the target API's createDynamicInstance, addWorld, addAllowed, teleToLocation, and destroy behavior.
+- Confirm invalid/non-positive dynamic instance IDs trigger rollback and that cleanup does not leak an instance.
 - Confirm spawn points are inside the playable instance geometry and that return locations preserve the original instance where valid.
 - Match finalizers in 1v1, 3v3, and Last Hero now use the configured fallback if a saved return location points to an instance that no longer exists.
 - Test server shutdown/restart with participants inside an arena and confirm login recovery uses the saved return record without leaving a player stuck in an obsolete instance.
