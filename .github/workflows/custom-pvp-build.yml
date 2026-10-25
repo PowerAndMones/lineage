@@ -87,6 +87,11 @@ jobs:
               assert f"INSTANCE_TEMPLATE_ID = {template_id}" in source, f"Wrong instance template ID: {relative_path}"
               for registration in ("addTalkId(MANAGER_NPC_ID)", "addStartNpc(MANAGER_NPC_ID)", "addFirstTalkId(MANAGER_NPC_ID)"):
                   assert registration in source, f"Missing {registration} in {relative_path}"
+              unload_start = source.find("public void unload()")
+              assert unload_start >= 0, f"Missing unload cleanup override: {relative_path}"
+              unload_body = source[unload_start:source.find("\n\t}", unload_start) + 3]
+              assert "eventStop();" in unload_body and "super.unload();" in unload_body, f"Incomplete unload cleanup: {relative_path}"
+              assert unload_body.index("eventStop();") < unload_body.index("super.unload();"), f"Base cleanup runs before eventStop: {relative_path}"
 
           sql_dir = Path("dist/db_installer/sql/game")
           for filename in (
