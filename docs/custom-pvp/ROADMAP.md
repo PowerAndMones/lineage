@@ -404,3 +404,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - This is required because these queues are designed to be continuously available; merely loading the event script does not invoke `eventStart` automatically.
 - On successful script load, each mode opens its queue and spawns its manager NPC. Event lifecycle and duplicate-manager behavior must still be validated on the target Mobius runtime.
 - Source edits are not yet build-validated; perform the agreed compile/fix pass after source preparation is complete.
+
+
+## Phase 44 — Manager cleanup on script reload
+
+- All three arena scripts override `unload()` to call `eventStop()` before delegating to the base script cleanup.
+- This prevents their always-on manager NPCs and active match state from being left behind when the script is replaced or reloaded.
+- Reload cleanup may return online participants to saved/fallback locations and preserve offline recovery records; this behavior still needs test-server validation.
