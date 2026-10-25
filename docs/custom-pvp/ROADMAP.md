@@ -216,3 +216,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Queue slot reservation is now atomic, so concurrent kill events cannot exceed `MaxPendingRecords` through a check-then-add race.
 - The counter tracks queued records and is decremented when the worker removes a record for processing. Database retry/drop behavior remains unchanged.
 - No compilation, load testing, or runtime tests have been performed; verify counter consistency under concurrent producers and worker shutdown/restart conditions.
+
+
+### Phase 24 — event queue reward eligibility (source updated; validation pending)
+
+- Custom PvP reward eligibility now checks both active event participation and event registration, so queued players do not earn global kill credit or points while waiting.
+- Victim death and streak-reset tracking remains governed by the existing policy when killer rewards are suppressed.
+- No build or runtime tests have been run. Confirm the target Mobius `isRegisteredOnEvent()` semantics before release.
