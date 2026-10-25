@@ -24,6 +24,9 @@ import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.actor.Npc;
 import org.l2jmobius.gameserver.entity.actor.Player;
 import org.l2jmobius.gameserver.managers.DuelManager;
+import org.l2jmobius.gameserver.mechanics.events.EventType;
+import org.l2jmobius.gameserver.mechanics.events.annotations.RegisterEvent;
+import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogout;
 import org.l2jmobius.gameserver.mechanics.script.Event;
 import org.l2jmobius.gameserver.network.serverpackets.NpcHtmlMessage;
 
@@ -253,7 +256,7 @@ public class Arena1v1 extends Event
 
 	private boolean isMatchReady(Player player)
 	{
-		return (player != null) && (player.isOnlineInt() == 1) && !player.isDead() && !player.isInDuel() && (player.getPvpFlag() == 0) && !player.isInOlympiadMode() && !player.isInInstance() && !player.isInSiege() && (player.getKarma() == 0);
+		return (player != null) && (player.isOnlineInt() == 1) && !player.isDead() && !player.isOnEvent() && !player.isInDuel() && (player.getPvpFlag() == 0) && !player.isInOlympiadMode() && !player.isInInstance() && !player.isInSiege() && (player.getKarma() == 0);
 	}
 
 	private void clearWaitingPlayers(String message)
@@ -271,6 +274,17 @@ public class Arena1v1 extends Event
 		}
 		WAITING_PLAYERS.clear();
 		WAITING_IDS.clear();
+	}
+
+	@RegisterEvent(EventType.ON_PLAYER_LOGOUT)
+	private synchronized void onPlayerLogout(OnPlayerLogout event)
+	{
+		final Player player = event.getPlayer();
+		if ((player != null) && WAITING_IDS.remove(player.getObjectId()))
+		{
+			WAITING_PLAYERS.remove(player);
+			player.setRegisteredOnEvent(false);
+		}
 	}
 
 	private void showStatus(Player player)
