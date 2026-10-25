@@ -300,3 +300,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added a generation token to invalidate delayed Last Hero countdown callbacks when the event is stopped or restarted.
 - A countdown scheduled by a previous event run can no longer start a match early in a newly started run.
 - No runtime test has been performed; stop/restart the event while a countdown is pending and verify the stale task is ignored.
+
+
+### Phase 36 — avoid duplicate persistence retries after commit (source updated; validation pending)
+
+- The asynchronous PvP persistence worker now treats a successful SQL commit as success even if restoring the connection's auto-commit setting subsequently fails; the restore problem is logged separately.
+- This avoids retrying a transaction that may already have committed and thereby incrementing kills, deaths, streaks, or points twice.
+- No database-failure injection or runtime test has been performed; validate connection-pool behavior and transaction commit/reset failures before release.
