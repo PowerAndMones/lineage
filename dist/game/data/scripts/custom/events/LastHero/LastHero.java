@@ -9,7 +9,6 @@ import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -57,7 +56,7 @@ public class LastHero extends Event
 	private static final String WIN_SQL = "UPDATE character_lasthero_stats SET matches=matches+1,wins=wins+1,rating=?,winStreak=winStreak+1,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),lastMatchAt=CURRENT_TIMESTAMP WHERE charId=?";
 	private static final String LOSS_SQL = "UPDATE character_lasthero_stats SET matches=matches+1,losses=losses+1,rating=?,winStreak=0,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=?";
 	private static final String ENSURE_COOLDOWN = "INSERT IGNORE INTO character_lasthero_roster_cooldown (rosterHash,lastRatedAt) VALUES (?,'1970-01-01 00:00:00')";
-	private static final String SELECT_COOLDOWN = "SELECT lastRatedAt FROM character_lasthero_roster_cooldown WHERE rosterHash=? FOR UPDATE";
+	private static final String SELECT_COOLDOWN = "SELECT TIMESTAMPDIFF(SECOND, lastRatedAt, CURRENT_TIMESTAMP) AS secondsSinceRated FROM character_lasthero_roster_cooldown WHERE rosterHash=? FOR UPDATE";
 	private static final String UPDATE_COOLDOWN = "UPDATE character_lasthero_roster_cooldown SET lastRatedAt=CURRENT_TIMESTAMP WHERE rosterHash=?";
 	private static final Location[] SPAWNS =
 	{
@@ -355,17 +354,17 @@ public class LastHero extends Event
 						ps.setString(1, rosterHash);
 						ps.executeUpdate();
 					}
-					final Timestamp lastRated;
+					final long secondsSinceRated;
 					try (PreparedStatement ps = con.prepareStatement(SELECT_COOLDOWN))
 					{
 						ps.setString(1, rosterHash);
 						try (ResultSet rs = ps.executeQuery())
 						{
 							if (!rs.next()) throw new IllegalStateException("Missing Last Hero cooldown row.");
-							lastRated = rs.getTimestamp("lastRatedAt");
+							secondsSinceRated = rs.getLong("secondsSinceRated");
 						}
 					}
-					if ((lastRated != null) && (System.currentTimeMillis() - lastRated.getTime() < ROSTER_COOLDOWN_MILLIS))
+					if (secondsSinceRated < (ROSTER_COOLDOWN_MILLIS / 1000L))
 					{
 						con.rollback();
 						return 0;
