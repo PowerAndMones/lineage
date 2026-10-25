@@ -275,6 +275,19 @@ public class LastHero extends Event
 		}
 	}
 
+	@RegisterEvent(EventType.ON_CREATURE_TELEPORTED)
+	private void onCreatureTeleported(OnCreatureTeleported event)
+	{
+		final Creature creature = event.getCreature();
+		if ((creature == null) || !creature.isPlayer()) return;
+		final Player player = creature.asPlayer();
+		final HeroMatch match = MATCHES.get(player.getObjectId());
+		if ((match != null) && match.started && !match.finished.get() && (match.world != null) && (player.getInstanceId() != match.world.getInstanceId()))
+		{
+			ThreadPool.schedule(() -> resolveWinner(match), 100);
+		}
+	}
+
 	private void resolveWinner(HeroMatch match)
 	{
 		if (!match.started || match.finished.get()) return;
