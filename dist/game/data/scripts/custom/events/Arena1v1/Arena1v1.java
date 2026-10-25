@@ -825,8 +825,13 @@ public class Arena1v1 extends Event
 	@Override
 	public void unload(boolean removeFromList)
 	{
-		eventStop();
-		super.unload(removeFromList && (ScriptManager.getInstance().getScript(getName()) == this));
+		final boolean isCurrentScript = ScriptManager.getInstance().getScript(getName()) == this;
+		// During global server shutdown keep persisted return records intact; on reload/replacement, clean up the active event.
+		if (removeFromList || !isCurrentScript)
+		{
+			eventStop();
+		}
+		super.unload(removeFromList && isCurrentScript);
 	}
 
 	/**
