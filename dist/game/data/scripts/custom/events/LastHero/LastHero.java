@@ -291,7 +291,7 @@ public class LastHero extends Event
 	private void resolveWinner(HeroMatch match)
 	{
 		if (!match.started || match.finished.get()) return;
-		final List<Player> alive = match.players.stream().filter(p -> (p.isOnlineInt() == 1) && !p.isDead()).toList();
+		final List<Player> alive = match.players.stream().filter(p -> (p.isOnlineInt() == 1) && !p.isDead() && (match.world != null) && (p.getInstanceId() == match.world.getInstanceId())).toList();
 		if (alive.size() == 1) finishMatch(match, alive.get(0), false);
 		else if (alive.isEmpty()) finishMatch(match, null, false);
 	}
@@ -336,7 +336,7 @@ public class LastHero extends Event
 	private void finishMatch(HeroMatch match, Player winner, boolean timeout)
 	{
 		if (!match.finished.compareAndSet(false, true)) return;
-		if ((winner != null) && ((winner.isDead()) || (winner.isOnlineInt() != 1))) winner = null;
+		if ((winner != null) && ((winner.isDead()) || (winner.isOnlineInt() != 1) || (match.world == null) || (winner.getInstanceId() != match.world.getInstanceId()))) winner = null;
 		if (winner != null)
 		{
 			final int rated = recordResult(match, winner);
