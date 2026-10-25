@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.gameserver.config.GeneralConfig;
+import org.l2jmobius.gameserver.data.SchemeBufferTable;
 import org.l2jmobius.gameserver.entity.actor.Player;
 import org.l2jmobius.gameserver.network.SystemMessageId;
 import org.l2jmobius.gameserver.util.HtmlUtil;
@@ -118,11 +119,15 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 		
 		// Modern Community Board landing page and personal PvP statistics.
-		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command))
+		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command))
 		{
 			if ("_bbspvptop".equalsIgnoreCase(command))
 			{
 				showPvPRanking(player);
+			}
+			else if ("_bbsbuffer".equalsIgnoreCase(command))
+			{
+				showBufferOverview(player);
 			}
 			else
 			{
@@ -182,6 +187,51 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			html.append("</table>");
 		}
 		html.append("<br><font color=777F8F>Community Board  |  Interlude</font>");
+		html.append("</center></body></html>");
+		separateAndSend(html.toString(), player);
+	}
+	
+	/**
+	 * Displays the current player's saved buffer schemes and available categories.
+	 * @param player the active player
+	 */
+	private static void showBufferOverview(Player player)
+	{
+		final StringBuilder html = new StringBuilder(4096);
+		html.append("<html><body><center>");
+		html.append("<table width=600 cellpadding=8 cellspacing=0 bgcolor=10141D><tr><td>");
+		html.append("<font color=E8BD68 name=hs12>ADEN</font> <font color=FFFFFF name=hs12>BUFFER</font><br1>");
+		html.append("<font color=888E9B>SCHEME OVERVIEW</font></td></tr></table><br>");
+		html.append("<table width=600 cellpadding=6 cellspacing=1 bgcolor=252B38>");
+		html.append("<tr><td><font color=E8BD68>YOUR SAVED SCHEMES</font></td><td align=center><font color=E8BD68>SKILLS</font></td></tr>");
+		final Map<String, java.util.List<Integer>> schemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
+		if (schemes.isEmpty())
+		{
+			html.append("<tr><td colspan=2><font color=BBBBBB>No saved schemes yet. Create a scheme using the server's buffer NPC.</font></td></tr>");
+		}
+		else
+		{
+			for (Map.Entry<String, java.util.List<Integer>> entry : schemes.entrySet())
+			{
+				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font></td>");
+				html.append("<td align=center><font color=E8BD68>").append(entry.getValue().size()).append("</font></td></tr>");
+			}
+		}
+		html.append("</table><br><table width=600 cellpadding=6 cellspacing=1 bgcolor=252B38>");
+		html.append("<tr><td><font color=E8BD68>AVAILABLE BUFFER CATEGORIES</font></td></tr>");
+		final java.util.List<String> categories = SchemeBufferTable.getInstance().getSkillTypes();
+		if (categories.isEmpty())
+		{
+			html.append("<tr><td><font color=BBBBBB>No buffer categories are configured.</font></td></tr>");
+		}
+		else
+		{
+			for (String category : categories)
+			{
+				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(category)).append("</font></td></tr>");
+			}
+		}
+		html.append("</table><br><a action=\\"bypass _bbshome\\">Back to Community Home</a>");
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
 	}
