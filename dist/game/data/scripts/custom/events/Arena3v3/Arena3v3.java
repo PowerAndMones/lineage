@@ -383,7 +383,14 @@ public class Arena3v3 extends Event
 				{
 					final Location destination = ((saved.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(saved.getInstanceId()) == null)) ? RETURN_FALLBACK : saved;
 					player.teleToLocation(destination, true);
-					deleteReturnLocation(player.getObjectId());
+					if (player.getInstanceId() == destination.getInstanceId())
+					{
+						deleteReturnLocation(player.getObjectId());
+					}
+					else
+					{
+						LOGGER.warning("3v3 Arena could not restore player " + player.getObjectId() + " to the saved return location; recovery record retained.");
+					}
 				}
 			}, 2000);
 		}
