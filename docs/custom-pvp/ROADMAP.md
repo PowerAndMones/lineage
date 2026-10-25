@@ -279,3 +279,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - PvP persistence queue capacity is now reserved before mutating the in-memory killer-victim cooldown map.
 - When the queue is full, the kill record is dropped without consuming that pair's anti-farm cooldown, so a later eligible kill is not suppressed because of a record that never entered the queue.
 - No load test or runtime validation has been performed; verify capacity accounting and pair cooldown behavior under concurrent producers.
+
+
+### Phase 33 — preserve offline recovery after 1v1 startup failure (source updated; validation pending)
+
+- The 1v1 startup rollback now deletes a participant's saved return row only when that participant is still online and has been sent back. Offline participants keep the persisted recovery row for login.
+- This aligns 1v1 rollback with the offline recovery behavior already used by 3v3 and Last Hero.
+- No runtime test has been performed; disconnect one participant at each stage of match startup on a test server before release.
