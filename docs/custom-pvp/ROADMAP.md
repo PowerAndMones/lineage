@@ -394,5 +394,5 @@ The persistent-statistics code and SQL table have been added to this feature bra
 ### Phase 48 — zero-sum integer rating deltas (source updated; validation pending)
 
 - 1v1 and 3v3 now compute one integer Elo delta and apply it with opposite signs to winners and losers, avoiding one-point rating creation on `Math.round` half-point ties.
-- Last Hero now distributes the winner's integer gain across all opponents with deterministic remainder allocation, so total rating points are conserved even when the gain is not evenly divisible by the number of opponents.
+- Last Hero now distributes the winner's integer gain across all opponents, randomizing any remainder points to avoid a fixed queue-position bias, so total rating points are conserved even when the gain is not evenly divisible by the number of opponents.
 - CI compilation must pass after these source changes; runtime rating behavior and leaderboard effects still require test-server validation.
