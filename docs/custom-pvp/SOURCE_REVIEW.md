@@ -75,4 +75,4 @@ Do not enable the modes on a live server until the source compiles against the t
 ## Script reload cleanup
 
 - The base Mobius `Quest.unload()` cancels timers and unregisters listeners but does not remove NPCs created with a zero despawn delay or invoke custom `eventStop()` automatically.
-- The arena scripts now override `unload(boolean)` to stop their queue/matches and remove the manager NPC before base cleanup. They only remove the script-manager entry when it still points to that same instance, preventing a replaced script from accidentally removing its successor. Validate active-match cleanup on a test server.
+- The arena scripts now override `unload(boolean)` to stop their queue/matches and remove the manager NPC during script reload/replacement. During global shutdown they preserve persistent return records so login recovery can restore participants after the dynamic instance disappears. They only remove the script-manager entry when it still points to that same instance, preventing a replaced script from accidentally removing its successor. Validate active-match cleanup on a test server.
