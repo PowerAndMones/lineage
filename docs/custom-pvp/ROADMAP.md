@@ -157,3 +157,11 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The 3v3 and Last Hero sections require their respective SQL installers, as well as the standard Mobius `characters` table for character names.
 - Updated `dist/game/data/html/CommunityBoard/Custom/pvp.html` and `HomeBoard.java`.
 - No build or runtime tests have been performed. Verify Community Board rendering, database column names, and HTML size/scrolling on the target client.
+
+
+### Phase 16 — SQL installation and integration checklist (documentation added; validation pending)
+
+- Added `docs/custom-pvp/SQL_INSTALLATION.md` with the exact SQL files for fresh installs and the conditional migration for older `character_pvp_stats` tables.
+- Documented which SQL files create the 1v1, 3v3 and Last Hero statistics, cooldown and return-location tables.
+- Added a pre-build integration checklist for script discovery, NPC IDs, instance templates, Mobius API compatibility, Community Board SQL schema and match lifecycle scenarios.
+- This phase is documentation only. No SQL was executed, no build was run, and no runtime tests were performed.
