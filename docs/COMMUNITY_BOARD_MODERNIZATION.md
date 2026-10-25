@@ -15,14 +15,15 @@ Replace the default Alt+B landing page with a compact, dark fantasy-themed dashb
 - Added a dark, table-based home dashboard with player name and level.
 - Added a personal PvP/PK statistics page.
 - Added `_bbspvptop`, a Top 10 PvP ranking using a fixed SQL query and a bounded result set.
+- Added `_bbsbuffer`, showing the player's saved buffer schemes and configured buffer categories from `SchemeBufferTable`.
 - Escaped character names before inserting them into HTML.
 - Kept other server services unlinked until their handlers can be confirmed.
 
 ## Remaining verification and follow-up
 1. Build the server against this source snapshot and resolve any compile issues.
 2. Verify the characters table columns against the deployed database schema.
-3. Test `_bbshome`, `_bbspvp`, `_bbspvptop`, disabled-board behavior, ranking SQL, and HTML packet size in an Interlude client.
-4. Add teleport/buffer integrations only by calling existing server-side managers; never trust client-provided prices, item IDs, or destinations.
+3. Test `_bbshome`, `_bbspvp`, `_bbspvptop`, `_bbsbuffer`, disabled-board behavior, ranking SQL, and HTML packet size in an Interlude client.
+4. Implement teleport destinations and actual buffer application only after confirming the existing server-side APIs and configured rules; never trust client-provided prices, item IDs, or destinations.
 
 ## Safety and compatibility requirements
 - Never mutate `main` directly.
