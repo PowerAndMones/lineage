@@ -73,9 +73,18 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - No global announcements, custom rewards, PvP points, or ranking points are issued by this prototype.
 - This is not yet an isolated arena instance and is not production-ready. NPC template `70013`, script discovery, duel rejection behavior, and disconnect races remain unverified until the planned final validation.
 
+### Phase 10 — isolated 1v1 arena prototype (source added, build/runtime test pending)
+
+- Added custom instance template `3050` for 1v1 Arena.
+- Each matched pair gets a dynamic instance, saved return locations, allow-list registration, and opposite spawn points.
+- Uses PvP instance combat rather than the native duel manager because native duels use their own fixed teleport path.
+- Death/logout finalization is guarded against duplicate processing; stopping the event attempts to close active matches.
+- Disconnected-player return locations are currently in memory only. Timeout/restart recovery, spawn validation, and full lifecycle testing remain outstanding.
+- No custom rewards, rating, PvP points, or global announcements are issued.
+
 ## Next phases
 
-1. Upgrade 1v1 from queue-to-native-duel to a dedicated isolated match lifecycle. The required lifecycle and known Mobius integration points are now documented in `docs/custom-pvp/ARENA_1V1.md`; source implementation must first resolve instance-duel compatibility, template/spawn selection, saved return locations, disconnect handling, and one-time result finalization.
+1. Harden the isolated 1v1 prototype: validate instance/spawn behavior, add durable disconnect return recovery and match timeout/restart handling, then test death/logout race conditions.
 2. Add a dedicated 1v1 rating/statistics table and anti-farm-safe reward rules; keep rewards cosmetic/convenience only.
 3. Extend the stable match lifecycle to 3v3 and Last Hero.
 4. Add durable recovery for custom PvP-stat records that exceed retry attempts if lossless persistence is required through long database outages.
