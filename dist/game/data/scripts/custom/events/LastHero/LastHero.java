@@ -399,7 +399,7 @@ public class LastHero extends Event
 						{
 							try (PreparedStatement ps = con.prepareStatement(LOSS_SQL))
 							{
-								ps.setInt(1, ratings.get(p.getObjectId()) - (int) Math.round(K_FACTOR * expectedWinner / (match.players.size() - 1)));
+								ps.setInt(1, ratings.get(p.getObjectId()) - (int) Math.round(K_FACTOR * (1.0 - expectedWinner) / (match.players.size() - 1)));
 								ps.setInt(2, p.getObjectId());
 								ps.executeUpdate();
 							}
