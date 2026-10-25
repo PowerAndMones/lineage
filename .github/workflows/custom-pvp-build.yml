@@ -52,7 +52,7 @@ jobs:
           for npc_id in ("70013", "70014", "70015"):
               assert npc_ids.count(npc_id) == 1, f"Expected exactly one custom NPC {npc_id}"
 
-          npc_pattern = re.compile(r'<npc\\b[^>]*\\bid=["\\'](70013|70014|70015)["\\']')
+          npc_pattern = re.compile(r'<npc\b[^>]*\bid=["\'](70013|70014|70015)["\']')
           npc_matches = {"70013": [], "70014": [], "70015": []}
           for candidate in (root / "data/stats/npcs").rglob("*.xml"):
               source = candidate.read_text(encoding="utf-8", errors="ignore")
