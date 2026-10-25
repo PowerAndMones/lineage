@@ -175,11 +175,14 @@ jobs:
       - name: Package full server distribution
         run: ant -f build.xml cleanup
 
+      - name: Stage compiled server distribution
+        run: cp ../build/L2J_Mobius_CT_0_Interlude.zip ./L2J_Mobius_CT_0_Interlude.zip
+
       - name: Upload compiled server distribution
         uses: actions/upload-artifact@v4
         with:
           name: lineage-interlude-server
-          path: ../build/L2J_Mobius_CT_0_Interlude.zip
+          path: L2J_Mobius_CT_0_Interlude.zip
           if-no-files-found: error
           retention-days: 14
 
