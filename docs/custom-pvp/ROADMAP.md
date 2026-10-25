@@ -237,3 +237,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Corrected the general PvP, 3v3, and Last Hero SQL update order so `bestStreak` / `bestWinStreak` is calculated from the previous streak plus one before the current streak is incremented.
 - MySQL single-table updates can evaluate assignments left-to-right, so calculating the best streak after updating the current streak could overcount a winning streak by one. The 1v1 query already used the safe order.
 - No database execution or runtime tests have been performed; verify streak progression with sequences such as 1, 2, 3 consecutive wins and a loss/reset.
+
+
+### Phase 27 — arena instance ID guard (source updated; validation pending)
+
+- Added explicit validation that the dynamic instance ID is positive before registering an arena world or teleporting participants in 1v1, 3v3, and Last Hero.
+- A failed or invalid instance creation now follows the existing rollback path instead of potentially treating instance ID zero as a successful match.
+- No build or runtime tests have been performed; confirm the target Mobius `createDynamicInstance` failure behavior and `InstanceWorld.destroy()` cleanup during final validation.
