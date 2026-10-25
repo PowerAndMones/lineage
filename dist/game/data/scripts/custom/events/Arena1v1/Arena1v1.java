@@ -46,6 +46,7 @@ public class Arena1v1 extends Event
 	private static final String HTML_PATH = "data/scripts/custom/events/Arena1v1/";
 	private static final int MANAGER_NPC_ID = 70013;
 	private static final int INSTANCE_TEMPLATE_ID = 3050;
+	private static final long MATCH_TIMEOUT_MILLIS = 5 * 60 * 1000L;
 	private static final Location SPAWN_A = new Location(147447, 46722, -3416, 0);
 	private static final Location SPAWN_B = new Location(151536, 46722, -3416, 32768);
 	private static final Location RETURN_FALLBACK = new Location(83425, 148585, -3406);
@@ -268,6 +269,7 @@ public class Arena1v1 extends Event
 		playerB.setOnEvent(true);
 		playerA.sendMessage("1v1 Arena match started against " + playerB.getName() + ".");
 		playerB.sendMessage("1v1 Arena match started against " + playerA.getName() + ".");
+		ThreadPool.schedule(() -> finishMatch(match, null, null, true), MATCH_TIMEOUT_MILLIS);
 	}
 
 	private synchronized void queueAgainIfEligible(Player player)
@@ -333,6 +335,11 @@ public class Arena1v1 extends Event
 
 	private void finishMatch(ArenaMatch match, Player loser, Player winner)
 	{
+		finishMatch(match, loser, winner, false);
+	}
+
+	private void finishMatch(ArenaMatch match, Player loser, Player winner, boolean timedOut)
+	{
 		if (!match.finish())
 		{
 			return;
@@ -353,7 +360,7 @@ public class Arena1v1 extends Event
 				}
 				final Location returnLocation = match.getReturnLocation(participant);
 				participant.teleToLocation(returnLocation != null ? returnLocation : RETURN_FALLBACK, true);
-				participant.sendMessage((winner != null) ? ("1v1 Arena: " + winner.getName() + " won the match.") : "1v1 Arena match ended without a winner.");
+				participant.sendMessage((winner != null) ? ("1v1 Arena: " + winner.getName() + " won the match.") : (timedOut ? "1v1 Arena match ended: time limit reached, no winner recorded." : "1v1 Arena match ended without a winner."));
 			}
 			else
 			{
@@ -468,16 +475,6 @@ public class Arena1v1 extends Event
 		WAITING_IDS.clear();
 	}
 
-	@RegisterEvent(EventType.ON_PLAYER_LOGOUT)
-	private synchronized void onPlayerLogout(OnPlayerLogout event)
-	{
-		final Player player = event.getPlayer();
-		if ((player != null) && WAITING_IDS.remove(player.getObjectId()))
-		{
-			WAITING_PLAYERS.remove(player);
-			player.setRegisteredOnEvent(false);
-		}
-	}
 
 	private void showStatus(Player player)
 	{
