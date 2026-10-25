@@ -489,9 +489,9 @@ public class Arena1v1 extends Event
 					return false;
 				}
 				final Instance instance = InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID);
-				if ((instance == null) || (instance.getId() <= 0))
+				if ((instance == null) || (instance.getId() <= 0) || (instance.getTemplateId() != INSTANCE_TEMPLATE_ID) || (instance.getExitLoc() == null))
 				{
-					throw new IllegalStateException("Invalid 1v1 Arena instance.");
+					throw new IllegalStateException("Could not load a valid 1v1 Arena instance template.");
 				}
 				world = new InstanceWorld();
 				world.setInstance(instance);
