@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 
 import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.commons.threads.ThreadPool;
@@ -572,7 +571,7 @@ public class Arena1v1 extends Event
 					ps.setInt(2, charIdHigh);
 					ps.executeUpdate();
 				}
-				final Timestamp lastRatedAt;
+				final long secondsSinceRated;
 				try (PreparedStatement ps = con.prepareStatement(SELECT_PAIR_COOLDOWN))
 				{
 					ps.setInt(1, charIdLow);
@@ -583,10 +582,10 @@ public class Arena1v1 extends Event
 						{
 							throw new IllegalStateException("Missing 1v1 pair cooldown row.");
 						}
-						lastRatedAt = rs.getTimestamp("lastRatedAt");
+						secondsSinceRated = rs.getLong("secondsSinceRated");
 					}
 				}
-				if ((lastRatedAt != null) && ((System.currentTimeMillis() - lastRatedAt.getTime()) < RATED_PAIR_COOLDOWN_MILLIS))
+				if (secondsSinceRated < (RATED_PAIR_COOLDOWN_MILLIS / 1000L))
 				{
 					con.rollback();
 					return 0;
