@@ -78,6 +78,7 @@ public class LastHero extends Event
 	private static final Set<Integer> WAITING_IDS = ConcurrentHashMap.newKeySet();
 	private static final Map<Integer, HeroMatch> MATCHES = new ConcurrentHashMap<>();
 	private static volatile boolean ACTIVE;
+	private static boolean START_SCHEDULED;
 	private static Npc MANAGER_NPC;
 
 	private LastHero()
@@ -92,6 +93,7 @@ public class LastHero extends Event
 	{
 		if (ACTIVE) return false;
 		clearQueue("Last Hero queue was reset.");
+		START_SCHEDULED = false;
 		ACTIVE = true;
 		MANAGER_NPC = addSpawn(MANAGER_NPC_ID, MANAGER_SPAWN, false, 0);
 		return true;
@@ -101,6 +103,7 @@ public class LastHero extends Event
 	public synchronized boolean eventStop()
 	{
 		ACTIVE = false;
+		START_SCHEDULED = false;
 		clearQueue("Last Hero has been stopped.");
 		for (HeroMatch match : Set.copyOf(MATCHES.values())) finishMatch(match, null, false);
 		if (MANAGER_NPC != null)
@@ -168,7 +171,7 @@ public class LastHero extends Event
 		WAITING.add(p);
 		p.setRegisteredOnEvent(true);
 		p.sendMessage("Joined Last Hero queue. Players waiting: " + WAITING.size() + ".");
-		if (WAITING.size() >= MIN_PLAYERS) startMatch();
+		scheduleStartIfReady();
 	}
 
 	private synchronized void leaveQueue(Player p)
@@ -181,6 +184,21 @@ public class LastHero extends Event
 			p.sendMessage("You left the Last Hero queue.");
 		}
 		else p.sendMessage("You are not waiting for Last Hero.");
+	}
+
+	private synchronized void scheduleStartIfReady()
+	{
+		if (!ACTIVE || START_SCHEDULED || (WAITING.size() < MIN_PLAYERS)) return;
+		START_SCHEDULED = true;
+		for (Player p : WAITING) p.sendMessage("Last Hero starts in 15 seconds. Join now to enter this round.");
+		ThreadPool.schedule(() ->
+		{
+			synchronized (LastHero.this)
+			{
+				START_SCHEDULED = false;
+				startMatch();
+			}
+		}, 15000);
 	}
 
 	private synchronized void startMatch()
