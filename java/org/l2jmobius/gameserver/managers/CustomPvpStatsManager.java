@@ -79,10 +79,7 @@ public final class CustomPvpStatsManager
 			}
 			return previous;
 		});
-		if (!accepted.get())
-		{
-			return;
-		}
+		final boolean awardKiller = accepted.get();
 
 		// Keep the cache bounded during long-running mass-PvP sessions.
 		if (LAST_PAIR_KILLS.size() > 10000)
@@ -91,7 +88,9 @@ public final class CustomPvpStatsManager
 			LAST_PAIR_KILLS.entrySet().removeIf(entry -> entry.getValue() < expiry);
 		}
 
-		PENDING_KILLS.add(new KillRecord(killer.getObjectId(), killer.getName(), victim.getObjectId(), victim.getName()));
+		// Every valid PvP death updates the victim's death count and resets their streak.
+		// The cooldown only suppresses the killer's custom kill/point reward.
+		PENDING_KILLS.add(new KillRecord(killer.getObjectId(), killer.getName(), victim.getObjectId(), victim.getName(), awardKiller));
 		scheduleWorker();
 	}
 
@@ -132,11 +131,14 @@ public final class CustomPvpStatsManager
 			con.setAutoCommit(false);
 			try
 			{
-				try (PreparedStatement ps = con.prepareStatement(UPSERT_KILLER))
+				if (record.awardKiller)
 				{
-					ps.setInt(1, record.killerId);
-					ps.setString(2, record.killerName);
-					ps.executeUpdate();
+					try (PreparedStatement ps = con.prepareStatement(UPSERT_KILLER))
+					{
+						ps.setInt(1, record.killerId);
+						ps.setString(2, record.killerName);
+						ps.executeUpdate();
+					}
 				}
 
 				try (PreparedStatement ps = con.prepareStatement(UPSERT_VICTIM))
@@ -169,13 +171,15 @@ public final class CustomPvpStatsManager
 		private final String killerName;
 		private final int victimId;
 		private final String victimName;
+		private final boolean awardKiller;
 
-		private KillRecord(int killerId, String killerName, int victimId, String victimName)
+		private KillRecord(int killerId, String killerName, int victimId, String victimName, boolean awardKiller)
 		{
 			this.killerId = killerId;
 			this.killerName = killerName;
 			this.victimId = victimId;
 			this.victimName = victimName;
+			this.awardKiller = awardKiller;
 		}
 	}
 }
