@@ -34,6 +34,7 @@ This is a source-level review only. No compilation, test server, database execut
 - Test simultaneous death, logout during finalization, timeout, event stop, and failed instance startup.
 - The 3v3 finalizer now rejects a winner team unless at least one member is both online and alive, including logout/timeout race paths.
 - Verify each match can finalize once only, and offline players retain return-location rows until login recovery succeeds.
+- Validate the 1v1 startup rollback path when a participant goes offline; the saved return row must remain until recovery on login.
 - Verify the 1v1 pair cooldown is direction-independent and that 3v3 roster-pair and Last Hero complete-roster cooldowns behave as intended.
 - Verify all three rating cooldown queries using the database clock (`TIMESTAMPDIFF`/`CURRENT_TIMESTAMP`) against the deployed MySQL or MariaDB version.
 - Verify streak SQL assignment order: best streak must use the prior current streak plus one before current streak increments, and a loss must reset only the current streak.
