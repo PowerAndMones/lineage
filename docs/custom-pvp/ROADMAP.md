@@ -251,3 +251,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added a composite index on `pvpPoints`, `totalKills`, and `bestStreak` to support the Community Board's top-10 global PvP ranking.
 - Added `character_pvp_stats_add_points_index.sql` for existing installations where the column exists but the index is absent; the migration must be run only after confirming the index does not already exist.
 - No SQL execution or performance benchmark has been performed. Confirm the index with `SHOW INDEX` and compare the leaderboard query plan on representative data.
+
+
+### Phase 29 — event script entry points (source updated; validation pending)
+
+- Added `public static void main(String[] args)` entry points to 1v1 Arena, 3v3 Arena, and Last Hero. Each entry point instantiates the script so its constructor can register NPC interactions and event listeners, matching the pattern used by the existing Mobius TvT event script.
+- This addresses a script-discovery risk that would otherwise leave the custom event classes uninstantiated by loaders that invoke each script's `main` method.
+- No script-loader or runtime test has been performed; confirm the exact loader's entry-point behavior and that each class is instantiated once.
