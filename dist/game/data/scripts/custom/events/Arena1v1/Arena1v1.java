@@ -96,6 +96,12 @@ public class Arena1v1 extends Event
 		clearWaitingPlayers("1v1 Arena queue was reset.");
 		ACTIVE = true;
 		MANAGER_NPC = addSpawn(MANAGER_NPC_ID, MANAGER_SPAWN, false, 0);
+		if (MANAGER_NPC == null)
+		{
+			ACTIVE = false;
+			LOGGER.warning("1v1 Arena manager NPC failed to spawn; matchmaking remains closed.");
+			return false;
+		}
 		return true;
 	}
 
