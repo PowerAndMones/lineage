@@ -429,7 +429,8 @@ public class Arena1v1 extends Event
 					participant.doRevive();
 				}
 				final Location returnLocation = match.getReturnLocation(participant);
-				participant.teleToLocation(returnLocation != null ? returnLocation : RETURN_FALLBACK, true);
+				final Location safeReturnLocation = (returnLocation == null) || ((returnLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(returnLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : returnLocation;
+				participant.teleToLocation(safeReturnLocation, true);
 				deleteReturnLocation(participant.getObjectId());
 				participant.sendMessage((winner != null) ? ("1v1 Arena: " + winner.getName() + " won the match.") : (timedOut ? "1v1 Arena match ended: time limit reached, no winner recorded." : "1v1 Arena match ended without a winner."));
 			}
