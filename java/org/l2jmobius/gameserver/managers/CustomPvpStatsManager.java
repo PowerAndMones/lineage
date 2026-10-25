@@ -197,7 +197,15 @@ public final class CustomPvpStatsManager
 	{
 		if (WORKER_RUNNING.compareAndSet(false, true))
 		{
-			ThreadPool.execute(this::processPendingKills);
+			try
+			{
+				ThreadPool.execute(this::processPendingKills);
+			}
+			catch (RuntimeException e)
+			{
+				WORKER_RUNNING.set(false);
+				LOGGER.log(Level.WARNING, "Could not schedule custom PvP persistence worker; queued records remain pending until a later scheduling attempt.", e);
+			}
 		}
 	}
 
