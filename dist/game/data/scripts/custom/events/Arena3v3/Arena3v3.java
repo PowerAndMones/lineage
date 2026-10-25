@@ -304,6 +304,22 @@ public class Arena3v3 extends Event
 		}
 	}
 
+	@RegisterEvent(EventType.ON_CREATURE_TELEPORTED)
+	private void onCreatureTeleported(OnCreatureTeleported event)
+	{
+		final Creature creature = event.getCreature();
+		if ((creature == null) || !creature.isPlayer())
+		{
+			return;
+		}
+		final Player player = creature.asPlayer();
+		final ArenaMatch match = MATCHES.get(player.getObjectId());
+		if ((match != null) && match.started && !match.finished.get() && (match.world != null) && (player.getInstanceId() != match.world.getInstanceId()))
+		{
+			ThreadPool.schedule(() -> finishMatch(match, match.getOpposingTeam(player), false), 100);
+		}
+	}
+
 	private void resolveMatchIfTeamWiped(ArenaMatch match)
 	{
 		if (!match.started || match.finished.get())
