@@ -50,6 +50,7 @@ jobs:
           # Restore the import workflow after copying upstream files.
           git checkout -- .github/workflows/import-mobius-interlude.yml
           rm -f .gitkeep
+          rm -rf "$GITHUB_WORKSPACE/mobius-source"
           echo "Imported file count:"
           find . -type f -not -path './.git/*' | wc -l
           echo "Largest files:"
