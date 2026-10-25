@@ -668,6 +668,7 @@ public class Arena3v3 extends Event
 				final Instance instance = InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID);
 				if ((instance == null) || (instance.getId() <= 0) || (instance.getTemplateId() != INSTANCE_TEMPLATE_ID) || (instance.getExitLoc() == null))
 				{
+					if (instance != null) InstanceManager.getInstance().destroyInstance(instance.getId());
 					throw new IllegalStateException("Could not load a valid 3v3 Arena instance template.");
 				}
 				world = new InstanceWorld();
