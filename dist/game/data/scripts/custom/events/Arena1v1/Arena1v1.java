@@ -406,8 +406,8 @@ public class Arena1v1 extends Event
 			}
 			else if (ratingResult == 0)
 			{
-				winner.sendMessage("1v1 Arena: result recorded, but rating was unchanged due to the 30-minute repeat-opponent cooldown.");
-				loser.sendMessage("1v1 Arena: result recorded, but rating was unchanged due to the 30-minute repeat-opponent cooldown.");
+				winner.sendMessage("1v1 Arena: repeat-opponent cooldown active; this match did not change rating or rated statistics.");
+				loser.sendMessage("1v1 Arena: repeat-opponent cooldown active; this match did not change rating or rated statistics.");
 			}
 			else
 			{
