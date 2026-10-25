@@ -198,6 +198,7 @@ import org.l2jmobius.gameserver.handler.IItemHandler;
 import org.l2jmobius.gameserver.handler.ItemHandler;
 import org.l2jmobius.gameserver.interfaces.ILocational;
 import org.l2jmobius.gameserver.managers.AntiFeedManager;
+import org.l2jmobius.gameserver.managers.CustomPvpStatsManager;
 import org.l2jmobius.gameserver.managers.CastleManager;
 import org.l2jmobius.gameserver.managers.CoupleManager;
 import org.l2jmobius.gameserver.managers.CursedWeaponsManager;
@@ -5440,7 +5441,7 @@ public class Player extends Playable
 		if (target.isPlayer() && AntiFeedManager.getInstance().check(this, target))
 		{
 			setPvpKills(_pvpKills + 1);
-			org.l2jmobius.gameserver.managers.CustomPvpStatsManager.getInstance().recordKill(this, target.asPlayer());
+			CustomPvpStatsManager.getInstance().recordKill(this, target.asPlayer());
 			updatePvpTitleAndColor(true);
 			
 			// Send a Server->Client UserInfo packet to attacker with its Karma and PK Counter.
