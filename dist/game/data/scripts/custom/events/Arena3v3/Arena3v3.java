@@ -701,4 +701,13 @@ public class Arena3v3 extends Event
 			}
 		}
 	}
+	/**
+	 * Loads the event script and registers its NPC interactions.
+	 * @param args unused script arguments
+	 */
+	public static void main(String[] args)
+	{
+		new Arena3v3();
+	}
+
 }
