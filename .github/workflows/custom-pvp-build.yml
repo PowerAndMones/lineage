@@ -38,6 +38,41 @@ jobs:
       - name: Compile L2J Mobius core
         run: ant -f build.xml compile
 
+      - name: Validate custom PvP XML and SQL files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          root = Path("dist/game")
+          npc_file = root / "data/stats/npcs/custom/custom.xml"
+          npc_tree = ET.parse(npc_file)
+          npc_ids = [node.attrib["id"] for node in npc_tree.getroot().findall("npc")]
+          for npc_id in ("70013", "70014", "70015"):
+              assert npc_ids.count(npc_id) == 1, f"Expected exactly one custom NPC {npc_id}"
+
+          expected_templates = {
+              "Arena1v1.xml": "3050",
+              "Arena3v3.xml": "3051",
+              "LastHero.xml": "3052",
+          }
+          for filename, template_id in expected_templates.items():
+              tree = ET.parse(root / "data/instances/custom" / filename)
+              assert tree.getroot().attrib.get("id") == template_id, f"Unexpected template ID in {filename}"
+              assert tree.getroot().find("exitPoint") is not None, f"Missing exitPoint in {filename}"
+
+          sql_dir = Path("dist/db_installer/sql/game")
+          for filename in (
+              "character_pvp_stats.sql",
+              "character_arena1v1_stats.sql",
+              "character_arena1v1_return.sql",
+              "character_arena3v3_stats.sql",
+              "character_lasthero_stats.sql",
+          ):
+              assert (sql_dir / filename).is_file(), f"Missing SQL installer: {filename}"
+          print("Custom PvP XML and SQL file checks passed.")
+          PY
+
       - name: Compile custom PvP scripts
         shell: bash
         run: |
