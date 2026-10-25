@@ -315,7 +315,7 @@ public class LastHero extends Event
 		if (winner != null)
 		{
 			final int rated = recordResult(match, winner);
-			for (Player p : match.players) p.sendMessage(rated == 1 ? "Last Hero: result and rating saved." : rated == 0 ? "Last Hero: repeat-roster cooldown; rating unchanged." : "Last Hero: result could not be saved; contact an administrator.");
+			for (Player p : match.players) p.sendMessage(rated == 1 ? "Last Hero: result and rating saved." : rated == 0 ? "Last Hero: repeat-roster cooldown active; this match did not change rating or rated statistics." : "Last Hero: result could not be saved; contact an administrator.");
 		}
 		for (Player p : match.players)
 		{
