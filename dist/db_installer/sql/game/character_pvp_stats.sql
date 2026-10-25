@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS `character_pvp_stats` (
   `lastKillTime` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`charId`),
   KEY `idx_pvp_stats_rank` (`totalKills`),
+  KEY `idx_pvp_stats_points` (`pvpPoints`, `totalKills`, `bestStreak`),
   KEY `idx_pvp_stats_streak` (`bestStreak`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
