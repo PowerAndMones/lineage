@@ -11,10 +11,17 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - `dist/db_installer/sql/game/character_pvp_stats.sql` creates the required InnoDB table.
 - This phase does not yet display the statistics in-game; Community Board and ranking UI are next.
 
+### Phase 2 — Community Board PvP stats and ranking (code added, runtime test pending)
+
+- Added `_bbspvp` and `_bbspvptop` commands to `HomeBoard.java`.
+- Added `Custom/pvp.html` with personal stats and a top-10 leaderboard.
+- Added a `PvP Ranking` navigation button.
+- The page reads from `character_pvp_stats`; install the SQL file before testing.
+
 ### Next phases
 
 1. Add configurable anti-farm rules before granting custom points or rewards: repeated-kill cooldown and exclusions for events/instances/PvP zones.
-2. Expose stats through a Community Board page and add rankings/streak announcements.
+2. Improve ranking filters and add kill-streak announcements.
 3. Reuse existing TvT and CTF event scripts; add 1v1/3v3 and Last Hero after core tracking is tested.
 
 ## Design constraints
