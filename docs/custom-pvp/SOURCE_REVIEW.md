@@ -70,3 +70,9 @@ Do not enable the modes on a live server until the source compiles against the t
 - The custom NPC templates for IDs 70013 (1v1 Arena), 70014 (3v3 Arena), and 70015 (Last Hero) are present in `dist/game/data/stats/npcs/custom/custom.xml`.
 - All three event scripts expose `main(String[] args)` entry points following the existing TvT script pattern.
 - The three queue-based modes call `eventStart(null)` in their constructors so their manager NPCs are spawned and matchmaking is active after script load. This lifecycle change requires compile and test-server validation before production use.
+
+
+## Script reload cleanup
+
+- The base Mobius `Quest.unload()` cancels timers and unregisters listeners but does not remove NPCs created with a zero despawn delay or invoke custom `eventStop()` automatically.
+- The arena scripts now override `unload()` to stop their queue/matches and remove the manager NPC before the base cleanup, avoiding duplicate manager NPCs after script reload. Validate active-match cleanup on a test server.
