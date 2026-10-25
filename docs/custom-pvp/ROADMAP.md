@@ -367,7 +367,7 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - Removed the four placeholder door IDs from all three custom instance templates. No matching door definitions were found in the branch, and these arenas do not require doors to run their core matchmaking flow.
 - This avoids loading instance templates with references to undefined doors. If physical arena gates are desired later, add actual door definitions first and then reference those IDs from the instance templates.
-- XML parsing and instance-loader validation have not yet been run against the server.
+- XML parsing passed the CI XML validation step; actual `InstanceManager` loading and dynamic instance creation still require runtime validation on a test server.
 
 
 ### Phase 44 — persistence worker resilience (source updated; validation pending)
@@ -395,7 +395,7 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - 1v1 and 3v3 now compute one integer Elo delta and apply it with opposite signs to winners and losers, avoiding one-point rating creation on `Math.round` half-point ties.
 - Last Hero now distributes the winner's integer gain across all opponents, randomizing any remainder points to avoid a fixed queue-position bias, so total rating points are conserved even when the gain is not evenly divisible by the number of opponents.
-- CI compilation and custom-script compilation passed after these source changes in GitHub Actions on 2026-10-25; runtime rating behavior and leaderboard effects still require test-server validation.
+- CI compilation and custom-script compilation passed in GitHub Actions on 2026-10-25 before Phase 52's template-ID correction. The follow-up CI run for the unique 1v1 template ID is pending; runtime rating behavior and leaderboard effects still require test-server validation.
 
 
 ## Phase 49 — Always-on matchmaking startup
