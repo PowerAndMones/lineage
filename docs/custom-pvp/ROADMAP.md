@@ -86,7 +86,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 ### Phase 10 — isolated 1v1 arena prototype (source added, build/runtime test pending)
 
-- Added custom instance template `3050` for 1v1 Arena.
+- Added custom instance template `3053` for 1v1 Arena. Template `3050` is already used by the existing Capture the Flag event; see Phase 52 for the collision fix.
 - Each matched pair gets a dynamic instance, saved return locations, allow-list registration, and opposite spawn points.
 - Uses PvP instance combat rather than the native duel manager because native duels use their own fixed teleport path.
 - Death/logout finalization is guarded against duplicate processing; stopping the event attempts to close active matches.
