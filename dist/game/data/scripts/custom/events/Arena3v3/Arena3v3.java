@@ -383,7 +383,7 @@ public class Arena3v3 extends Event
 				{
 					final Location destination = ((saved.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(saved.getInstanceId()) == null)) ? RETURN_FALLBACK : saved;
 					player.teleToLocation(destination, true);
-					if ((player.getInstanceId() == destination.getInstanceId()) && (Math.abs(player.getX() - destination.getX()) <= 500) && (Math.abs(player.getY() - destination.getY()) <= 500) && (Math.abs(player.getZ() - destination.getZ()) <= 500))
+					if (isAtLocation(player, destination))
 					{
 						deleteReturnLocation(player.getObjectId());
 					}
@@ -394,6 +394,11 @@ public class Arena3v3 extends Event
 				}
 			}, 2000);
 		}
+	}
+
+	private static boolean isAtLocation(Player player, Location destination)
+	{
+		return (player != null) && (destination != null) && (player.getInstanceId() == destination.getInstanceId()) && (Math.abs(player.getX() - destination.getX()) <= 500) && (Math.abs(player.getY() - destination.getY()) <= 500) && (Math.abs(player.getZ() - destination.getZ()) <= 500);
 	}
 
 	private void finishMatch(ArenaMatch match, List<Player> winningTeam, boolean timeout)
@@ -430,7 +435,14 @@ public class Arena3v3 extends Event
 				final Location destination = match.getReturnLocation(p);
 				final Location safeDestination = (destination == null) || ((destination.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(destination.getInstanceId()) == null)) ? RETURN_FALLBACK : destination;
 				p.teleToLocation(safeDestination, true);
-				deleteReturnLocation(p.getObjectId());
+				if (isAtLocation(p, safeDestination))
+				{
+					deleteReturnLocation(p.getObjectId());
+				}
+				else
+				{
+					LOGGER.warning("3v3 Arena return teleport failed for " + p.getObjectId() + "; recovery record retained.");
+				}
 				p.sendMessage(winningTeam == null ? (timeout ? "3v3 Arena ended without a winner (time limit)." : "3v3 Arena ended without a winner.") : (winningTeam == match.teamA ? "3v3 Arena: Team A won." : "3v3 Arena: Team B won."));
 			}
 		}
@@ -715,13 +727,15 @@ public class Arena3v3 extends Event
 					if (p.isOnlineInt() == 1)
 					{
 						final Location loc = returnLocations.get(p.getObjectId());
-						p.teleToLocation(loc != null ? loc : RETURN_FALLBACK, true);
+						final Location destination = loc != null ? loc : RETURN_FALLBACK;
+						p.teleToLocation(destination, true);
+						if (isAtLocation(p, destination)) deleteReturnLocation(p.getObjectId());
 					}
 					else
 					{
 						// Leave recovery record for the next login.
 					}
-					if (p.isOnlineInt() == 1) deleteReturnLocation(p.getObjectId());
+
 				}
 				if (world != null) world.destroy();
 				return false;
