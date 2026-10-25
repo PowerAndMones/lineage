@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 
 import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.commons.threads.ThreadPool;
@@ -53,7 +54,16 @@ public class Arena1v1 extends Event
 	private static final long MATCH_TIMEOUT_MILLIS = 5 * 60 * 1000L;
 	private static final String UPSERT_RETURN_LOCATION = "INSERT INTO character_arena1v1_return (charId, x, y, z, heading, instanceId) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE x = VALUES(x), y = VALUES(y), z = VALUES(z), heading = VALUES(heading), instanceId = VALUES(instanceId)";
 	private static final String SELECT_RETURN_LOCATION = "SELECT x, y, z, heading, instanceId FROM character_arena1v1_return WHERE charId = ?";
-	private static final String DELETE_RETURN_LOCATION = "DELETE FROM character_arena1v1_return WHERE charId = ?";
+	 private static final String DELETE_RETURN_LOCATION = "DELETE FROM character_arena1v1_return WHERE charId = ?";
+	private static final String INSERT_ARENA_STATS = "INSERT IGNORE INTO character_arena1v1_stats (charId) VALUES (?)";
+	private static final String SELECT_ARENA_STATS = "SELECT rating FROM character_arena1v1_stats WHERE charId = ? FOR UPDATE";
+	private static final String UPDATE_ARENA_WINNER = "UPDATE character_arena1v1_stats SET matches = matches + 1, wins = wins + 1, rating = ?, winStreak = winStreak + 1, bestWinStreak = GREATEST(bestWinStreak, winStreak + 1), lastMatchAt = CURRENT_TIMESTAMP WHERE charId = ?";
+	private static final String UPDATE_ARENA_LOSER = "UPDATE character_arena1v1_stats SET matches = matches + 1, losses = losses + 1, rating = ?, winStreak = 0, lastMatchAt = CURRENT_TIMESTAMP WHERE charId = ?";
+	private static final String ENSURE_PAIR_COOLDOWN = "INSERT IGNORE INTO character_arena1v1_pair_cooldown (charIdLow, charIdHigh, lastRatedAt) VALUES (?, ?, '1970-01-01 00:00:00')";
+	private static final String SELECT_PAIR_COOLDOWN = "SELECT lastRatedAt FROM character_arena1v1_pair_cooldown WHERE charIdLow = ? AND charIdHigh = ? FOR UPDATE";
+	private static final String UPDATE_PAIR_COOLDOWN = "UPDATE character_arena1v1_pair_cooldown SET lastRatedAt = CURRENT_TIMESTAMP WHERE charIdLow = ? AND charIdHigh = ?";
+	private static final long RATED_PAIR_COOLDOWN_MILLIS = 30 * 60 * 1000L;
+	private static final int RATING_K_FACTOR = 32;
 	private static final Location SPAWN_A = new Location(147447, 46722, -3416, 0);
 	private static final Location SPAWN_B = new Location(151536, 46722, -3416, 32768);
 	private static final Location RETURN_FALLBACK = new Location(83425, 148585, -3406);
@@ -375,12 +385,37 @@ public class Arena1v1 extends Event
 			loser = null;
 			winner = null;
 		}
+		if ((winner != null) && ((loser == null) || (winner == loser) || winner.isDead() || (winner.isOnlineInt() != 1)))
+		{
+			loser = null;
+			winner = null;
+		}
 		if (!match.finish())
 		{
 			return;
 		}
 		final Player playerA = match.playerA;
 		final Player playerB = match.playerB;
+		if ((winner != null) && (loser != null))
+		{
+			final int ratingResult = recordRatedResult(winner.getObjectId(), loser.getObjectId());
+			if (ratingResult == 1)
+			{
+				winner.sendMessage("1v1 Arena: your rated win and rating change have been saved.");
+				loser.sendMessage("1v1 Arena: match result and rating change have been saved.");
+			}
+			else if (ratingResult == 0)
+			{
+				winner.sendMessage("1v1 Arena: result recorded, but rating was unchanged due to the 30-minute repeat-opponent cooldown.");
+				loser.sendMessage("1v1 Arena: result recorded, but rating was unchanged due to the 30-minute repeat-opponent cooldown.");
+			}
+			else
+			{
+				LOGGER.warning("1v1 Arena result could not be persisted for winner " + winner.getObjectId() + " and loser " + loser.getObjectId());
+				winner.sendMessage("1v1 Arena: the result could not be saved. Please contact an administrator.");
+				loser.sendMessage("1v1 Arena: the result could not be saved. Please contact an administrator.");
+			}
+		}
 		MATCHES_BY_PLAYER.remove(playerA.getObjectId(), match);
 		MATCHES_BY_PLAYER.remove(playerB.getObjectId(), match);
 		for (Player participant : new Player[] { playerA, playerB })
@@ -488,6 +523,113 @@ public class Arena1v1 extends Event
 		private boolean finish()
 		{
 			return finished.compareAndSet(false, true);
+		}
+	}
+
+	/**
+	 * Persists a rated result atomically. Returns 1 when rated, 0 when repeat-pair cooldown
+	 * suppresses rating changes, or -1 when the database transaction fails.
+	 */
+	private static int recordRatedResult(int winnerId, int loserId)
+	{
+		if ((winnerId <= 0) || (loserId <= 0) || (winnerId == loserId))
+		{
+			return -1;
+		}
+		final int charIdLow = Math.min(winnerId, loserId);
+		final int charIdHigh = Math.max(winnerId, loserId);
+		try (Connection con = DatabaseFactory.getConnection())
+		{
+			con.setAutoCommit(false);
+			try
+			{
+				try (PreparedStatement ps = con.prepareStatement(INSERT_ARENA_STATS))
+				{
+					ps.setInt(1, winnerId);
+					ps.executeUpdate();
+					ps.setInt(1, loserId);
+					ps.executeUpdate();
+				}
+				try (PreparedStatement ps = con.prepareStatement(ENSURE_PAIR_COOLDOWN))
+				{
+					ps.setInt(1, charIdLow);
+					ps.setInt(2, charIdHigh);
+					ps.executeUpdate();
+				}
+				final Timestamp lastRatedAt;
+				try (PreparedStatement ps = con.prepareStatement(SELECT_PAIR_COOLDOWN))
+				{
+					ps.setInt(1, charIdLow);
+					ps.setInt(2, charIdHigh);
+					try (ResultSet rs = ps.executeQuery())
+					{
+						if (!rs.next())
+						{
+							throw new IllegalStateException("Missing 1v1 pair cooldown row.");
+						}
+						lastRatedAt = rs.getTimestamp("lastRatedAt");
+					}
+				}
+				if ((lastRatedAt != null) && ((System.currentTimeMillis() - lastRatedAt.getTime()) < RATED_PAIR_COOLDOWN_MILLIS))
+				{
+					con.rollback();
+					return 0;
+				}
+				final int winnerRating;
+				final int loserRating;
+				try (PreparedStatement ps = con.prepareStatement(SELECT_ARENA_STATS))
+				{
+					ps.setInt(1, winnerId);
+					try (ResultSet rs = ps.executeQuery())
+					{
+						if (!rs.next()) throw new IllegalStateException("Missing winner rating row.");
+						winnerRating = rs.getInt("rating");
+					}
+					ps.setInt(1, loserId);
+					try (ResultSet rs = ps.executeQuery())
+					{
+						if (!rs.next()) throw new IllegalStateException("Missing loser rating row.");
+						loserRating = rs.getInt("rating");
+					}
+				}
+				final double expectedWinner = 1.0 / (1.0 + Math.pow(10.0, (loserRating - winnerRating) / 400.0));
+				final int winnerNewRating = winnerRating + (int) Math.round(RATING_K_FACTOR * (1.0 - expectedWinner));
+				final int loserNewRating = loserRating + (int) Math.round(RATING_K_FACTOR * (0.0 - (1.0 - expectedWinner)));
+				try (PreparedStatement ps = con.prepareStatement(UPDATE_ARENA_WINNER))
+				{
+					ps.setInt(1, winnerNewRating);
+					ps.setInt(2, winnerId);
+					ps.executeUpdate();
+				}
+				try (PreparedStatement ps = con.prepareStatement(UPDATE_ARENA_LOSER))
+				{
+					ps.setInt(1, loserNewRating);
+					ps.setInt(2, loserId);
+					ps.executeUpdate();
+				}
+				try (PreparedStatement ps = con.prepareStatement(UPDATE_PAIR_COOLDOWN))
+				{
+					ps.setInt(1, charIdLow);
+					ps.setInt(2, charIdHigh);
+					ps.executeUpdate();
+				}
+				con.commit();
+				return 1;
+			}
+			catch (Exception e)
+			{
+				con.rollback();
+				throw e;
+			}
+			finally
+			{
+				con.setAutoCommit(true);
+			}
+		}
+		catch (Exception e)
+		{
+			LOGGER.warning("1v1 Arena rating transaction failed: " + e.getMessage());
+			return -1;
 		}
 	}
 
