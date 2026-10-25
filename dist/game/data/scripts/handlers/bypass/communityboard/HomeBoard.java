@@ -172,6 +172,8 @@ public class HomeBoard implements IParseBoardHandler
 			{
 				returnHtml = returnHtml.replace("%my_stats%", getPvpStats(player));
 				returnHtml = returnHtml.replace("%top_list%", getPvpTop());
+				returnHtml = returnHtml.replace("%arena_stats%", getArenaStats(player));
+				returnHtml = returnHtml.replace("%arena_top%", getArenaTop());
 			}
 		}
 		else if (command.startsWith("_bbsmultisell"))
@@ -439,6 +441,62 @@ public class HomeBoard implements IParseBoardHandler
 			{
 				// Keep the table valid; the first row is the header.
 			}
+		}
+		return html.append("</table>").toString();
+	}
+
+	/**
+	 * Returns the player's dedicated 1v1 Arena record.
+	 * @param player the player
+	 * @return HTML fragment
+	 */
+	private static String getArenaStats(Player player)
+	{
+		final String query = "SELECT matches, wins, losses, rating, winStreak, bestWinStreak FROM character_arena1v1_stats WHERE charId = ?";
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query))
+		{
+			ps.setInt(1, player.getObjectId());
+			try (ResultSet rs = ps.executeQuery())
+			{
+				if (rs.next())
+				{
+					return "<table width=450><tr><td width=120><font color=LEVEL>Rating:</font></td><td>" + rs.getInt("rating") + "</td><td width=120><font color=LEVEL>Matches:</font></td><td>" + rs.getInt("matches") + "</td></tr><tr><td><font color=LEVEL>Wins:</font></td><td>" + rs.getInt("wins") + "</td><td><font color=LEVEL>Losses:</font></td><td>" + rs.getInt("losses") + "</td></tr><tr><td><font color=LEVEL>Win streak:</font></td><td>" + rs.getInt("winStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestWinStreak") + "</td></tr></table>";
+				}
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>1v1 rating unavailable. Install character_arena1v1_stats.sql first.</font>";
+		}
+		return "<font color=AAAAAA>No rated 1v1 matches yet. Join the Arena queue to begin.</font>";
+	}
+
+	/**
+	 * Returns the top ten rated 1v1 players.
+	 * @return HTML fragment
+	 */
+	private static String getArenaTop()
+	{
+		final String query = "SELECT c.char_name, s.rating, s.wins, s.losses, s.matches FROM character_arena1v1_stats s INNER JOIN characters c ON c.charId = s.charId ORDER BY s.rating DESC, s.wins DESC, s.matches DESC, c.char_name ASC LIMIT 10";
+		final StringBuilder html = new StringBuilder("<table width=450><tr><td width=30><font color=LEVEL>#</font></td><td width=150><font color=LEVEL>Player</font></td><td width=65><font color=LEVEL>Rating</font></td><td width=55><font color=LEVEL>W</font></td><td width=55><font color=LEVEL>L</font></td><td><font color=LEVEL>Matches</font></td></tr>");
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query);
+			ResultSet rs = ps.executeQuery())
+		{
+			int rank = 1;
+			while (rs.next())
+			{
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(rs.getString("char_name")).append("</td><td>").append(rs.getInt("rating")).append("</td><td>").append(rs.getInt("wins")).append("</td><td>").append(rs.getInt("losses")).append("</td><td>").append(rs.getInt("matches")).append("</td></tr>");
+			}
+			if (rank == 1)
+			{
+				html.append("<tr><td colspan=6><font color=AAAAAA>No rated 1v1 matches yet.</font></td></tr>");
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>1v1 leaderboard unavailable. Install character_arena1v1_stats.sql first.</font></table>";
 		}
 		return html.append("</table>").toString();
 	}
