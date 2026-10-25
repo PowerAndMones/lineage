@@ -27,6 +27,7 @@ import org.l2jmobius.gameserver.entity.actor.Player;
 import org.l2jmobius.gameserver.entity.instancezone.Instance;
 import org.l2jmobius.gameserver.entity.instancezone.InstanceWorld;
 import org.l2jmobius.gameserver.managers.InstanceManager;
+import org.l2jmobius.gameserver.managers.ScriptManager;
 import org.l2jmobius.gameserver.mechanics.events.EventType;
 import org.l2jmobius.gameserver.mechanics.events.annotations.RegisterEvent;
 import org.l2jmobius.gameserver.mechanics.events.holders.actor.creature.OnCreatureDeath;
@@ -747,13 +748,14 @@ public class Arena3v3 extends Event
 		}
 	}
 	/**
-	 * Stop the queue and remove its manager NPC before a script reload replaces this instance.
+	 * Stop this mode before unload, without removing a replacement script from ScriptManager.
+	 * @param removeFromList whether the base script should be removed from the manager
 	 */
 	@Override
-	public void unload()
+	public void unload(boolean removeFromList)
 	{
 		eventStop();
-		super.unload();
+		super.unload(removeFromList && (ScriptManager.getInstance().getScript(getName()) == this));
 	}
 
 	/**
