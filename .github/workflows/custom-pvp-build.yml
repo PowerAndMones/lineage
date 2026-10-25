@@ -85,6 +85,8 @@ jobs:
               assert f"new {class_name}();" in source, f"Entry point does not instantiate {class_name}"
               assert f"MANAGER_NPC_ID = {npc_id}" in source, f"Wrong manager NPC ID: {relative_path}"
               assert f"INSTANCE_TEMPLATE_ID = {template_id}" in source, f"Wrong instance template ID: {relative_path}"
+              assert "eventStart(null);" in source, f"Queue is not auto-opened on script load: {relative_path}"
+              assert "if (MANAGER_NPC == null)" in source and "ACTIVE = false;" in source, f"Missing manager-spawn failure guard: {relative_path}"
               for registration in ("addTalkId(MANAGER_NPC_ID)", "addStartNpc(MANAGER_NPC_ID)", "addFirstTalkId(MANAGER_NPC_ID)"):
                   assert registration in source, f"Missing {registration} in {relative_path}"
               unload_start = source.find("public void unload(boolean removeFromList)")
