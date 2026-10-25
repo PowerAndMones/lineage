@@ -423,4 +423,4 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - Static review found that the existing Capture the Flag template and 1v1 Arena both used instance template ID `3050`. `InstanceManager` indexes templates by ID, so duplicate IDs could cause one event to load the other's template depending on file traversal order.
 - Preserved Capture the Flag's existing ID `3050` and moved 1v1 Arena to unique template ID `3053`; 3v3 remains `3051` and Last Hero remains `3052`.
-- CI now scans all instance XML files and fails on duplicate template IDs. This check passed in GitHub Actions run `40223533426` on 2026-10-25, along with the core/custom-script compile and SQL smoke test.
+- CI now scans all instance XML files and fails on duplicate template IDs. This check passed in GitHub Actions run `40223733497` on 2026-10-25, along with the core/custom-script compile, clean-install SQL smoke test, and existing-install migration smoke test.
