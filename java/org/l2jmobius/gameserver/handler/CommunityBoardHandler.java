@@ -251,17 +251,36 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("<table width=600 cellpadding=5 cellspacing=1 bgcolor=252B38>");
 		html.append("<tr><td width=45 align=center><font color=E8BD68>#</font></td><td><font color=E8BD68>PLAYER</font></td><td width=80 align=center><font color=E8BD68>LEVEL</font></td><td width=90 align=center><font color=E8BD68>PVP</font></td><td width=90 align=center><font color=E8BD68>PK</font></td></tr>");
 		try (Connection con = DatabaseFactory.getConnection();
-			PreparedStatement ps = con.prepareStatement("SELECT char_name, level, pvpkills, pkkills FROM characters WHERE accesslevel = 0 ORDER BY pvpkills DESC, pkkills ASC LIMIT 10");
+			PreparedStatement ps = con.prepareStatement("SELECT char_name, level, pvpkills, pkkills FROM characters WHERE accesslevel = 0 ORDER BY pvpkills DESC, pkkills ASC, char_name ASC LIMIT 10");
 			ResultSet rs = ps.executeQuery())
 		{
 			int rank = 1;
+			boolean hasPlayers = false;
+			boolean playerInTopTen = false;
 			while (rs.next())
 			{
-				html.append("<tr><td align=center><font color=BBBBBB>").append(rank++).append("</font></td>");
-				html.append("<td><font color=FFFFFF>").append(escapeBoardText(rs.getString("char_name"))).append("</font></td>");
+				hasPlayers = true;
+				final String characterName = rs.getString("char_name");
+				final boolean isCurrentPlayer = (characterName != null) && characterName.equalsIgnoreCase(player.getName());
+				playerInTopTen |= isCurrentPlayer;
+				html.append("<tr");
+				if (isCurrentPlayer)
+				{
+					html.append(" bgcolor=3A3020");
+				}
+				html.append("><td align=center><font color=BBBBBB>").append(rank++).append("</font></td>");
+				html.append("<td><font color=").append(isCurrentPlayer ? "E8BD68" : "FFFFFF").append(">").append(escapeBoardText(characterName)).append("</font></td>");
 				html.append("<td align=center><font color=BBBBBB>").append(rs.getInt("level")).append("</font></td>");
 				html.append("<td align=center><font color=E8BD68>").append(rs.getInt("pvpkills")).append("</font></td>");
 				html.append("<td align=center><font color=BBBBBB>").append(rs.getInt("pkkills")).append("</font></td></tr>");
+			}
+			if (!hasPlayers)
+			{
+				html.append("<tr><td colspan=5><font color=BBBBBB>No players are currently available for the public ranking.</font></td></tr>");
+			}
+			else if (!playerInTopTen)
+			{
+				html.append("<tr><td colspan=5><font color=888E9B>Your character is not in the Top 10 yet. Keep fighting to climb the ranking!</font></td></tr>");
 			}
 		}
 		catch (SQLException e)
