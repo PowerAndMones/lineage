@@ -25,12 +25,13 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - The cooldown is configured in `config/Custom/CustomPvp.ini` (`RepeatKillCooldownSeconds`, default 30; `0` disables the cooldown). It is currently in memory and resets on server restart; it does not change the core PvP counter.
 - The Community Board ranking is sorted by PvP points first.
 
-### Phase 4 — asynchronous persistence (code added, build/runtime test pending)
+### Phase 4 — asynchronous persistence and queue diagnostics (code added, build/runtime test pending)
 
 - PvP kill records are queued and persisted by one background worker rather than writing to SQL on the combat thread.
-- A single queue consumer preserves kill order so current/best streak calculations remain consistent.
+- A single queue consumer preserves the order of streak updates.
 - Corrected the best-streak upsert to compare against the next streak value.
-- The queue is currently in-memory; a hard process crash can lose records that have not reached the database. This must be considered in final validation.
+- Added `getPendingKillCount()` for diagnostics and a configurable backlog warning (`QueueWarningThreshold`, default 1,000; `0` disables it). The server logs when the queue reaches the threshold and when it recovers below it.
+- Database write failures are logged with the number of records still queued. **Failed records are not retried automatically yet** and are lost after the failed write; a hard process crash can also lose queued records. Retry and recovery policy remains to be implemented before production use.
 
 ### Phase 5 — PvP achievements (code added, runtime test pending)
 
@@ -53,9 +54,9 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - CtF handles deaths without a player killer without dereferencing a null attacker; flag return handling still runs for a registered carrier.
 - These changes harden existing events; they do not yet add new 1v1, 3v3, or Last Hero event modes.
 
-### Next phases
+## Next phases
 
-1. Add queue/backlog diagnostics and define behavior for database outages.
+1. Implement a deliberate database-outage policy for queued PvP records, including retry behavior and bounded memory use.
 2. Decide and implement configurable rules for whether event and instance kills award global PvP points.
 3. Add 1v1/3v3 and Last Hero by reusing established registration, teleport, cleanup, and AntiFeed patterns.
 
