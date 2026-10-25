@@ -761,11 +761,8 @@ public class Arena3v3 extends Event
 	public void unload(boolean removeFromList)
 	{
 		final boolean isCurrentScript = ScriptManager.getInstance().getScript(getName()) == this;
-		// During global server shutdown keep persisted return records intact; on reload/replacement, clean up the active event.
-		if (removeFromList || !isCurrentScript)
-		{
-			eventStop();
-		}
+		// Stop queues and return active participants whenever scripts are unloaded or replaced.
+		eventStop();
 		super.unload(removeFromList && isCurrentScript);
 	}
 
