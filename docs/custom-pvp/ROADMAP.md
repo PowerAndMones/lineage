@@ -424,3 +424,12 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Static review found that the existing Capture the Flag template and 1v1 Arena both used instance template ID `3050`. `InstanceManager` indexes templates by ID, so duplicate IDs could cause one event to load the other's template depending on file traversal order.
 - Preserved Capture the Flag's existing ID `3050` and moved 1v1 Arena to unique template ID `3053`; 3v3 remains `3051` and Last Hero remains `3052`.
 - CI now scans all instance XML files and fails on duplicate template IDs. This check passed in GitHub Actions run `40223733497` on 2026-10-25, along with the core/custom-script compile, clean-install SQL smoke test, and existing-install migration smoke test.
+
+
+## Phase 53 — configurable open-world PvP rewards
+
+- Added `PointsPerKill` (default `1`) to `config/Custom/CustomPvp.ini`, allowing the server owner to tune the global PvP point economy without editing Java source. Setting it to `0` keeps eligible kill/streak statistics while disabling point income.
+- Added `MinimumRewardLevel` (default `1`) to reject custom kill credit and points when the victim is below the configured level.
+- Added `MaxRewardLevelDifference` (default `0`, disabled) to reject custom kill credit and points when the absolute killer/victim level difference exceeds the configured threshold.
+- These gates affect only the custom PvP leaderboard credit; existing core PvP/PK counters and event-specific scores are unchanged. Ineligible kills still record the victim's death and reset their custom current streak.
+- The default values preserve the prior reward behavior. This phase has not been compiled or runtime-tested yet; verify config loading, level checks, and SQL parameter binding in the later combined validation pass.
