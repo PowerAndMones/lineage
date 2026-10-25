@@ -18,29 +18,28 @@ package custom.events.Arena1v1;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.l2jmobius.commons.threads.ThreadPool;
 import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.actor.Npc;
-import org.l2jmobius.gameserver.entity.actor.Player;
 import org.l2jmobius.gameserver.entity.actor.Creature;
+import org.l2jmobius.gameserver.entity.actor.Player;
 import org.l2jmobius.gameserver.entity.instancezone.InstanceWorld;
 import org.l2jmobius.gameserver.managers.InstanceManager;
-
 import org.l2jmobius.gameserver.mechanics.events.EventType;
 import org.l2jmobius.gameserver.mechanics.events.annotations.RegisterEvent;
-import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogout;
-import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogin;
 import org.l2jmobius.gameserver.mechanics.events.holders.actor.creature.OnCreatureDeath;
+import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogin;
+import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogout;
 import org.l2jmobius.gameserver.mechanics.script.Event;
 import org.l2jmobius.gameserver.network.serverpackets.NpcHtmlMessage;
 
 /**
- * Basic 1v1 matchmaking queue that hands matched players to Mobius' native duel system.
- * This first implementation deliberately does not issue items or PvP points.
+ * 1v1 matchmaking queue with isolated dynamic instances.
+ * Matches use PvP-instance combat and do not issue items or PvP points.
  */
 public class Arena1v1 extends Event
 {
