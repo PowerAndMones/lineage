@@ -431,7 +431,7 @@ public class HomeBoard implements IParseBoardHandler
 			int rank = 1;
 			while (rs.next())
 			{
-				html.append("<tr><td>").append(rank++).append("</td><td>").append(rs.getString("charName")).append("</td><td>").append(rs.getInt("pvpPoints")).append("</td><td>").append(rs.getInt("totalKills")).append("</td><td>").append(rs.getInt("totalDeaths")).append("</td><td>").append(rs.getInt("bestStreak")).append("</td></tr>");
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(escapeBoardText(rs.getString("charName"))).append("</td><td>").append(rs.getInt("pvpPoints")).append("</td><td>").append(rs.getInt("totalKills")).append("</td><td>").append(rs.getInt("totalDeaths")).append("</td><td>").append(rs.getInt("bestStreak")).append("</td></tr>");
 			}
 		}
 		catch (java.sql.SQLException e)
@@ -491,7 +491,7 @@ public class HomeBoard implements IParseBoardHandler
 			int rank = 1;
 			while (rs.next())
 			{
-				html.append("<tr><td>").append(rank++).append("</td><td>").append(rs.getString("char_name")).append("</td><td>").append(rs.getInt("rating")).append("</td><td>").append(rs.getInt("wins")).append("</td><td>").append(rs.getInt("losses")).append("</td><td>").append(rs.getInt("matches")).append("</td></tr>");
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(escapeBoardText(rs.getString("char_name"))).append("</td><td>").append(rs.getInt("rating")).append("</td><td>").append(rs.getInt("wins")).append("</td><td>").append(rs.getInt("losses")).append("</td><td>").append(rs.getInt("matches")).append("</td></tr>");
 			}
 			if (rank == 1)
 			{
