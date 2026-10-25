@@ -87,8 +87,8 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 ## Next phases
 
-1. Harden the isolated 1v1 prototype: validate instance/spawn behavior and database-backed return recovery, then test death/logout/timeout race conditions.
-2. Add a dedicated 1v1 rating/statistics table and anti-farm-safe reward rules; keep rewards cosmetic/convenience only.
+1. Harden the isolated 1v1 prototype and rated result integration: validate instance/spawn behavior, database recovery, transaction locking, and death/logout/timeout race conditions.
+2. Add Community Board display for 1v1 rating, wins/losses, and leaderboard after source integration is validated.
 3. Extend the stable match lifecycle to 3v3 and Last Hero.
 4. Add durable recovery for custom PvP-stat records that exceed retry attempts if lossless persistence is required through long database outages.
 5. Prepare full build and runtime validation only after the planned source changes are complete.
@@ -109,3 +109,13 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - `dist/game/data/scripts/handlers/bypass/communityboard/HomeBoard.java`: Community Board integration.
 
 The persistent-statistics code and SQL table have been added to this feature branch. Compilation and runtime behavior have not yet been verified.
+
+
+### Phase 11 — dedicated 1v1 rating/statistics (source added, build/runtime test pending)
+
+- Added independent 1v1 stats: matches, wins, losses, rating (starting at 1000), current win streak, best win streak, and last match time.
+- Valid winner/loser outcomes update both characters in one database transaction using an Elo-style K-factor of 32.
+- A persistent pair cooldown suppresses rating/stat updates for repeat opponents within 30 minutes; sorted character IDs make the cooldown direction-independent.
+- Timeout and simultaneous-death endings have no winner and do not change rated statistics. No item rewards, global announcements, or general PvP points are granted.
+- SQL installer: `dist/db_installer/sql/game/character_arena1v1_stats.sql`. Apply it before runtime use.
+- The source has not been compiled or runtime-tested. Community Board rating display remains a follow-up phase.
