@@ -363,3 +363,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added a per-attempt runtime-exception guard around custom PvP persistence. Unexpected runtime failures are logged and retried under the existing bounded retry policy instead of terminating the worker before later queued records are processed.
 - The current record can still be dropped after all retries fail; this queue is in-memory and is not a durable outbox.
 - No fault-injection or runtime tests have been performed. Simulate connection acquisition failures and scheduler shutdown to verify the worker resets its running flag and subsequent records can restart processing.
+
+
+### Phase 45 — Last Hero disconnect elimination (source updated; validation pending)
+
+- Last Hero now records a participant as eliminated when a logout event fires, rather than relying only on `isOnlineInt()` after a short delay. This closes a race where the logout callback can arrive before the online flag changes and incorrectly leave the disconnected player counted as alive.
+- Leaving the match instance also marks the participant eliminated explicitly; the winner resolver ignores eliminated object IDs.
+- No runtime test has been performed; disconnect the last alive player and disconnect during a multi-player round to verify winner resolution and no-result behavior.
