@@ -286,3 +286,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The 1v1 startup rollback now deletes a participant's saved return row only when that participant is still online and has been sent back. Offline participants keep the persisted recovery row for login.
 - This aligns 1v1 rollback with the offline recovery behavior already used by 3v3 and Last Hero.
 - No runtime test has been performed; disconnect one participant at each stage of match startup on a test server before release.
+
+
+### Phase 34 — Last Hero queue progression (source updated; validation pending)
+
+- Last Hero now schedules another registration window when enough players remain in the waiting queue after a match starts, allowing queued players to enter subsequent rounds without requiring an additional person to join.
+- The same rescheduling occurs when eligibility checks leave fewer than four selected players but enough other players remain queued.
+- No runtime test has been performed; verify multiple isolated Last Hero matches can coexist and that queue registrations remain unique.
