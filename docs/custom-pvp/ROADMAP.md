@@ -370,3 +370,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Last Hero now records a participant as eliminated when a logout event fires, rather than relying only on `isOnlineInt()` after a short delay. This closes a race where the logout callback can arrive before the online flag changes and incorrectly leave the disconnected player counted as alive.
 - Leaving the match instance also marks the participant eliminated explicitly; the winner resolver ignores eliminated object IDs.
 - No runtime test has been performed; disconnect the last alive player and disconnect during a multi-player round to verify winner resolution and no-result behavior.
+
+
+### Phase 46 — verified return-location restoration (source updated; validation pending)
+
+- Arena login recovery and match finalizers now verify that a player reached the intended return area (instance ID and coordinate tolerance) before deleting the persistent recovery row.
+- If teleportation fails, the record is retained and a warning is logged so the next login can retry instead of losing the only recovery point.
+- No in-game teleport-failure test has been performed; verify normal return, fallback-to-town, and failed-teleport recovery for online and offline participants.
