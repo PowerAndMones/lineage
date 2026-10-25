@@ -82,7 +82,7 @@ public final class CustomPvpStatsManager
 
 		// Event and instance kills can still update the victim's death/streak data, but
 		// do not earn global custom kills or points unless explicitly enabled.
-		final boolean eventRewardAllowed = CustomPvpConfig.REWARD_EVENT_KILLS || (!killer.isOnEvent() && !victim.isOnEvent());
+		final boolean eventRewardAllowed = CustomPvpConfig.REWARD_EVENT_KILLS || (!killer.isOnEvent() && !victim.isOnEvent() && !killer.isRegisteredOnEvent() && !victim.isRegisteredOnEvent());
 		final boolean instanceRewardAllowed = CustomPvpConfig.REWARD_INSTANCE_KILLS || ((killer.getInstanceId() == 0) && (victim.getInstanceId() == 0));
 		boolean awardKiller = eventRewardAllowed && instanceRewardAllowed;
 
