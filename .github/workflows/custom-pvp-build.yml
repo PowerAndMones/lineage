@@ -87,3 +87,54 @@ jobs:
             dist/game/data/scripts/custom/events/TeamVsTeam/TvT.java \
             dist/game/data/scripts/custom/events/CaptureTheFlag/CtF.java \
             dist/game/data/scripts/handlers/bypass/communityboard/HomeBoard.java
+
+  sql-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: game
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Install MariaDB client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
+
+      - name: Apply custom PvP SQL installers to a clean database
+        env:
+          MYSQL_PWD: root
+        run: |
+          for file in \
+            dist/db_installer/sql/game/character_pvp_stats.sql \
+            dist/db_installer/sql/game/character_arena1v1_stats.sql \
+            dist/db_installer/sql/game/character_arena1v1_return.sql \
+            dist/db_installer/sql/game/character_arena3v3_stats.sql \
+            dist/db_installer/sql/game/character_lasthero_stats.sql
+          do
+            mariadb --protocol=tcp -h 127.0.0.1 -uroot game < "$file"
+          done
+
+      - name: Verify expected tables, columns, and leaderboard index
+        env:
+          MYSQL_PWD: root
+        run: |
+          tables=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='game' AND table_name IN ('character_pvp_stats','character_arena1v1_stats','character_arena1v1_pair_cooldown','character_arena1v1_return','character_arena3v3_stats','character_arena3v3_team_cooldown','character_arena3v3_return','character_lasthero_stats','character_lasthero_roster_cooldown','character_lasthero_return')")
+          test "$tables" = "10"
+          points=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot -Nse "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='game' AND table_name='character_pvp_stats' AND column_name='pvpPoints'")
+          test "$points" = "1"
+          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot -Nse "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='game' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
+          test "$idx" = "1"
+          echo "SQL smoke test passed: 10 tables, pvpPoints column, and leaderboard index."
