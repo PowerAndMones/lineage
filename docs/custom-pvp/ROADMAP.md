@@ -408,6 +408,6 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 ## Phase 44 — Manager cleanup on script reload
 
-- All three arena scripts override `unload()` to call `eventStop()` before delegating to the base script cleanup.
+- All three arena scripts override `unload(boolean)` to call `eventStop()` before delegating to the base script cleanup. The override checks whether the current script instance is still registered before allowing the base method to remove it, avoiding deletion of a replacement instance from ScriptManager.
 - This prevents their always-on manager NPCs and active match state from being left behind when the script is replaced or reloaded.
 - Reload cleanup may return online participants to saved/fallback locations and preserve offline recovery records; this behavior still needs test-server validation.
