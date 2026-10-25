@@ -21,7 +21,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
+import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.commons.threads.ThreadPool;
 import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.actor.Npc;
@@ -47,6 +51,9 @@ public class Arena1v1 extends Event
 	private static final int MANAGER_NPC_ID = 70013;
 	private static final int INSTANCE_TEMPLATE_ID = 3050;
 	private static final long MATCH_TIMEOUT_MILLIS = 5 * 60 * 1000L;
+	private static final String UPSERT_RETURN_LOCATION = "INSERT INTO character_arena1v1_return (charId, x, y, z, heading, instanceId) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE x = VALUES(x), y = VALUES(y), z = VALUES(z), heading = VALUES(heading), instanceId = VALUES(instanceId)";
+	private static final String SELECT_RETURN_LOCATION = "SELECT x, y, z, heading, instanceId FROM character_arena1v1_return WHERE charId = ?";
+	private static final String DELETE_RETURN_LOCATION = "DELETE FROM character_arena1v1_return WHERE charId = ?";
 	private static final Location SPAWN_A = new Location(147447, 46722, -3416, 0);
 	private static final Location SPAWN_B = new Location(151536, 46722, -3416, 32768);
 	private static final Location RETURN_FALLBACK = new Location(83425, 148585, -3406);
@@ -54,7 +61,6 @@ public class Arena1v1 extends Event
 	private static final ConcurrentLinkedQueue<Player> WAITING_PLAYERS = new ConcurrentLinkedQueue<>();
 	private static final Set<Integer> WAITING_IDS = ConcurrentHashMap.newKeySet();
 	private static final Map<Integer, ArenaMatch> MATCHES_BY_PLAYER = new ConcurrentHashMap<>();
-	private static final Map<Integer, Location> PENDING_RETURN_LOCATIONS = new ConcurrentHashMap<>();
 	private static volatile boolean ACTIVE;
 	private static Npc MANAGER_NPC;
 
@@ -326,10 +332,14 @@ public class Arena1v1 extends Event
 		{
 			return;
 		}
-		final Location returnLocation = PENDING_RETURN_LOCATIONS.remove(player.getObjectId());
+		final Location returnLocation = loadReturnLocation(player.getObjectId());
 		if (returnLocation != null)
 		{
-			ThreadPool.schedule(() -> player.teleToLocation(returnLocation, true), 2000);
+			ThreadPool.schedule(() ->
+			{
+				player.teleToLocation(returnLocation, true);
+				deleteReturnLocation(player.getObjectId());
+			}, 2000);
 		}
 	}
 
@@ -360,12 +370,12 @@ public class Arena1v1 extends Event
 				}
 				final Location returnLocation = match.getReturnLocation(participant);
 				participant.teleToLocation(returnLocation != null ? returnLocation : RETURN_FALLBACK, true);
+				deleteReturnLocation(participant.getObjectId());
 				participant.sendMessage((winner != null) ? ("1v1 Arena: " + winner.getName() + " won the match.") : (timedOut ? "1v1 Arena match ended: time limit reached, no winner recorded." : "1v1 Arena match ended without a winner."));
 			}
 			else
 			{
-				final Location returnLocation = match.getReturnLocation(participant);
-				PENDING_RETURN_LOCATIONS.put(participant.getObjectId(), returnLocation != null ? returnLocation : RETURN_FALLBACK);
+				// Keep the saved return location in the database until this player logs in.
 			}
 		}
 		if (match.world != null)
@@ -395,6 +405,12 @@ public class Arena1v1 extends Event
 		{
 			try
 			{
+				if (!saveReturnLocation(playerA.getObjectId(), returnA) || !saveReturnLocation(playerB.getObjectId(), returnB))
+				{
+					deleteReturnLocation(playerA.getObjectId());
+					deleteReturnLocation(playerB.getObjectId());
+					return false;
+				}
 				world = new InstanceWorld();
 				world.setInstance(InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID));
 				InstanceManager.getInstance().addWorld(world);
@@ -409,6 +425,8 @@ public class Arena1v1 extends Event
 				LOGGER.warning("1v1 Arena failed to create isolated match: " + e.getMessage());
 				playerA.teleToLocation(returnA, true);
 				playerB.teleToLocation(returnB, true);
+				deleteReturnLocation(playerA.getObjectId());
+				deleteReturnLocation(playerB.getObjectId());
 				if (world != null)
 				{
 					world.destroy();
@@ -430,6 +448,62 @@ public class Arena1v1 extends Event
 		private boolean finish()
 		{
 			return finished.compareAndSet(false, true);
+		}
+	}
+
+	private static boolean saveReturnLocation(int objectId, Location location)
+	{
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(UPSERT_RETURN_LOCATION))
+		{
+			ps.setInt(1, objectId);
+			ps.setInt(2, location.getX());
+			ps.setInt(3, location.getY());
+			ps.setInt(4, location.getZ());
+			ps.setInt(5, location.getHeading());
+			ps.setInt(6, location.getInstanceId());
+			ps.executeUpdate();
+			return true;
+		}
+		catch (Exception e)
+		{
+			LOGGER.warning("1v1 Arena could not persist return location for character " + objectId + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+	private static Location loadReturnLocation(int objectId)
+	{
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(SELECT_RETURN_LOCATION))
+		{
+			ps.setInt(1, objectId);
+			try (ResultSet rs = ps.executeQuery())
+			{
+				if (rs.next())
+				{
+					return new Location(rs.getInt("x"), rs.getInt("y"), rs.getInt("z"), rs.getInt("heading"), rs.getInt("instanceId"));
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			LOGGER.warning("1v1 Arena could not restore return location for character " + objectId + ": " + e.getMessage());
+		}
+		return null;
+	}
+
+	private static void deleteReturnLocation(int objectId)
+	{
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(DELETE_RETURN_LOCATION))
+		{
+			ps.setInt(1, objectId);
+			ps.executeUpdate();
+		}
+		catch (Exception e)
+		{
+			LOGGER.warning("1v1 Arena could not delete return location for character " + objectId + ": " + e.getMessage());
 		}
 	}
 
