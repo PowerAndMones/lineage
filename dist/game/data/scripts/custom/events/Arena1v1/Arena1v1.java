@@ -66,7 +66,7 @@ public class Arena1v1 extends Event
 	private static final Location SPAWN_A = new Location(147447, 46722, -3416, 0);
 	private static final Location SPAWN_B = new Location(151536, 46722, -3416, 32768);
 	private static final Location RETURN_FALLBACK = new Location(83425, 148585, -3406);
-	private static final Location MANAGER_SPAWN = new Location(83425, 148585, -3406, 32938);
+	private static final Location MANAGER_SPAWN = new Location(83150, 148585, -3406, 32938);
 	private static final ConcurrentLinkedQueue<Player> WAITING_PLAYERS = new ConcurrentLinkedQueue<>();
 	private static final Set<Integer> WAITING_IDS = ConcurrentHashMap.newKeySet();
 	private static final Map<Integer, ArenaMatch> MATCHES_BY_PLAYER = new ConcurrentHashMap<>();
