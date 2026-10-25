@@ -130,10 +130,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Source has not been compiled or runtime-tested. Verify the character table column names and HTML rendering on the target revision during final validation.
 
 
-### Phase 13 — 3v3 Arena groundwork (specification and SQL schema prepared; source not yet implemented)
+### Phase 13 — isolated 3v3 Arena prototype (source and SQL added; build/runtime validation pending)
 
 - Added a 3v3 lifecycle and rating specification in `docs/custom-pvp/ARENA_3V3.md`.
 - Added a separate statistics table for per-player 3v3 matches, wins, losses, Elo-style rating, streaks, and last match time.
 - Added persistent roster-pair cooldown storage for anti-farm protection; roster hashes must be based on sorted character IDs.
-- The SQL schema does not enable the event by itself. No 3v3 matchmaking or combat code has been added yet.
+- Added `Arena3v3.java`: FIFO queue reserves six eligible players, assigns the first three to Team A and next three to Team B, creates an isolated dynamic instance, and persists each return location before teleporting.\n- Added a separate PvP instance template (3051), manager HTML (NPC 70014), and persistent return-location table.\n- Team wipe, timeout, logout-forfeit, one-time finish guard, team-level Elo calculation, and 30-minute canonical roster-hash cooldown are implemented in the prototype.\n- The SQL schema does not enable the event by itself; the script must be discovered/registered by the target Mobius script loader and NPC template 70014 must exist.\n- Source has not been compiled or runtime-tested; lifecycle/API integration remains unverified.
 - The implementation must reuse the isolated-instance/recovery principles from 1v1 but support six players and team-level result resolution.
