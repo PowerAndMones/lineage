@@ -33,7 +33,7 @@ jobs:
           ant -version
 
       - name: Check whitespace errors
-        run: git diff --check origin/main...HEAD
+        run: git -c core.whitespace=cr-at-eol diff --check origin/main...HEAD
 
       - name: Compile L2J Mobius core
         run: ant -f build.xml compile
