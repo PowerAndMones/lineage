@@ -330,7 +330,7 @@ public class Arena3v3 extends Event
 		if (match != null)
 		{
 			// Deterministic initial policy: any disconnect forfeits that player's team immediately.
-			finishMatch(match, match.getTeam(player), false);
+			finishMatch(match, match.getOpposingTeam(player), false);
 		}
 	}
 
@@ -632,6 +632,11 @@ public class Arena3v3 extends Event
 		private List<Player> getTeam(Player p)
 		{
 			return teamA.contains(p) ? teamA : teamB;
+		}
+
+		private List<Player> getOpposingTeam(Player p)
+		{
+			return teamA.contains(p) ? teamB : teamA;
 		}
 
 		private Location getReturnLocation(Player p)
