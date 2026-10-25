@@ -230,3 +230,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The 1v1, 3v3, and Last Hero rating transactions now calculate cooldown age with `TIMESTAMPDIFF` and the database's `CURRENT_TIMESTAMP`, instead of comparing SQL `DATETIME` values to the game JVM clock.
 - This avoids cooldown decisions changing when the database and game server use different time zones or clock settings.
 - No SQL execution or runtime tests have been performed; verify the query syntax against the exact MySQL/MariaDB version used by the target server.
+
+
+### Phase 26 — best-streak SQL assignment order (source updated; validation pending)
+
+- Corrected the general PvP, 3v3, and Last Hero SQL update order so `bestStreak` / `bestWinStreak` is calculated from the previous streak plus one before the current streak is incremented.
+- MySQL single-table updates can evaluate assignments left-to-right, so calculating the best streak after updating the current streak could overcount a winning streak by one. The 1v1 query already used the safe order.
+- No database execution or runtime tests have been performed; verify streak progression with sequences such as 1, 2, 3 consecutive wins and a loss/reset.
