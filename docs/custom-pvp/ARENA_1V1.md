@@ -74,3 +74,12 @@ The isolated-match upgrade must be implemented as a separate phase rather than a
 - Whether instance template `3049` is appropriate to share as a template for concurrent dynamic 1v1 instances.
 
 No build or runtime validation has been performed. The isolated match should not be considered implemented until these integration points are handled in source and then validated in the planned final build.
+
+
+## Rated 1v1 results (source added, build/runtime test pending)
+
+- Added `character_arena1v1_stats` for independent 1v1 matches, wins, losses, Elo-style rating, current win streak, best win streak, and last match time. New characters start at rating 1000.
+- Added `character_arena1v1_pair_cooldown` to suppress rating changes when the same two characters have a rated result within 30 minutes. Character IDs are stored in sorted order so the cooldown applies regardless of who wins.
+- A valid death or online-opponent forfeit result updates both participants in one SQL transaction using an Elo-style K-factor of 32. Timeouts and simultaneous deaths do not affect rating/statistics.
+- Repeat-opponent matches still end normally but do not increment rated match totals or streaks during cooldown; no items or PvP points are granted.
+- Install `dist/db_installer/sql/game/character_arena1v1_stats.sql` before enabling rated matches. The code has not been compiled or runtime-tested; validate transaction locking, database compatibility, and match-result edge cases during the planned final validation.
