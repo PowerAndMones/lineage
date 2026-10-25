@@ -489,6 +489,10 @@ public class Arena1v1 extends Event
 				}
 				world = new InstanceWorld();
 				world.setInstance(InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID));
+				if (world.getInstanceId() <= 0)
+				{
+					throw new IllegalStateException("Invalid 1v1 Arena instance ID.");
+				}
 				InstanceManager.getInstance().addWorld(world);
 				world.addAllowed(playerA);
 				world.addAllowed(playerB);
