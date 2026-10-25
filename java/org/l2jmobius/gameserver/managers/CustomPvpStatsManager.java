@@ -252,6 +252,7 @@ public final class CustomPvpStatsManager
 		{
 			final boolean autoCommit = con.getAutoCommit();
 			con.setAutoCommit(false);
+			boolean committed = false;
 			try
 			{
 				if (record.awardKiller)
@@ -271,6 +272,7 @@ public final class CustomPvpStatsManager
 					ps.executeUpdate();
 				}
 				con.commit();
+				committed = true;
 				return true;
 			}
 			catch (SQLException e)
@@ -287,7 +289,21 @@ public final class CustomPvpStatsManager
 			}
 			finally
 			{
-				con.setAutoCommit(autoCommit);
+				try
+				{
+					con.setAutoCommit(autoCommit);
+				}
+				catch (SQLException restoreException)
+				{
+					if (committed)
+					{
+						LOGGER.log(Level.WARNING, "Custom PvP transaction committed, but auto-commit state could not be restored.", restoreException);
+					}
+					else
+					{
+						throw restoreException;
+					}
+				}
 			}
 		}
 		catch (SQLException e)
