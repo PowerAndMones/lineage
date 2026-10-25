@@ -69,7 +69,7 @@ Do not enable the modes on a live server until the source compiles against the t
 
 - The custom NPC templates for IDs 70013 (1v1 Arena), 70014 (3v3 Arena), and 70015 (Last Hero) are present in `dist/game/data/stats/npcs/custom/custom.xml`.
 - All three event scripts expose `main(String[] args)` entry points following the existing TvT script pattern.
-- The three queue-based modes call `eventStart(null)` in their constructors so their manager NPCs are spawned and matchmaking is active after script load. This lifecycle change requires compile and test-server validation before production use.
+- The three queue-based modes call `eventStart(null)` in their constructors so their manager NPCs are spawned and matchmaking is active after script load. GitHub Actions compiled the Mobius core and custom PvP scripts successfully after this lifecycle change on 2026-10-25; startup and match lifecycle still require test-server validation before production use.
 
 
 ## Script reload cleanup
