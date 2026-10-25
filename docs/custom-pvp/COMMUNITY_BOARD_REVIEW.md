@@ -8,7 +8,7 @@ The PvP Center combines open-world PvP statistics with separate 1v1 Arena, 3v3 A
 
 - Escape character names before inserting them into Community Board HTML.
 - The shared rating leaderboard renderer escapes `char_name` values.
-- The general PvP ranking and the dedicated 1v1 ranking must apply the same escaping helper; these two code paths should be checked before release.
+- The general PvP ranking and the dedicated 1v1 ranking now apply the shared escaping helper, matching the 3v3 and Last Hero rating leaderboards.
 - Keep leaderboard values sourced from SQL result columns and do not concatenate untrusted text into SQL.
 
 ## Release checks still required
