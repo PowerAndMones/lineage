@@ -39,6 +39,8 @@ This is a source-level review only. No compilation, test server, database execut
 
 ### Database and Community Board
 
+- Load-test the custom PvP persistence queue with concurrent kill producers; the queue now uses an atomic pending counter and atomic capacity reservation rather than repeated linear-time queue-size scans.
+
 - Back up the game database before applying the scripts listed in SQL_INSTALLATION.md.
 - Confirm the Mobius characters table uses the expected charId and char_name columns.
 - Confirm all leaderboard HTML placeholders are replaced and the final page fits the target client's Community Board display.
