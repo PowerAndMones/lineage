@@ -46,11 +46,18 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - Added an explicit defensive fake-player check in `CustomPvpStatsManager` so fake players cannot receive custom PvP kill credit or points if the call path changes later.
 - Existing `AntiFeedManager` validation remains in front of the custom stats call.
 
+### Phase 7 — existing event safety (code added, build/runtime test pending)
+
+- TvT and CtF death handlers now ignore deaths of characters who are not registered participants.
+- Kill scoring checks that the killer is a registered participant with an initialized score entry before updating team/player scores.
+- CtF handles deaths without a player killer without dereferencing a null attacker; flag return handling still runs for a registered carrier.
+- These changes harden existing events; they do not yet add new 1v1, 3v3, or Last Hero event modes.
+
 ### Next phases
 
 1. Add queue/backlog diagnostics and define behavior for database outages.
-2. Specify event participation rules and reuse the existing TvT/CTF scripts before adding 1v1/3v3 and Last Hero.
-3. Review PvP rewards for anti-farm abuse; keep all rewards cosmetic/convenience-only.
+2. Decide and implement configurable rules for whether event and instance kills award global PvP points.
+3. Add 1v1/3v3 and Last Hero by reusing established registration, teleport, cleanup, and AntiFeed patterns.
 
 ## Design constraints
 
