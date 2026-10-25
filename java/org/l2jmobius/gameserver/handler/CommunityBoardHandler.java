@@ -285,8 +285,10 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			for (int skillId : scheme.getValue())
 			{
 				final org.l2jmobius.gameserver.entity.actor.holders.npc.BuffSkillHolder buff = SchemeBufferTable.getInstance().getAvailableBuff(skillId);
-				final int skillCost = (buff != null) ? ((SchemeBufferConfig.BUFFER_STATIC_BUFF_COST >= 0) ? SchemeBufferConfig.BUFFER_STATIC_BUFF_COST : buff.getPrice()) : 0;
-				totalCost += Math.max(0, skillCost);
+				final int configuredSkillCost = (buff != null) ? ((SchemeBufferConfig.BUFFER_STATIC_BUFF_COST >= 0) ? SchemeBufferConfig.BUFFER_STATIC_BUFF_COST : buff.getPrice()) : 0;
+				// Do not display negative prices or let them reduce the estimated scheme total.
+				final int skillCost = Math.max(0, configuredSkillCost);
+				totalCost += skillCost;
 				html.append("<tr><td><font color=FFFFFF>");
 				if ((buff != null) && !buff.getDescription().isEmpty())
 				{
