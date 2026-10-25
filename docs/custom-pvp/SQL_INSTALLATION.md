@@ -41,7 +41,7 @@ The scripts use `CREATE TABLE IF NOT EXISTS`, but that does not update an existi
 
 The PvP Center leaderboards also read the standard Mobius `characters` table and expect `charId` and `char_name`. Confirm those names against the exact Mobius revision before production use.
 
-## Pre-build integration checklist
+## Pre-release integration checklist
 
 - [ ] Confirm every script and HTML file is discovered by the target Mobius script/data loader.
 - [ ] Confirm custom NPC templates exist for NPC IDs 70013 (1v1), 70014 (3v3), and 70015 (Last Hero); otherwise assign existing valid custom NPC IDs and update references.
@@ -51,8 +51,10 @@ The PvP Center leaderboards also read the standard Mobius `characters` table and
 - [ ] Confirm SQL queries against `characters.charId` and `characters.char_name` match the target schema.
 - [ ] Test online/offline return recovery, simultaneous deaths, logout, event stop, timeouts, and duplicate-finalization protection.
 - [ ] Test repeat-opponent/roster cooldowns and verify unrated outcomes do not change ratings.
-- [ ] Only after the source review is complete, build and resolve compile errors; then perform controlled test-server runtime tests.
+- [x] Build the L2J Mobius core and compile the custom PvP, TvT, CtF, and Community Board scripts in CI (Temurin JDK 27).
+- [ ] Apply SQL to a backed-up test database and verify schema/query compatibility.
+- [ ] Perform controlled test-server lifecycle, rating, disconnect, and return-recovery tests.
 
 ## Current status
 
-The scripts and source changes are prepared on `feature/custom-pvp-core`. No build or runtime tests have been run. The arena modes are prototypes and should not be enabled on a live server until the checklist above is completed.
+The source and SQL installers are prepared on `feature/custom-pvp-core`. CI build and custom-script compilation passed on 2026-10-25. SQL has not been executed against a database, and no live/test server or in-game validation has been performed. The arena modes must not be enabled on a live server until the remaining checklist is completed.
