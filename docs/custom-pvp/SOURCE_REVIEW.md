@@ -21,7 +21,7 @@ This is a source-level review only. No compilation, test server, database execut
 
 - Confirm instance templates 3050–3052 are loaded from the custom instance directory.
 - Verify the target API's createDynamicInstance, addWorld, addAllowed, teleToLocation, and destroy behavior.
-- Confirm null or invalid dynamic instances trigger rollback before an `InstanceWorld` is registered, and cleanup does not leak an instance.
+- Confirm missing/malformed instance templates (wrong template ID or missing exit point) trigger rollback before players enter the instance.
 - Confirm spawn points are inside the playable instance geometry and that return locations preserve the original instance where valid.
 - Verify the three Giran manager coordinates are walkable and do not overlap existing NPCs; verify the fallback point is reachable and safe.
 - Match finalizers in 1v1, 3v3, and Last Hero now use the configured fallback if a saved return location points to an instance that no longer exists.
