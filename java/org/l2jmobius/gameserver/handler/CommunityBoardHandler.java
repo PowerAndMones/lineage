@@ -1,16 +1,16 @@
 /*
  * This file is part of the L2J Mobius project.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -44,12 +44,12 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	private final Map<String, IParseBoardHandler> _datatable = new HashMap<>();
 	/** The bypasses used by the players. */
 	private final Map<Integer, String> _bypasses = new ConcurrentHashMap<>();
-	
+
 	protected CommunityBoardHandler()
 	{
 		// Prevent external initialization.
 	}
-	
+
 	@Override
 	public void registerHandler(IParseBoardHandler handler)
 	{
@@ -58,7 +58,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			_datatable.put(cmd.toLowerCase(), handler);
 		}
 	}
-	
+
 	@Override
 	public synchronized void removeHandler(IParseBoardHandler handler)
 	{
@@ -67,7 +67,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			_datatable.remove(cmd.toLowerCase());
 		}
 	}
-	
+
 	@Override
 	public IParseBoardHandler getHandler(String cmd)
 	{
@@ -81,16 +81,16 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 				}
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public int size()
 	{
 		return _datatable.size();
 	}
-	
+
 	/**
 	 * Verifies if the string is a registered community board command.
 	 * @param cmd the command to verify
@@ -100,7 +100,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	{
 		return getHandler(cmd) != null;
 	}
-	
+
 	/**
 	 * Parses a community board command.
 	 * @param command the command
@@ -112,13 +112,13 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		{
 			return;
 		}
-		
+
 		if (!GeneralConfig.ENABLE_COMMUNITY_BOARD)
 		{
 			player.sendPacket(SystemMessageId.THE_COMMUNITY_SERVER_IS_CURRENTLY_OFFLINE);
 			return;
 		}
-		
+
 		// Modern Community Board landing page and personal PvP statistics.
 		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase().startsWith("_bbsbuffer;view;"))
 		{
@@ -140,17 +140,17 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			}
 			return;
 		}
-		
+
 		final IParseBoardHandler cb = getHandler(command);
 		if (cb == null)
 		{
 			LOG.warning(CommunityBoardHandler.class.getSimpleName() + ": Couldn't find parse handler for command " + command + "!");
 			return;
 		}
-		
+
 		cb.onCommand(command, player);
 	}
-	
+
 	/**
 	 * Displays the modern Community Board landing page or personal PvP statistics.
 	 * Uses HTML elements supported by the legacy Interlude client.
@@ -195,7 +195,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
 	}
-	
+
 	/**
 	 * Displays the current player's saved buffer schemes and available categories.
 	 * @param player the active player
@@ -243,7 +243,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
 	}
-	
+
 	/**
 	 * Displays a read-only preview of a saved buffer scheme.
 	 * @param player the active player
@@ -370,7 +370,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
 	}
-	
+
 	/**
 	 * Escapes player-controlled text before inserting it into Community Board HTML.
 	 * @param value text to escape
@@ -380,7 +380,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	{
 		return (value != null) ? value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;") : "";
 	}
-	
+
 	/**
 	 * Writes a command into the client.
 	 * @param player the player
@@ -397,13 +397,13 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		{
 			return;
 		}
-		
+
 		if (!GeneralConfig.ENABLE_COMMUNITY_BOARD)
 		{
 			player.sendPacket(SystemMessageId.THE_COMMUNITY_SERVER_IS_CURRENTLY_OFFLINE);
 			return;
 		}
-		
+
 		String cmd = "";
 		switch (url)
 		{
@@ -448,23 +448,23 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 				return;
 			}
 		}
-		
+
 		final IParseBoardHandler cb = getHandler(cmd);
 		if (cb == null)
 		{
 			LOG.warning(CommunityBoardHandler.class.getSimpleName() + ": Couldn't find write handler for command " + cmd + "!");
 			return;
 		}
-		
+
 		if (!(cb instanceof IWriteBoardHandler))
 		{
 			LOG.warning(CommunityBoardHandler.class.getSimpleName() + ": " + cb.getClass().getSimpleName() + " doesn't implement write!");
 			return;
 		}
-		
+
 		((IWriteBoardHandler) cb).writeCommunityBoardCommand(player, arg1, arg2, arg3, arg4, arg5);
 	}
-	
+
 	/**
 	 * Sets the last bypass used by the player.
 	 * @param player the player
@@ -475,7 +475,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	{
 		_bypasses.put(player.getObjectId(), title + "&" + bypass);
 	}
-	
+
 	/**
 	 * Removes the last bypass used by the player.
 	 * @param player the player
@@ -485,7 +485,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	{
 		return _bypasses.remove(player.getObjectId());
 	}
-	
+
 	/**
 	 * Separates and send an HTML into multiple packets, to display into the community board.<br>
 	 * The limit is 16383 characters.
@@ -496,12 +496,12 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	{
 		HtmlUtil.sendCBHtml(player, html);
 	}
-	
+
 	public static CommunityBoardHandler getInstance()
 	{
 		return SingletonHolder.INSTANCE;
 	}
-	
+
 	private static class SingletonHolder
 	{
 		protected static final CommunityBoardHandler INSTANCE = new CommunityBoardHandler();
