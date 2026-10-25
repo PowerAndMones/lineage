@@ -352,9 +352,12 @@ public class Arena1v1 extends Event
 		{
 			ThreadPool.schedule(() ->
 			{
-				final Location returnLocation = ((savedLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(savedLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : savedLocation;
-				player.teleToLocation(returnLocation, true);
-				deleteReturnLocation(player.getObjectId());
+				if (player.isOnlineInt() == 1)
+				{
+					final Location returnLocation = ((savedLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(savedLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : savedLocation;
+					player.teleToLocation(returnLocation, true);
+					deleteReturnLocation(player.getObjectId());
+				}
 			}, 2000);
 		}
 	}
