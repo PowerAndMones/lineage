@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +41,7 @@ public final class CustomPvpStatsManager
 	private static final Logger LOGGER = Logger.getLogger(CustomPvpStatsManager.class.getName());
 	private static final ConcurrentHashMap<Long, Long> LAST_PAIR_KILLS = new ConcurrentHashMap<>();
 	private static final ConcurrentLinkedQueue<KillRecord> PENDING_KILLS = new ConcurrentLinkedQueue<>();
+	private static final AtomicInteger PENDING_COUNT = new AtomicInteger(0);
 	private static final AtomicBoolean WORKER_RUNNING = new AtomicBoolean(false);
 	private static final AtomicBoolean BACKLOG_WARNING_ACTIVE = new AtomicBoolean(false);
 	private static final AtomicBoolean QUEUE_FULL_WARNING_ACTIVE = new AtomicBoolean(false);
@@ -61,7 +63,7 @@ public final class CustomPvpStatsManager
 	 */
 	public int getPendingKillCount()
 	{
-		return PENDING_KILLS.size();
+		return PENDING_COUNT.get();
 	}
 
 	/**
@@ -114,11 +116,11 @@ public final class CustomPvpStatsManager
 		// and their current streak is reset.
 		final KillRecord record = new KillRecord(killer.getObjectId(), killer.getName(), victim.getObjectId(), victim.getName(), awardKiller);
 		final int maxPending = CustomPvpConfig.MAX_PENDING_RECORDS;
-		if ((maxPending > 0) && (PENDING_KILLS.size() >= maxPending))
+		if (!reserveQueueSlot(maxPending))
 		{
 			if (QUEUE_FULL_WARNING_ACTIVE.compareAndSet(false, true))
 			{
-				LOGGER.severe("Custom PvP persistence queue is full (" + PENDING_KILLS.size() + " records). New custom PvP records are being dropped until the queue drains. Increase MaxPendingRecords only after checking database performance.");
+				LOGGER.severe("Custom PvP persistence queue is full (" + PENDING_COUNT.get() + " records). New custom PvP records are being dropped until the queue drains. Increase MaxPendingRecords only after checking database performance.");
 			}
 			return;
 		}
@@ -128,9 +130,36 @@ public final class CustomPvpStatsManager
 		scheduleWorker();
 	}
 
+	/**
+	 * Reserves a queue slot atomically so concurrent PvP events cannot exceed the configured backlog limit.
+	 * The counter tracks queued records only; the currently processed record is removed from the count.
+	 * @param maxPending configured maximum, or zero for an unlimited queue
+	 * @return true when the record can be queued
+	 */
+	private boolean reserveQueueSlot(int maxPending)
+	{
+		if (maxPending <= 0)
+		{
+			PENDING_COUNT.incrementAndGet();
+			return true;
+		}
+		while (true)
+		{
+			final int pending = PENDING_COUNT.get();
+			if (pending >= maxPending)
+			{
+				return false;
+			}
+			if (PENDING_COUNT.compareAndSet(pending, pending + 1))
+			{
+				return true;
+			}
+		}
+	}
+
 	private void checkQueueBacklog()
 	{
-		final int pending = PENDING_KILLS.size();
+		final int pending = PENDING_COUNT.get();
 		final int threshold = CustomPvpConfig.QUEUE_WARNING_THRESHOLD;
 		if ((threshold > 0) && (pending >= threshold))
 		{
@@ -172,6 +201,7 @@ public final class CustomPvpStatsManager
 			KillRecord record;
 			while ((record = PENDING_KILLS.poll()) != null)
 			{
+				PENDING_COUNT.decrementAndGet();
 				persistKillWithRetry(record);
 				checkQueueBacklog();
 			}
@@ -213,7 +243,7 @@ public final class CustomPvpStatsManager
 			}
 		}
 
-		LOGGER.severe("Failed to persist custom PvP record after " + maxAttempts + " attempt(s): " + record.killerName + " -> " + record.victimName + ". This record is being dropped; pending queue size: " + PENDING_KILLS.size());
+		LOGGER.severe("Failed to persist custom PvP record after " + maxAttempts + " attempt(s): " + record.killerName + " -> " + record.victimName + ". This record is being dropped; pending queue size: " + PENDING_COUNT.get());
 	}
 
 	private boolean persistKill(KillRecord record)
