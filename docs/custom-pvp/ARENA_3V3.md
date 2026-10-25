@@ -1,6 +1,6 @@
 # 3v3 Arena — implementation specification
 
-Status: prototype source and SQL schema added; build/runtime validation pending.
+Status: core and custom-script compilation passed in CI; database and runtime validation pending.
 
 ## Rules
 
@@ -44,4 +44,4 @@ Install `dist/db_installer/sql/game/character_arena3v3_stats.sql` before enablin
 - Confirm the correct character ID/name column schema and instance APIs for this exact Mobius revision.\n- Confirm script auto-discovery, NPC template 70014, instance template 3051, and bypass routing.\n- Consider a reconnect grace period and review team balancing before production use.
 - Verify team spawn coordinates and instance template.
 - Verify logout/reconnect behavior, simultaneous deaths, partial startup failure, event stop, and database transaction rollback.
-- No build or runtime tests have been performed.
+- CI compile passed; runtime, SQL transaction, coordinate, and in-game tests have not been performed.
