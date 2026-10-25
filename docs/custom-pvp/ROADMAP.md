@@ -265,3 +265,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added NPC templates 70013, 70014, and 70015 to `dist/game/data/stats/npcs/custom/custom.xml` for 1v1 Arena, 3v3 Arena, and Last Hero managers.
 - The templates use the existing Race Manager display model already present in this custom NPC file and server-side names/titles; the event scripts can now spawn defined NPC IDs rather than relying on undocumented pre-existing templates.
 - No datapack load or in-game visual test has been performed; validate XML schema loading, model appearance, collision, and script talk/bypass dispatch.
+
+
+### Phase 31 — separate arena manager locations (source updated; validation pending)
+
+- Moved the 1v1, 3v3, and Last Hero manager NPCs to separate nearby Giran coordinates instead of spawning all three at the same point.
+- The saved-return fallback remains separate from the three manager positions.
+- Coordinates are provisional and must be checked in-game for walkability, ground height, collision, and proximity to existing NPCs before release.
