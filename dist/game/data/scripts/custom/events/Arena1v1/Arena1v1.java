@@ -758,4 +758,13 @@ public class Arena1v1 extends Event
 			player.sendMessage("1v1 Arena status: " + (ACTIVE ? "Open" : "Closed") + ". Waiting players: " + WAITING_PLAYERS.size() + ".");
 		}
 	}
+	/**
+	 * Loads the event script and registers its NPC interactions.
+	 * @param args unused script arguments
+	 */
+	public static void main(String[] args)
+	{
+		new Arena1v1();
+	}
+
 }
