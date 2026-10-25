@@ -102,6 +102,12 @@ public class LastHero extends Event
 		START_SCHEDULED = false;
 		ACTIVE = true;
 		MANAGER_NPC = addSpawn(MANAGER_NPC_ID, MANAGER_SPAWN, false, 0);
+		if (MANAGER_NPC == null)
+		{
+			ACTIVE = false;
+			LOGGER.warning("Last Hero manager NPC failed to spawn; matchmaking remains closed.");
+			return false;
+		}
 		return true;
 	}
 
