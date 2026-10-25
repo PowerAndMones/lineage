@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +41,7 @@ public final class CustomPvpStatsManager
 {
 	private static final Logger LOGGER = Logger.getLogger(CustomPvpStatsManager.class.getName());
 	private static final ConcurrentHashMap<Long, Long> LAST_PAIR_KILLS = new ConcurrentHashMap<>();
+	private static final AtomicLong LAST_PAIR_CLEANUP = new AtomicLong(0);
 	private static final ConcurrentLinkedQueue<KillRecord> PENDING_KILLS = new ConcurrentLinkedQueue<>();
 	private static final AtomicInteger PENDING_COUNT = new AtomicInteger(0);
 	private static final AtomicBoolean WORKER_RUNNING = new AtomicBoolean(false);
@@ -114,11 +116,16 @@ public final class CustomPvpStatsManager
 			});
 			awardKiller = accepted.get();
 
-			// Keep the cache bounded during long-running mass-PvP sessions.
+			// Keep cleanup work bounded during mass-PvP sessions; do not scan the cache on every kill.
 			if (LAST_PAIR_KILLS.size() > 10000)
 			{
-				final long expiry = now - cooldownMs;
-				LAST_PAIR_KILLS.entrySet().removeIf(entry -> entry.getValue() < expiry);
+				final long lastCleanup = LAST_PAIR_CLEANUP.get();
+				final long cleanupInterval = Math.max(10000L, cooldownMs);
+				if (((now - lastCleanup) >= cleanupInterval) && LAST_PAIR_CLEANUP.compareAndSet(lastCleanup, now))
+				{
+					final long expiry = now - cooldownMs;
+					LAST_PAIR_KILLS.entrySet().removeIf(entry -> entry.getValue() < expiry);
+				}
 			}
 		}
 
