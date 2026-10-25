@@ -165,3 +165,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Documented which SQL files create the 1v1, 3v3 and Last Hero statistics, cooldown and return-location tables.
 - Added a pre-build integration checklist for script discovery, NPC IDs, instance templates, Mobius API compatibility, Community Board SQL schema and match lifecycle scenarios.
 - This phase is documentation only. No SQL was executed, no build was run, and no runtime tests were performed.
+
+
+### Phase 17 — pre-build source review (documentation and message corrections added; validation pending)
+
+- Added `docs/custom-pvp/SOURCE_REVIEW.md` with a focused checklist for script discovery, event lifecycle, instances, recovery, rating integrity, database schema, and Community Board rendering.
+- Corrected the 1v1, 3v3, and Last Hero repeat-match cooldown messages to state that rating and rated counters remain unchanged; the cooldown transaction rolls back rather than recording a rated result.
+- This is still source-level review only. No compilation, database execution, or in-game testing has been performed.
