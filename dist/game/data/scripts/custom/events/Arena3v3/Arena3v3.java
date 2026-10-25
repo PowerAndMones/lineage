@@ -666,9 +666,9 @@ public class Arena3v3 extends Event
 					if (!saveReturnLocation(p.getObjectId(), returnLocations.get(p))) throw new IllegalStateException("Could not persist all return locations.");
 				}
 				final Instance instance = InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID);
-				if ((instance == null) || (instance.getId() <= 0))
+				if ((instance == null) || (instance.getId() <= 0) || (instance.getTemplateId() != INSTANCE_TEMPLATE_ID) || (instance.getExitLoc() == null))
 				{
-					throw new IllegalStateException("Invalid 3v3 Arena instance.");
+					throw new IllegalStateException("Could not load a valid 3v3 Arena instance template.");
 				}
 				world = new InstanceWorld();
 				world.setInstance(instance);
