@@ -32,7 +32,7 @@ This is a source-level review only. No compilation, test server, database execut
 - Verify each match can finalize once only, and offline players retain return-location rows until login recovery succeeds.
 - Verify the 1v1 pair cooldown is direction-independent and that 3v3 roster-pair and Last Hero complete-roster cooldowns behave as intended.
 - Verify repeat-match cooldown suppression leaves rating and rated counters unchanged; player messages now state that explicitly.
-- Corrected the 3v3 losing-team Elo delta to use `-K * expectedWin`, and Last Hero's per-loser delta to distribute the winner's Elo gain across all opponents. Confirm the multi-player rating model with representative ratings during final validation.
+- Reviewed the 3v3 team Elo deltas: winner and loser changes use complementary expected scores. Corrected Last Hero's per-loser delta to distribute the winner's Elo gain across all opponents. Confirm both models with representative ratings during final validation.
 - Review the rating formulas with representative ratings and confirm all SQL updates and cooldown changes commit atomically.
 
 ### Database and Community Board
