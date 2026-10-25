@@ -78,28 +78,40 @@ public final class CustomPvpStatsManager
 			return;
 		}
 
-		final long now = System.currentTimeMillis();
-		final long cooldownMs = CustomPvpConfig.REPEAT_KILL_COOLDOWN_SECONDS * 1000L;
-		final long pairKey = (((long) killer.getObjectId()) << 32) | (victim.getObjectId() & 0xffffffffL);
-		final AtomicBoolean accepted = new AtomicBoolean(false);
-		LAST_PAIR_KILLS.compute(pairKey, (key, previous) ->
-		{
-			if ((previous == null) || (cooldownMs == 0) || ((now - previous) >= cooldownMs))
-			{
-				accepted.set(true);
-				return now;
-			}
-			return previous;
-		});
-		final boolean awardKiller = accepted.get();
+		// Event and instance kills can still update the victim's death/streak data, but
+		// do not earn global custom kills or points unless explicitly enabled.
+		final boolean eventRewardAllowed = CustomPvpConfig.REWARD_EVENT_KILLS || (!killer.isOnEvent() && !victim.isOnEvent());
+		final boolean instanceRewardAllowed = CustomPvpConfig.REWARD_INSTANCE_KILLS || ((killer.getInstanceId() == 0) && (victim.getInstanceId() == 0));
+		boolean awardKiller = eventRewardAllowed && instanceRewardAllowed;
 
-		// Keep the cache bounded during long-running mass-PvP sessions.
-		if (LAST_PAIR_KILLS.size() > 10000)
+		// Only reward-eligible kills consume the killer-victim anti-farm cooldown.
+		if (awardKiller)
 		{
-			final long expiry = now - cooldownMs;
-			LAST_PAIR_KILLS.entrySet().removeIf(entry -> entry.getValue() < expiry);
+			final long now = System.currentTimeMillis();
+			final long cooldownMs = CustomPvpConfig.REPEAT_KILL_COOLDOWN_SECONDS * 1000L;
+			final long pairKey = (((long) killer.getObjectId()) << 32) | (victim.getObjectId() & 0xffffffffL);
+			final AtomicBoolean accepted = new AtomicBoolean(false);
+			LAST_PAIR_KILLS.compute(pairKey, (key, previous) ->
+			{
+				if ((previous == null) || (cooldownMs == 0) || ((now - previous) >= cooldownMs))
+				{
+					accepted.set(true);
+					return now;
+				}
+				return previous;
+			});
+			awardKiller = accepted.get();
+
+			// Keep the cache bounded during long-running mass-PvP sessions.
+			if (LAST_PAIR_KILLS.size() > 10000)
+			{
+				final long expiry = now - cooldownMs;
+				LAST_PAIR_KILLS.entrySet().removeIf(entry -> entry.getValue() < expiry);
+			}
 		}
 
+		// Even when a kill does not earn global credit, the victim's death is recorded
+		// and their current streak is reset.
 		final KillRecord record = new KillRecord(killer.getObjectId(), killer.getName(), victim.getObjectId(), victim.getName(), awardKiller);
 		final int maxPending = CustomPvpConfig.MAX_PENDING_RECORDS;
 		if ((maxPending > 0) && (PENDING_KILLS.size() >= maxPending))
