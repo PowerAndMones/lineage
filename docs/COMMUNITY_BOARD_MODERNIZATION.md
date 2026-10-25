@@ -15,6 +15,7 @@ Replace the default Alt+B landing page with a compact, dark fantasy-themed dashb
 - Added a dark, table-based home dashboard with player name and level.
 - Added a personal PvP/PK statistics page.
 - Added `_bbspvptop`, a Top 10 PvP ranking using a fixed SQL query and a bounded result set.
+- Highlighted the current character in Top PvP when present and added empty/non-top-ten states.
 - Added `_bbsbuffer`, showing the player's saved buffer schemes and configured buffer categories from `SchemeBufferTable`.
 - Fixed the buffer page's return-to-home bypass quoting and avoided querying the scheme map twice.
 - Escaped character names before inserting them into HTML.
