@@ -48,6 +48,7 @@ This is a source-level review only. No compilation, test server, database execut
 
 - Load-test the custom PvP persistence queue with concurrent kill producers; the queue now uses an atomic pending counter and atomic capacity reservation rather than repeated linear-time queue-size scans.
 - Verify queue overflow does not consume a killer-victim cooldown when the record is rejected before enqueueing.
+- Load-test anti-farm cache cleanup with more than 10,000 unique killer-victim pairs; cleanup should be throttled and expired entries should eventually be removed.
 
 - Back up the game database before applying the scripts listed in SQL_INSTALLATION.md.
 - Confirm the Mobius characters table uses the expected charId and char_name columns.
