@@ -78,6 +78,7 @@ public class LastHero extends Event
 	private static final Map<Integer, HeroMatch> MATCHES = new ConcurrentHashMap<>();
 	private static volatile boolean ACTIVE;
 	private static boolean START_SCHEDULED;
+	private static volatile long START_GENERATION;
 	private static Npc MANAGER_NPC;
 
 	private LastHero()
@@ -92,6 +93,7 @@ public class LastHero extends Event
 	{
 		if (ACTIVE) return false;
 		clearQueue("Last Hero queue was reset.");
+		START_GENERATION++;
 		START_SCHEDULED = false;
 		ACTIVE = true;
 		MANAGER_NPC = addSpawn(MANAGER_NPC_ID, MANAGER_SPAWN, false, 0);
@@ -102,6 +104,7 @@ public class LastHero extends Event
 	public synchronized boolean eventStop()
 	{
 		ACTIVE = false;
+		START_GENERATION++;
 		START_SCHEDULED = false;
 		clearQueue("Last Hero has been stopped.");
 		for (HeroMatch match : Set.copyOf(MATCHES.values())) finishMatch(match, null, false);
@@ -189,11 +192,16 @@ public class LastHero extends Event
 	{
 		if (!ACTIVE || START_SCHEDULED || (WAITING.size() < MIN_PLAYERS)) return;
 		START_SCHEDULED = true;
+		final long generation = START_GENERATION;
 		for (Player p : WAITING) p.sendMessage("Last Hero starts in 15 seconds. Join now to enter this round.");
 		ThreadPool.schedule(() ->
 		{
 			synchronized (LastHero.this)
 			{
+				if (generation != START_GENERATION)
+				{
+					return;
+				}
 				START_SCHEDULED = false;
 				startMatch();
 			}
