@@ -40,4 +40,22 @@
 			<height normal="21.5" />
 		</collision>
 	</npc>
+	<npc id="70013" displayId="30425" name="1v1 Arena Manager" usingServerSideName="true" title="1v1 Arena" usingServerSideTitle="true" type="Folk">
+		<collision>
+			<radius normal="8" />
+			<height normal="21.5" />
+		</collision>
+	</npc>
+	<npc id="70014" displayId="30425" name="3v3 Arena Manager" usingServerSideName="true" title="3v3 Arena" usingServerSideTitle="true" type="Folk">
+		<collision>
+			<radius normal="8" />
+			<height normal="21.5" />
+		</collision>
+	</npc>
+	<npc id="70015" displayId="30425" name="Last Hero Manager" usingServerSideName="true" title="Last Hero" usingServerSideTitle="true" type="Folk">
+		<collision>
+			<radius normal="8" />
+			<height normal="21.5" />
+		</collision>
+	</npc>
 </list>
