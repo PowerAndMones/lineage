@@ -22,6 +22,7 @@ Replace the default Alt+B landing page with a compact, dark fantasy-themed dashb
 - Reused one ordered snapshot of scheme entries when rendering the list and resolving the selected scheme, avoiding repeated list construction and keeping the displayed indexes aligned with the detail view.
 - Fixed the buffer page's return-to-home bypass quoting and avoided querying the scheme map twice.
 - Escaped character names before inserting them into HTML.
+- Removed a malformed leftover fragment from the buffer detail method and made the HTML escaping helper null-safe.
 - Kept other server services unlinked until their handlers can be confirmed.
 
 ## Remaining verification and follow-up
