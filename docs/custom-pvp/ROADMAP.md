@@ -6,7 +6,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 - GitHub Actions passed: L2J Mobius core compilation on Temurin JDK 27.
 - GitHub Actions passed: compilation of 1v1 Arena, 3v3 Arena, Last Hero, TvT, CtF, and Community Board scripts against the current core/libraries.
-- GitHub Actions passed: XML parsing, expected NPC/template ID checks, SQL installer file-presence checks, and whitespace validation.
+- GitHub Actions passed: XML parsing, expected instance-template ID/exit-point checks, global uniqueness checks for NPC IDs 70013–70015, SQL installer file-presence checks, and whitespace validation.
 - The SQL installers executed against a clean MariaDB 11.4 database; the smoke tests verified the expected 10 tables, `pvpPoints` column/index, and win-streak progression/reset logic.
 - The CI workflow also passed the three database-clock cooldown query checks under transactions/row locks for 1v1, 3v3, and Last Hero.
 - Not yet done: execute SQL against the target server database, start the game server, test event/NPC loading, or run in-game match and recovery scenarios.
