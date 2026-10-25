@@ -246,7 +246,10 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	
 	/**
 	 * Displays a read-only preview of a saved buffer scheme.
-	 * @param player the acprivate static void showBufferScheme(Player player, String indexText)
+	 * @param player the active player
+	 * @param indexText zero-based index of the saved scheme
+	 */
+	private static void showBufferScheme(Player player, String indexText)
 	{
 		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
 		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
@@ -309,9 +312,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
 	}
-ody></html>");
-		separateAndSend(html.toString(), player);
-	}
+
 
 	/**
 	 * Displays the global Top 10 PvP ranking.
@@ -377,7 +378,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	 */
 	private static String escapeBoardText(String value)
 	{
-		return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+		return (value != null) ? value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;") : "";
 	}
 	
 	/**
