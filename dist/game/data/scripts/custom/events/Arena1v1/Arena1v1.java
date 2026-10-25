@@ -49,35 +49,24 @@ public class Arena1v1 extends Event
 	}
 
 	@Override
-	public boolean eventStart(Player eventMaker)
+	public synchronized boolean eventStart(Player eventMaker)
 	{
 		if (ACTIVE)
 		{
 			return false;
 		}
 
+		clearWaitingPlayers("1v1 Arena queue was reset.");
 		ACTIVE = true;
-		WAITING_PLAYERS.clear();
-		WAITING_IDS.clear();
 		MANAGER_NPC = addSpawn(MANAGER_NPC_ID, MANAGER_SPAWN, false, 0);
 		return true;
 	}
 
 	@Override
-	public boolean eventStop()
+	public synchronized boolean eventStop()
 	{
 		ACTIVE = false;
-		for (Player player : WAITING_PLAYERS)
-		{
-			if (player != null)
-			{
-				WAITING_IDS.remove(player.getObjectId());
-				player.setRegisteredOnEvent(false);
-				player.sendMessage("1v1 Arena queue has been stopped.");
-			}
-		}
-		WAITING_PLAYERS.clear();
-		WAITING_IDS.clear();
+		clearWaitingPlayers("1v1 Arena queue has been stopped.");
 		if (MANAGER_NPC != null)
 		{
 			MANAGER_NPC.deleteMe();
@@ -140,7 +129,7 @@ public class Arena1v1 extends Event
 		return null;
 	}
 
-	private void joinQueue(Player player)
+	private synchronized void joinQueue(Player player)
 	{
 		if ((player == null) || !ACTIVE)
 		{
@@ -151,7 +140,7 @@ public class Arena1v1 extends Event
 			return;
 		}
 
-		if (!canRegister(player))
+		if (!canRegister(player) || !ACTIVE)
 		{
 			return;
 		}
@@ -168,7 +157,7 @@ public class Arena1v1 extends Event
 		matchPlayers();
 	}
 
-	private void leaveQueue(Player player)
+	private synchronized void leaveQueue(Player player)
 	{
 		if (player == null)
 		{
@@ -187,7 +176,7 @@ public class Arena1v1 extends Event
 		}
 	}
 
-	private void matchPlayers()
+	private synchronized void matchPlayers()
 	{
 		Player playerA;
 		Player playerB;
@@ -244,7 +233,7 @@ public class Arena1v1 extends Event
 
 	private boolean canRegister(Player player)
 	{
-		if (player.isRegisteredOnEvent() || player.isInDuel() || player.isInOlympiadMode() || player.isInInstance() || player.isInSiege() || player.isFishing() || player.isInCombat() || (player.getPvpFlag() != 0) || (player.getKarma() > 0) || player.isCursedWeaponEquipped())
+		if (player.isRegisteredOnEvent() || player.isOnEvent() || player.isInDuel() || player.isInOlympiadMode() || player.isInInstance() || player.isInSiege() || player.isFishing() || player.isInCombat() || (player.getPvpFlag() != 0) || (player.getKarma() > 0) || player.isCursedWeaponEquipped())
 		{
 			player.sendMessage("You cannot join the 1v1 queue in your current state.");
 			return false;
@@ -265,6 +254,23 @@ public class Arena1v1 extends Event
 	private boolean isMatchReady(Player player)
 	{
 		return (player != null) && (player.isOnlineInt() == 1) && !player.isDead() && !player.isInDuel() && (player.getPvpFlag() == 0) && !player.isInOlympiadMode() && !player.isInInstance() && !player.isInSiege() && (player.getKarma() == 0);
+	}
+
+	private void clearWaitingPlayers(String message)
+	{
+		for (Player player : WAITING_PLAYERS)
+		{
+			if (player != null)
+			{
+				player.setRegisteredOnEvent(false);
+				if (message != null)
+				{
+					player.sendMessage(message);
+				}
+			}
+		}
+		WAITING_PLAYERS.clear();
+		WAITING_IDS.clear();
 	}
 
 	private void showStatus(Player player)
