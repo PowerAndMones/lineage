@@ -1,0 +1,73 @@
+name: Import L2J Mobius Interlude
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_import:
+        description: "Replace repository contents with L2J Mobius Interlude"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-mobius-interlude
+  cancel-in-progress: false
+
+jobs:
+  import:
+    if: ${{ inputs.confirm_import == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out destination repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Fetch Interlude folder from Mobius GitLab
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse --branch master https://gitlab.com/MobiusDevelopment/L2J_Mobius.git mobius-source
+          git -C mobius-source sparse-checkout set L2J_Mobius_CT_0_Interlude
+          test -d mobius-source/L2J_Mobius_CT_0_Interlude
+          echo "Source commit:"
+          git -C mobius-source rev-parse HEAD
+          echo "Top-level source files:"
+          find mobius-source/L2J_Mobius_CT_0_Interlude -maxdepth 1 -mindepth 1 -printf '%f\n' | sort
+
+      - name: Import project files
+        run: |
+          set -euo pipefail
+          source_dir="$GITHUB_WORKSPACE/mobius-source/L2J_Mobius_CT_0_Interlude"
+          # Preserve this workflow so future imports can be run from GitHub Actions.
+          mkdir -p .github/workflows
+          cp -a "$source_dir"/. "$GITHUB_WORKSPACE"/
+          # Restore the import workflow after copying upstream files.
+          git checkout -- .github/workflows/import-mobius-interlude.yml
+          rm -f .gitkeep
+          echo "Imported file count:"
+          find . -type f -not -path './.git/*' | wc -l
+          echo "Largest files:"
+          find . -type f -not -path './.git/*' -printf '%s %p\n' | sort -nr | head -20
+
+      - name: Validate repository limits
+        run: |
+          set -euo pipefail
+          oversized="$(find . -type f -not -path './.git/*' -size +100M -print)"
+          if [ -n "$oversized" ]; then
+            echo "Files larger than GitHub's 100 MB regular-file limit were found:"
+            echo "$oversized"
+            exit 1
+          fi
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Import L2J Mobius Interlude"
+          git push origin HEAD:main
