@@ -335,3 +335,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - If an arena template fails validation after `createDynamicInstance` has already registered the dynamic instance, the startup path now explicitly removes that invalid instance before aborting.
 - This prevents invalid or missing template data from leaving orphaned dynamic instances in `InstanceManager`.
 - No runtime test has been performed; force a missing/malformed template and verify the instance registry is clean after startup rollback.
+
+
+### Phase 41 — persistence worker scheduling failure (source updated; validation pending)
+
+- The custom PvP statistics path now catches runtime failures when scheduling its background worker, resets the running flag, and logs the issue instead of propagating the scheduler exception into the combat path.
+- Queued records remain in memory for a later scheduling attempt; this does not make the queue durable across process shutdown.
+- No thread-pool shutdown test has been performed; confirm the worker does not block combat handling when the server is stopping.
