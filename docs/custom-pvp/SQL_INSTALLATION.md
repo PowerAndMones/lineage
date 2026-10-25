@@ -52,7 +52,7 @@ The repository's `dist/db_installer/sql/game/characters.sql` confirms the expect
 - [x] Confirm script discovery: `Scripts.xml` does not exclude the custom event folders, `ScriptEngine` scans the script tree recursively, and `ScriptExecutor` invokes public static `main(String[])` methods. The manager HTML paths follow the existing TvT datapack convention.
 - [x] Confirm custom NPC templates exist for NPC IDs 70013 (1v1), 70014 (3v3), and 70015 (Last Hero) in `dist/game/data/stats/npcs/custom/custom.xml`.
 - [ ] Verify each queue opens and spawns exactly one manager NPC after script loading; all three constructors now call `eventStart(null)` and require runtime validation.
-- [ ] Confirm instance templates 3050, 3051, and 3052 load without errors and spawn/exit coordinates are valid on the target map.
+- [ ] Confirm instance templates 3053 (1v1), 3051 (3v3), and 3052 (Last Hero) load without errors and spawn/exit coordinates are valid on the target map; template 3050 is reserved for Capture the Flag.
 - [x] Compile-verify the target Mobius APIs used by all three scripts, including instance allow-lists, event listeners, teleport methods, and scheduled tasks, against this repository revision; runtime behavior still requires test-server validation.
 - [ ] Confirm the Community Board HTML is within client display limits and all placeholders are replaced.
 - [x] Confirm SQL queries against `characters.charId` and `characters.char_name` match this repository's `characters.sql`; verify the deployed database uses the same revision.
