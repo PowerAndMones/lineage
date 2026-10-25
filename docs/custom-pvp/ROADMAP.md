@@ -342,3 +342,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The custom PvP statistics path now catches runtime failures when scheduling its background worker, resets the running flag, and logs the issue instead of propagating the scheduler exception into the combat path.
 - Queued records remain in memory for a later scheduling attempt; this does not make the queue durable across process shutdown.
 - No thread-pool shutdown test has been performed; confirm the worker does not block combat handling when the server is stopping.
+
+
+### Phase 42 — arena exit handling (source updated; validation pending)
+
+- Added creature-teleport listeners to the 1v1, 3v3, and Last Hero modes. A participant who leaves the match instance is treated as a forfeit or elimination.
+- Winner and survivor checks now require the player to remain in that match's dynamic instance.
+- No in-game validation has been performed; verify normal return teleports are not mistaken for exits and that escape attempts cannot keep a match alive.
