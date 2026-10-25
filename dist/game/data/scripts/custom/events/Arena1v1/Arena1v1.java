@@ -52,7 +52,7 @@ public class Arena1v1 extends Event
 {
 	private static final String HTML_PATH = "data/scripts/custom/events/Arena1v1/";
 	private static final int MANAGER_NPC_ID = 70013;
-	private static final int INSTANCE_TEMPLATE_ID = 3050;
+	private static final int INSTANCE_TEMPLATE_ID = 3053;
 	private static final long MATCH_TIMEOUT_MILLIS = 5 * 60 * 1000L;
 	private static final String UPSERT_RETURN_LOCATION = "INSERT INTO character_arena1v1_return (charId, x, y, z, heading, instanceId) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE x = VALUES(x), y = VALUES(y), z = VALUES(z), heading = VALUES(heading), instanceId = VALUES(instanceId)";
 	private static final String SELECT_RETURN_LOCATION = "SELECT x, y, z, heading, instanceId FROM character_arena1v1_return WHERE charId = ?";
