@@ -41,6 +41,7 @@ public final class CustomPvpStatsManager
 	private static final ConcurrentHashMap<Long, Long> LAST_PAIR_KILLS = new ConcurrentHashMap<>();
 	private static final ConcurrentLinkedQueue<KillRecord> PENDING_KILLS = new ConcurrentLinkedQueue<>();
 	private static final AtomicBoolean WORKER_RUNNING = new AtomicBoolean(false);
+	private static final AtomicBoolean BACKLOG_WARNING_ACTIVE = new AtomicBoolean(false);
 	private static final String UPSERT_KILLER = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 1, 0, 1, 1, 1, NOW()) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalKills = totalKills + 1, currentStreak = currentStreak + 1, bestStreak = GREATEST(bestStreak, currentStreak + 1), pvpPoints = pvpPoints + 1, lastKillTime = NOW()";
 	private static final String UPSERT_VICTIM = "INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime) VALUES (?, ?, 0, 1, 0, 0, 0, NULL) ON DUPLICATE KEY UPDATE charName = VALUES(charName), totalDeaths = totalDeaths + 1, currentStreak = 0";
 	private static final CustomPvpStatsManager INSTANCE = new CustomPvpStatsManager();
@@ -52,6 +53,14 @@ public final class CustomPvpStatsManager
 
 	private CustomPvpStatsManager()
 	{
+	}
+
+	/**
+	 * @return the current number of PvP records waiting for database persistence
+	 */
+	public int getPendingKillCount()
+	{
+		return PENDING_KILLS.size();
 	}
 
 	/**
@@ -93,7 +102,30 @@ public final class CustomPvpStatsManager
 		// Every valid PvP death updates the victim's death count and resets their streak.
 		// The cooldown only suppresses the killer's custom kill/point reward.
 		PENDING_KILLS.add(new KillRecord(killer.getObjectId(), killer.getName(), victim.getObjectId(), victim.getName(), awardKiller));
+		checkQueueBacklog();
 		scheduleWorker();
+	}
+
+	private void checkQueueBacklog()
+	{
+		final int threshold = CustomPvpConfig.QUEUE_WARNING_THRESHOLD;
+		if (threshold <= 0)
+		{
+			return;
+		}
+
+		final int pending = PENDING_KILLS.size();
+		if (pending >= threshold)
+		{
+			if (BACKLOG_WARNING_ACTIVE.compareAndSet(false, true))
+			{
+				LOGGER.warning("Custom PvP persistence queue backlog reached " + pending + " records (warning threshold: " + threshold + "). Check database connectivity and server load.");
+			}
+		}
+		else if (BACKLOG_WARNING_ACTIVE.get() && BACKLOG_WARNING_ACTIVE.compareAndSet(true, false))
+		{
+			LOGGER.info("Custom PvP persistence queue backlog recovered below warning threshold. Pending records: " + pending);
+		}
 	}
 
 	private void scheduleWorker()
@@ -112,6 +144,7 @@ public final class CustomPvpStatsManager
 			while ((record = PENDING_KILLS.poll()) != null)
 			{
 				persistKill(record);
+				checkQueueBacklog();
 			}
 		}
 		finally
@@ -163,7 +196,7 @@ public final class CustomPvpStatsManager
 		}
 		catch (SQLException e)
 		{
-			LOGGER.log(Level.WARNING, "Could not persist custom PvP statistics for " + record.killerName + " -> " + record.victimName, e);
+			LOGGER.log(Level.WARNING, "Could not persist custom PvP statistics for " + record.killerName + " -> " + record.victimName + ". Remaining queued records: " + PENDING_KILLS.size() + ". This record will not be retried automatically.", e);
 		}
 	}
 
