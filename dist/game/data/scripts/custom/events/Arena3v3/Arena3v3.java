@@ -235,6 +235,10 @@ public class Arena3v3 extends Event
 						WAITING.add(p);
 					}
 				}
+				if (WAITING.size() >= 6)
+				{
+					continue;
+				}
 				return;
 			}
 			final List<Player> teamA = new ArrayList<>(selected.subList(0, 3));
@@ -251,6 +255,17 @@ public class Arena3v3 extends Event
 						WAITING.add(p);
 					}
 				}
+				// Retry after a delay so a persistent instance failure cannot spin the game thread.
+				ThreadPool.schedule(() ->
+				{
+					synchronized (Arena3v3.this)
+					{
+						if (ACTIVE)
+						{
+							matchPlayers();
+						}
+					}
+				}, 10000);
 				return;
 			}
 			for (Player p : selected)
