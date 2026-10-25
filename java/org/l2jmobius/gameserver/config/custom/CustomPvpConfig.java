@@ -26,10 +26,12 @@ public class CustomPvpConfig
 	private static final String CUSTOM_PVP_CONFIG_FILE = "./config/Custom/CustomPvp.ini";
 
 	public static int REPEAT_KILL_COOLDOWN_SECONDS;
+	public static int QUEUE_WARNING_THRESHOLD;
 
 	public static void load()
 	{
 		final ConfigReader config = new ConfigReader(CUSTOM_PVP_CONFIG_FILE);
 		REPEAT_KILL_COOLDOWN_SECONDS = Math.max(0, config.getInt("RepeatKillCooldownSeconds", 30));
+		QUEUE_WARNING_THRESHOLD = Math.max(0, config.getInt("QueueWarningThreshold", 1000));
 	}
 }
