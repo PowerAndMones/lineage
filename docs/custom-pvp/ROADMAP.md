@@ -6,7 +6,7 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 ### Phase 1 — persistent PvP statistics (code added, build/runtime test pending)
 
-- `Player.increasePvpKills()` now calls `CustomPvpStatsManager` only after the existing `AntiFeedManager` check succeeds.
+- `Player.increasePvpKills()` calls `CustomPvpStatsManager` only after the existing `AntiFeedManager` check succeeds.
 - `CustomPvpStatsManager` stores killer/victim totals, current streak, best streak, PvP points, and kill timestamp in one database transaction.
 - `dist/db_installer/sql/game/character_pvp_stats.sql` creates the required InnoDB table, including `pvpPoints`.
 - `dist/db_installer/sql/game/character_pvp_stats_add_points.sql` adds the points column to an existing table; run it only once on an existing installation.
@@ -22,16 +22,16 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 - The same killer-victim pair can award custom kill credit and one PvP point only once per configured cooldown.
 - Repeated kills during the cooldown still count as victim deaths and reset the victim's current streak; only the killer's custom kill/point award is suppressed.
-- The cooldown is configured in `config/Custom/CustomPvp.ini` (`RepeatKillCooldownSeconds`, default 30; `0` disables the cooldown). It is currently in memory and resets on server restart; it does not change the core PvP counter.
+- The cooldown is configured in `config/Custom/CustomPvp.ini` (`RepeatKillCooldownSeconds`, default 30; `0` disables the cooldown). It is in memory and resets on server restart; it does not change the core PvP counter.
 - The Community Board ranking is sorted by PvP points first.
 
-### Phase 4 — asynchronous persistence and queue diagnostics (code added, build/runtime test pending)
+### Phase 4 — asynchronous persistence, retry policy, and queue bounds (code added, build/runtime test pending)
 
-- PvP kill records are queued and persisted by one background worker rather than writing to SQL on the combat thread.
-- A single queue consumer preserves the order of streak updates.
-- Corrected the best-streak upsert to compare against the next streak value.
-- Added `getPendingKillCount()` for diagnostics and a configurable backlog warning (`QueueWarningThreshold`, default 1,000; `0` disables it). The server logs when the queue reaches the threshold and when it recovers below it.
-- Database write failures are logged with the number of records still queued. **Failed records are not retried automatically yet** and are lost after the failed write; a hard process crash can also lose queued records. Retry and recovery policy remains to be implemented before production use.
+- PvP kill records are queued and persisted by one background worker, preserving processing order for streak updates.
+- Added queue size diagnostics and configurable backlog warnings.
+- SQL writes now retry up to `DatabaseRetryAttempts` times (default 3) with short exponential delays.
+- `MaxPendingRecords` bounds the in-memory queue (default 10,000). If full, new custom-stat records are dropped with a severe log message until the backlog drains.
+- A record still failing after all retries is logged and dropped. This is safer for server memory than an unbounded queue, but it does not guarantee lossless persistence during a prolonged database outage. A durable database-backed queue would be needed for that guarantee.
 
 ### Phase 5 — PvP achievements (code added, runtime test pending)
 
@@ -49,14 +49,14 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 
 ### Phase 7 — existing event safety (code added, build/runtime test pending)
 
-- TvT and CtF death handlers now ignore deaths of characters who are not registered participants.
+- TvT and CtF death handlers ignore deaths of characters who are not registered participants.
 - Kill scoring checks that the killer is a registered participant with an initialized score entry before updating team/player scores.
 - CtF handles deaths without a player killer without dereferencing a null attacker; flag return handling still runs for a registered carrier.
 - These changes harden existing events; they do not yet add new 1v1, 3v3, or Last Hero event modes.
 
 ## Next phases
 
-1. Implement a deliberate database-outage policy for queued PvP records, including retry behavior and bounded memory use.
+1. Add durable recovery for records that exceed retry attempts if lossless statistics are required through long database outages.
 2. Decide and implement configurable rules for whether event and instance kills award global PvP points.
 3. Add 1v1/3v3 and Last Hero by reusing established registration, teleport, cleanup, and AntiFeed patterns.
 
