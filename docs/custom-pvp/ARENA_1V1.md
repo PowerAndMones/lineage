@@ -83,3 +83,11 @@ No build or runtime validation has been performed. The isolated match should not
 - A valid death or online-opponent forfeit result updates both participants in one SQL transaction using an Elo-style K-factor of 32. Timeouts and simultaneous deaths do not affect rating/statistics.
 - Repeat-opponent matches still end normally but do not increment rated match totals or streaks during cooldown; no items or PvP points are granted.
 - Install `dist/db_installer/sql/game/character_arena1v1_stats.sql` before enabling rated matches. The code has not been compiled or runtime-tested; validate transaction locking, database compatibility, and match-result edge cases during the planned final validation.
+
+
+## Community Board rating display (source added, build/runtime test pending)
+
+- The PvP Center now includes the character's dedicated 1v1 rating, match count, wins, losses, current win streak, and best win streak.
+- Added a top-10 rated 1v1 leaderboard, separate from the general PvP points leaderboard.
+- The display reads from `character_arena1v1_stats` and joins the Mobius `characters` table for player names.
+- Install `dist/db_installer/sql/game/character_arena1v1_stats.sql` first. Compilation and in-game HTML rendering have not been tested.
