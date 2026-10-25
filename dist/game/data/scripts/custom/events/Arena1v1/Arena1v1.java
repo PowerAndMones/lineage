@@ -57,7 +57,7 @@ public class Arena1v1 extends Event
 	 private static final String DELETE_RETURN_LOCATION = "DELETE FROM character_arena1v1_return WHERE charId = ?";
 	private static final String INSERT_ARENA_STATS = "INSERT IGNORE INTO character_arena1v1_stats (charId) VALUES (?)";
 	private static final String SELECT_ARENA_STATS = "SELECT rating FROM character_arena1v1_stats WHERE charId = ? FOR UPDATE";
-	private static final String UPDATE_ARENA_WINNER = "UPDATE character_arena1v1_stats SET matches = matches + 1, wins = wins + 1, rating = ?, winStreak = winStreak + 1, bestWinStreak = GREATEST(bestWinStreak, winStreak + 1), lastMatchAt = CURRENT_TIMESTAMP WHERE charId = ?";
+	private static final String UPDATE_ARENA_WINNER = "UPDATE character_arena1v1_stats SET matches = matches + 1, wins = wins + 1, rating = ?, bestWinStreak = GREATEST(bestWinStreak, winStreak + 1), winStreak = winStreak + 1, lastMatchAt = CURRENT_TIMESTAMP WHERE charId = ?";
 	private static final String UPDATE_ARENA_LOSER = "UPDATE character_arena1v1_stats SET matches = matches + 1, losses = losses + 1, rating = ?, winStreak = 0, lastMatchAt = CURRENT_TIMESTAMP WHERE charId = ?";
 	private static final String ENSURE_PAIR_COOLDOWN = "INSERT IGNORE INTO character_arena1v1_pair_cooldown (charIdLow, charIdHigh, lastRatedAt) VALUES (?, ?, '1970-01-01 00:00:00')";
 	private static final String SELECT_PAIR_COOLDOWN = "SELECT lastRatedAt FROM character_arena1v1_pair_cooldown WHERE charIdLow = ? AND charIdHigh = ? FOR UPDATE";
