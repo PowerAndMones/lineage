@@ -83,6 +83,42 @@ jobs:
           print("Custom PvP XML and SQL file checks passed.")
           PY
 
+
+      - name: Verify rating math invariants
+        run: |
+          python3 - <<'PY'
+          from math import floor
+          from pathlib import Path
+
+          one = Path("dist/game/data/scripts/custom/events/Arena1v1/Arena1v1.java").read_text()
+          three = Path("dist/game/data/scripts/custom/events/Arena3v3/Arena3v3.java").read_text()
+          hero = Path("dist/game/data/scripts/custom/events/LastHero/LastHero.java").read_text()
+
+          assert "winnerRating + ratingDelta" in one and "loserRating - ratingDelta" in one
+          assert "ratings.get(p.getObjectId()) + ratingDelta" in three
+          assert "ratings.get(p.getObjectId()) - ratingDelta" in three
+          assert "java.util.Collections.shuffle(opponents);" in hero
+          assert "final int baseLoss = winnerDelta / opponents.size();" in hero
+          assert "final int remainder = winnerDelta % opponents.size();" in hero
+          assert "ratings.get(p.getObjectId()) - losses.get(p.getObjectId())" in hero
+
+          def java_round(value):
+              return floor(value + 0.5)
+
+          for winner_rating, loser_rating in ((1000, 1000), (1200, 1000), (800, 1200), (1500, 1000), (1000, 1500)):
+              expected_winner = 1 / (1 + 10 ** ((loser_rating - winner_rating) / 400))
+              delta = java_round(32 * (1 - expected_winner))
+              assert (winner_rating + delta) + (loser_rating - delta) == winner_rating + loser_rating
+
+          for winner_delta in range(33):
+              for opponent_count in range(3, 10):
+                  base_loss, remainder = divmod(winner_delta, opponent_count)
+                  losses = [base_loss + (1 if index < remainder else 0) for index in range(opponent_count)]
+                  assert sum(losses) == winner_delta
+                  assert max(losses) - min(losses) <= 1
+          print("Rating math invariants passed: zero-sum Elo deltas and conserved Last Hero rating totals.")
+          PY
+
       - name: Compile custom PvP scripts
         shell: bash
         run: |
