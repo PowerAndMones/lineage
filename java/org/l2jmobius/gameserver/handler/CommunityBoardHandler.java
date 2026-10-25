@@ -204,7 +204,8 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("<font color=888E9B>SCHEME OVERVIEW</font></td></tr></table><br>");
 		html.append("<table width=600 cellpadding=6 cellspacing=1 bgcolor=252B38>");
 		html.append("<tr><td><font color=E8BD68>YOUR SAVED SCHEMES</font></td><td align=center><font color=E8BD68>SKILLS</font></td></tr>");
-		final Map<String, java.util.List<Integer>> schemes = (SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId()) != null) ? SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId()) : java.util.Collections.emptyMap();
+		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
+		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
 		if (schemes.isEmpty())
 		{
 			html.append("<tr><td colspan=2><font color=BBBBBB>No saved schemes yet. Create a scheme using the server's buffer NPC.</font></td></tr>");
@@ -231,7 +232,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(category)).append("</font></td></tr>");
 			}
 		}
-		html.append("</table><br><a action=\\"bypass _bbshome\\">Back to Community Home</a>");
+				html.append("</table><br><a action=\"bypass _bbshome\">Back to Community Home</a>");
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
 	}
