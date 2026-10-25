@@ -220,7 +220,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			for (int schemeIndex = 0; schemeIndex < schemeEntries.size(); schemeIndex++)
 			{
 				final Map.Entry<String, java.util.List<Integer>> entry = schemeEntries.get(schemeIndex);
-				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font><br1><a action=\\\"bypass _bbsbuffer;view;").append(schemeIndex).append("\\">View skills</a></td>");
+				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font><br1><a action=\"bypass _bbsbuffer;view;").append(schemeIndex).append("\">View skills</a></td>");
 				html.append("<td align=center><font color=E8BD68>").append(entry.getValue().size()).append("</font></td></tr>");
 			}
 		}
