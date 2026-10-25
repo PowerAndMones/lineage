@@ -30,6 +30,7 @@ import org.l2jmobius.gameserver.managers.InstanceManager;
 import org.l2jmobius.gameserver.mechanics.events.EventType;
 import org.l2jmobius.gameserver.mechanics.events.annotations.RegisterEvent;
 import org.l2jmobius.gameserver.mechanics.events.holders.actor.creature.OnCreatureDeath;
+import org.l2jmobius.gameserver.mechanics.events.holders.actor.creature.OnCreatureTeleported;
 import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogin;
 import org.l2jmobius.gameserver.mechanics.events.holders.actor.player.OnPlayerLogout;
 import org.l2jmobius.gameserver.mechanics.script.Event;
