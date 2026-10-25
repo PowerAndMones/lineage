@@ -24,6 +24,7 @@ import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.actor.Creature;
 import org.l2jmobius.gameserver.entity.actor.Npc;
 import org.l2jmobius.gameserver.entity.actor.Player;
+import org.l2jmobius.gameserver.entity.instancezone.Instance;
 import org.l2jmobius.gameserver.entity.instancezone.InstanceWorld;
 import org.l2jmobius.gameserver.managers.InstanceManager;
 import org.l2jmobius.gameserver.mechanics.events.EventType;
@@ -519,9 +520,10 @@ public class LastHero extends Event
 				{
 					if (!saveReturn(p.getObjectId(), returnLocations.get(p))) throw new IllegalStateException("Could not persist all return locations.");
 				}
+				final Instance instance = InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID);
+				if ((instance == null) || (instance.getId() <= 0)) throw new IllegalStateException("Invalid Last Hero instance.");
 				world = new InstanceWorld();
-				world.setInstance(InstanceManager.getInstance().createDynamicInstance(INSTANCE_TEMPLATE_ID));
-				if (world.getInstanceId() <= 0) throw new IllegalStateException("Invalid Last Hero instance ID.");
+				world.setInstance(instance);
 				InstanceManager.getInstance().addWorld(world);
 				for (Player p : players) world.addAllowed(p);
 				for (int i = 0; i < players.size(); i++) players.get(i).teleToLocation(SPAWNS[i], world.getInstanceId(), 50);
