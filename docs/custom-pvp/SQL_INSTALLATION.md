@@ -25,6 +25,7 @@ The scripts use `CREATE TABLE IF NOT EXISTS`, but that does not update an existi
 
 - If `character_pvp_stats` already exists and has the `pvpPoints` column, do **not** run the add-points migration.
 - If `character_pvp_stats` exists but is missing `pvpPoints`, back up the database, confirm the column is absent, then run `dist/db_installer/sql/game/character_pvp_stats_add_points.sql` exactly once.
+- If `character_pvp_stats` already has `pvpPoints` but lacks `idx_pvp_stats_points`, back up the database, confirm the index is absent, then run `dist/db_installer/sql/game/character_pvp_stats_add_points_index.sql` exactly once.
 - If a custom table is already present, inspect its columns before assuming `CREATE TABLE IF NOT EXISTS` brought it up to date.
 - Do not delete custom statistics tables as a troubleshooting step; that would erase player ratings and history.
 
