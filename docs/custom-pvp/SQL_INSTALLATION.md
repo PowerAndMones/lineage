@@ -43,7 +43,7 @@ The PvP Center leaderboards also read the standard Mobius `characters` table and
 
 ## Pre-release integration checklist
 
-- [ ] Confirm every script and HTML file is discovered by the target Mobius script/data loader.
+- [x] Confirm script discovery: `Scripts.xml` does not exclude the custom event folders, `ScriptEngine` scans the script tree recursively, and `ScriptExecutor` invokes public static `main(String[])` methods. The manager HTML paths follow the existing TvT datapack convention.
 - [x] Confirm custom NPC templates exist for NPC IDs 70013 (1v1), 70014 (3v3), and 70015 (Last Hero) in `dist/game/data/stats/npcs/custom/custom.xml`.
 - [ ] Verify each queue opens and spawns exactly one manager NPC after script loading; all three constructors now call `eventStart(null)` and require runtime validation.
 - [ ] Confirm instance templates 3050, 3051, and 3052 load without errors and spawn/exit coordinates are valid on the target map.
