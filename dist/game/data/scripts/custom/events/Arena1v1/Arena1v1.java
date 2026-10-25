@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.l2jmobius.commons.threads.ThreadPool;
 import org.l2jmobius.gameserver.entity.Location;
 import org.l2jmobius.gameserver.entity.actor.Npc;
 import org.l2jmobius.gameserver.entity.actor.Player;
@@ -229,8 +230,24 @@ public class Arena1v1 extends Event
 			}
 
 			DuelManager.getInstance().addDuel(playerA, playerB, 0);
-			playerA.sendMessage("1v1 opponent found: " + playerB.getName() + ". The standard duel system will manage the fight.");
-			playerB.sendMessage("1v1 opponent found: " + playerA.getName() + ". The standard duel system will manage the fight.");
+			playerA.sendMessage("1v1 opponent found: " + playerB.getName() + ". Preparing the standard duel...");
+			playerB.sendMessage("1v1 opponent found: " + playerA.getName() + ". Preparing the standard duel...");
+			
+			// DuelManager.addDuel() returns void and the duel starts asynchronously.
+			// Confirm the actual duel state after the native countdown instead of assuming it succeeded.
+			ThreadPool.schedule(() ->
+			{
+				if (playerA.isInDuel() && playerB.isInDuel() && (playerA.getDuelId() == playerB.getDuelId()))
+				{
+					playerA.sendMessage("1v1 Arena duel started against " + playerB.getName() + ".");
+					playerB.sendMessage("1v1 Arena duel started against " + playerA.getName() + ".");
+				}
+				else
+				{
+					playerA.sendMessage("The 1v1 duel could not be started. Please check your status and try again.");
+					playerB.sendMessage("The 1v1 duel could not be started. Please check your status and try again.");
+				}
+			}, 10000);
 		}
 	}
 
