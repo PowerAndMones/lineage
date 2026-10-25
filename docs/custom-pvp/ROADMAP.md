@@ -258,3 +258,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Added `public static void main(String[] args)` entry points to 1v1 Arena, 3v3 Arena, and Last Hero. Each entry point instantiates the script so its constructor can register NPC interactions and event listeners, matching the pattern used by the existing Mobius TvT event script.
 - This addresses a script-discovery risk that would otherwise leave the custom event classes uninstantiated by loaders that invoke each script's `main` method.
 - No script-loader or runtime test has been performed; confirm the exact loader's entry-point behavior and that each class is instantiated once.
+
+
+### Phase 30 — custom arena manager NPC templates (data updated; validation pending)
+
+- Added NPC templates 70013, 70014, and 70015 to `dist/game/data/stats/npcs/custom/custom.xml` for 1v1 Arena, 3v3 Arena, and Last Hero managers.
+- The templates use the existing Race Manager display model already present in this custom NPC file and server-side names/titles; the event scripts can now spawn defined NPC IDs rather than relying on undocumented pre-existing templates.
+- No datapack load or in-game visual test has been performed; validate XML schema loading, model appearance, collision, and script talk/bypass dispatch.
