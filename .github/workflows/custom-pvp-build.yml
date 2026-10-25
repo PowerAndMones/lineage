@@ -204,6 +204,33 @@ jobs:
             mariadb --protocol=tcp -h 127.0.0.1 -uroot game < "$file"
           done
 
+      - name: Exercise existing-install PvP SQL migrations
+        env:
+          MYSQL_PWD: root
+        run: |
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot <<'SQL'
+          CREATE DATABASE migration_test;
+          CREATE TABLE migration_test.character_pvp_stats (
+            charId INT NOT NULL,
+            charName VARCHAR(35) NOT NULL,
+            totalKills INT UNSIGNED NOT NULL DEFAULT 0,
+            totalDeaths INT UNSIGNED NOT NULL DEFAULT 0,
+            currentStreak INT UNSIGNED NOT NULL DEFAULT 0,
+            bestStreak INT UNSIGNED NOT NULL DEFAULT 0,
+            lastKillTime DATETIME NULL DEFAULT NULL,
+            PRIMARY KEY (charId),
+            KEY idx_pvp_stats_rank (totalKills),
+            KEY idx_pvp_stats_streak (bestStreak)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+          SQL
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test < dist/db_installer/sql/game/character_pvp_stats_add_points.sql
+          points=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test -Nse "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='migration_test' AND table_name='character_pvp_stats' AND column_name='pvpPoints'")
+          test "$points" = "1"
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test < dist/db_installer/sql/game/character_pvp_stats_add_points_index.sql
+          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test -Nse "SELECT COUNT(DISTINCT index_name) FROM information_schema.statistics WHERE table_schema='migration_test' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
+          test "$idx" = "1"
+          echo "Existing-install PvP SQL migrations passed."
+
       - name: Verify expected tables, columns, and leaderboard index
         env:
           MYSQL_PWD: root
