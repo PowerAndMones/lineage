@@ -398,7 +398,7 @@ public class Arena1v1 extends Event
 				{
 					final Location returnLocation = ((savedLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(savedLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : savedLocation;
 					player.teleToLocation(returnLocation, true);
-					if ((player.getInstanceId() == returnLocation.getInstanceId()) && (Math.abs(player.getX() - returnLocation.getX()) <= 500) && (Math.abs(player.getY() - returnLocation.getY()) <= 500) && (Math.abs(player.getZ() - returnLocation.getZ()) <= 500))
+					if (isAtLocation(player, returnLocation))
 					{
 						deleteReturnLocation(player.getObjectId());
 					}
@@ -409,6 +409,11 @@ public class Arena1v1 extends Event
 				}
 			}, 2000);
 		}
+	}
+
+	private static boolean isAtLocation(Player player, Location destination)
+	{
+		return (player != null) && (destination != null) && (player.getInstanceId() == destination.getInstanceId()) && (Math.abs(player.getX() - destination.getX()) <= 500) && (Math.abs(player.getY() - destination.getY()) <= 500) && (Math.abs(player.getZ() - destination.getZ()) <= 500);
 	}
 
 	private void finishMatch(ArenaMatch match, Player loser, Player winner)
@@ -470,7 +475,14 @@ public class Arena1v1 extends Event
 				final Location returnLocation = match.getReturnLocation(participant);
 				final Location safeReturnLocation = (returnLocation == null) || ((returnLocation.getInstanceId() > 0) && (InstanceManager.getInstance().getInstance(returnLocation.getInstanceId()) == null)) ? RETURN_FALLBACK : returnLocation;
 				participant.teleToLocation(safeReturnLocation, true);
-				deleteReturnLocation(participant.getObjectId());
+				if (isAtLocation(participant, safeReturnLocation))
+				{
+					deleteReturnLocation(participant.getObjectId());
+				}
+				else
+				{
+					LOGGER.warning("1v1 Arena return teleport failed for " + participant.getObjectId() + "; recovery record retained.");
+				}
 				participant.sendMessage((winner != null) ? ("1v1 Arena: " + winner.getName() + " won the match.") : (timedOut ? "1v1 Arena match ended: time limit reached, no winner recorded." : "1v1 Arena match ended without a winner."));
 			}
 			else
@@ -540,12 +552,12 @@ public class Arena1v1 extends Event
 				if (playerA.isOnlineInt() == 1)
 				{
 					playerA.teleToLocation(returnA, true);
-					deleteReturnLocation(playerA.getObjectId());
+					if (isAtLocation(playerA, returnA)) deleteReturnLocation(playerA.getObjectId());
 				}
 				if (playerB.isOnlineInt() == 1)
 				{
 					playerB.teleToLocation(returnB, true);
-					deleteReturnLocation(playerB.getObjectId());
+					if (isAtLocation(playerB, returnB)) deleteReturnLocation(playerB.getObjectId());
 				}
 				// Preserve the return record for any participant who disconnected during startup.
 				if (world != null)
