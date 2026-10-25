@@ -158,7 +158,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("<font color=BBBBBB>LEVEL ").append(player.getLevel()).append("</font></td></tr></table><br>");
 		html.append("<table width=600 cellpadding=5 cellspacing=2><tr>");
 		html.append("<td width=195 align=center bgcolor=252B38><font color=E8BD68>HOME</font><br1><a action=\"bypass _bbshome\">Open dashboard</a></td>");
-		html.append("<td width=195 align=center bgcolor=252B38><font color=E8BD68>PVP PROFILE</font><br1><a action=\"bypass _bbspvp\">My statistics</a></td>");
+		html.append("<td width=195 align=center bgcolor=252B38><font color=E8BD68>PVP PROFILE</font><br1><a action=\"bypass _bbspvp\">My statistics</a><br1><a action=\"bypass _bbspvptop\">Top PvP</a></td>");
 		html.append("<td width=195 align=center bgcolor=252B38><font color=E8BD68>SERVER</font><br1><font color=BBBBBB>Interlude x10</font></td>");
 		html.append("</tr></table><br>");
 		if (showStats)
@@ -177,7 +177,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			html.append("<tr><td><font color=E8BD68 name=hs12>WELCOME BACK</font><br1>");
 			html.append("<font color=FFFFFF>").append(escapeBoardText(player.getName())).append("</font>, your Community Board has a new home.</td></tr>");
 			html.append("<tr><td><font color=BBBBBB>Quick access</font><br1>");
-			html.append("<a action=\"bypass _bbspvp\">View my PvP / PK statistics</a><br1>");
+			html.append("<a action=\"bypass _bbspvp\">View my PvP / PK statistics</a><br1><a action=\"bypass _bbspvptop\">Open Top PvP ranking</a><br1>");
 			html.append("<font color=888E9B>Additional services will appear here when their server-side handlers are connected.</font></td></tr>");
 			html.append("</table>");
 		}
