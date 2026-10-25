@@ -79,12 +79,13 @@ This branch is for the custom x1000 Interlude PvP feature set. The upstream `mai
 - Each matched pair gets a dynamic instance, saved return locations, allow-list registration, and opposite spawn points.
 - Uses PvP instance combat rather than the native duel manager because native duels use their own fixed teleport path.
 - Death/logout finalization is guarded against duplicate processing; stopping the event attempts to close active matches.
-- Disconnected-player return locations are currently in memory only. Timeout/restart recovery, spawn validation, and full lifecycle testing remain outstanding.
+- Added a five-minute match timeout; timed-out matches close without a winner or reward.
+- Disconnected-player return locations are currently in memory only. Restart recovery, spawn validation, and full lifecycle testing remain outstanding.
 - No custom rewards, rating, PvP points, or global announcements are issued.
 
 ## Next phases
 
-1. Harden the isolated 1v1 prototype: validate instance/spawn behavior, add durable disconnect return recovery and match timeout/restart handling, then test death/logout race conditions.
+1. Harden the isolated 1v1 prototype: add durable disconnect return recovery and restart handling, validate instance/spawn behavior, then test death/logout/timeout race conditions.
 2. Add a dedicated 1v1 rating/statistics table and anti-farm-safe reward rules; keep rewards cosmetic/convenience only.
 3. Extend the stable match lifecycle to 3v3 and Last Hero.
 4. Add durable recovery for custom PvP-stat records that exceed retry attempts if lossless persistence is required through long database outages.
