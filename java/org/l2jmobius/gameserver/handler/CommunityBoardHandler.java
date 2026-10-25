@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.gameserver.config.GeneralConfig;
+import org.l2jmobius.gameserver.config.custom.SchemeBufferConfig;
 import org.l2jmobius.gameserver.data.SchemeBufferTable;
 import org.l2jmobius.gameserver.entity.actor.Player;
 import org.l2jmobius.gameserver.network.SystemMessageId;
@@ -245,10 +246,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	
 	/**
 	 * Displays a read-only preview of a saved buffer scheme.
-	 * @param player the active player
-	 * @param indexText zero-based scheme index
-	 */
-	private static void showBufferScheme(Player player, String indexText)
+	 * @param player the acprivate static void showBufferScheme(Player player, String indexText)
 	{
 		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
 		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
@@ -275,17 +273,20 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("<font color=E8BD68 name=hs12>ADEN</font> <font color=FFFFFF name=hs12>BUFFER</font><br1>");
 		html.append("<font color=888E9B>SAVED SCHEME DETAILS</font></td></tr></table><br>");
 		html.append("<table width=600 cellpadding=6 cellspacing=1 bgcolor=252B38>");
-		html.append("<tr><td colspan=2><font color=E8BD68>").append(escapeBoardText(scheme.getKey())).append("</font></td></tr>");
-		html.append("<tr><td width=420><font color=E8BD68>BUFF</font></td><td align=center><font color=E8BD68>LEVEL</font></td></tr>");
+		html.append("<tr><td colspan=3><font color=E8BD68>").append(escapeBoardText(scheme.getKey())).append("</font></td></tr>");
+		html.append("<tr><td width=330><font color=E8BD68>BUFF</font></td><td align=center><font color=E8BD68>LEVEL</font></td><td align=center><font color=E8BD68>COST</font></td></tr>");
+		long totalCost = 0;
 		if (scheme.getValue().isEmpty())
 		{
-			html.append("<tr><td colspan=2><font color=BBBBBB>This scheme contains no skills.</font></td></tr>");
+			html.append("<tr><td colspan=3><font color=BBBBBB>This scheme contains no skills.</font></td></tr>");
 		}
 		else
 		{
 			for (int skillId : scheme.getValue())
 			{
 				final org.l2jmobius.gameserver.entity.actor.holders.npc.BuffSkillHolder buff = SchemeBufferTable.getInstance().getAvailableBuff(skillId);
+				final int skillCost = (buff != null) ? ((SchemeBufferConfig.BUFFER_STATIC_BUFF_COST >= 0) ? SchemeBufferConfig.BUFFER_STATIC_BUFF_COST : buff.getPrice()) : 0;
+				totalCost += Math.max(0, skillCost);
 				html.append("<tr><td><font color=FFFFFF>");
 				if ((buff != null) && !buff.getDescription().isEmpty())
 				{
@@ -295,12 +296,18 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 				{
 					html.append("Skill #").append(skillId);
 				}
-				html.append("</font></td><td align=center><font color=E8BD68>").append((buff != null) ? buff.getLevel() : 0).append("</font></td></tr>");
+				html.append("</font></td><td align=center><font color=E8BD68>").append((buff != null) ? buff.getLevel() : 0).append("</font></td>");
+				html.append("<td align=center><font color=BBBBBB>").append(skillCost).append("</font></td></tr>");
 			}
 		}
-		html.append("</table><br><font color=888E9B>This is a read-only preview; buffs are not applied here.</font><br>");
+		html.append("<tr><td colspan=2><font color=E8BD68>ESTIMATED TOTAL</font></td><td align=center><font color=E8BD68>").append(totalCost).append("</font></td></tr>");
+		html.append("</table><br><font color=BBBBBB>Configured cost item ID: ").append(SchemeBufferConfig.BUFFER_ITEM_ID).append("</font><br>");
+		html.append("<font color=888E9B>This is a price preview only; buffs are not applied and no items are charged.</font><br>");
 		html.append("<a action=\"bypass _bbsbuffer\">Back to Buffer</a>");
 		html.append("</center></body></html>");
+		separateAndSend(html.toString(), player);
+	}
+ody></html>");
 		separateAndSend(html.toString(), player);
 	}
 
