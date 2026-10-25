@@ -216,10 +216,11 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 		else
 		{
-			for (Map.Entry<String, java.util.List<Integer>> entry : schemes.entrySet())
+			final java.util.List<Map.Entry<String, java.util.List<Integer>>> schemeEntries = new java.util.ArrayList<>(schemes.entrySet());
+			for (int schemeIndex = 0; schemeIndex < schemeEntries.size(); schemeIndex++)
 			{
-				final int schemeIndex = new java.util.ArrayList<>(schemes.keySet()).indexOf(entry.getKey());
-				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font><br1><a action=\"bypass _bbsbuffer;view;").append(schemeIndex).append("\">View skills</a></td>");
+				final Map.Entry<String, java.util.List<Integer>> entry = schemeEntries.get(schemeIndex);
+				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font><br1><a action=\\\"bypass _bbsbuffer;view;").append(schemeIndex).append("\\">View skills</a></td>");
 				html.append("<td align=center><font color=E8BD68>").append(entry.getValue().size()).append("</font></td></tr>");
 			}
 		}
@@ -266,7 +267,8 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			separateAndSend("<html><body><center>Buffer scheme not found.<br><a action=\"bypass _bbsbuffer\">Back to Buffer</a></center></body></html>", player);
 			return;
 		}
-		final Map.Entry<String, java.util.List<Integer>> scheme = new java.util.ArrayList<>(schemes.entrySet()).get(index);
+		final java.util.List<Map.Entry<String, java.util.List<Integer>>> schemeEntries = new java.util.ArrayList<>(schemes.entrySet());
+		final Map.Entry<String, java.util.List<Integer>> scheme = schemeEntries.get(index);
 		final StringBuilder html = new StringBuilder(4096);
 		html.append("<html><body><center>");
 		html.append("<table width=600 cellpadding=8 cellspacing=0 bgcolor=10141D><tr><td>");
