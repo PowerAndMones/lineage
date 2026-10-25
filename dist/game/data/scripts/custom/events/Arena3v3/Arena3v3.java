@@ -363,13 +363,10 @@ public class Arena3v3 extends Event
 		{
 			return;
 		}
-		if ((winningTeam != null) && winningTeam.stream().anyMatch(Player::isDead))
+		if ((winningTeam != null) && winningTeam.stream().noneMatch(p -> (p.isOnlineInt() == 1) && !p.isDead()))
 		{
 			// A winner team must have at least one living, connected player.
-			if (winningTeam.stream().noneMatch(p -> (p.isOnlineInt() == 1) && !p.isDead()))
-			{
-				winningTeam = null;
-			}
+			winningTeam = null;
 		}
 		if (winningTeam != null)
 		{
