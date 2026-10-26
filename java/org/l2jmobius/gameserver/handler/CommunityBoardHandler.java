@@ -30,8 +30,15 @@ import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.gameserver.config.GeneralConfig;
 import org.l2jmobius.gameserver.config.custom.SchemeBufferConfig;
 import org.l2jmobius.gameserver.data.SchemeBufferTable;
+import org.l2jmobius.gameserver.data.xml.SkillData;
+import org.l2jmobius.gameserver.entity.actor.Creature;
 import org.l2jmobius.gameserver.entity.actor.Player;
+import org.l2jmobius.gameserver.entity.actor.Summon;
+import org.l2jmobius.gameserver.entity.item.enums.ItemProcessType;
+import org.l2jmobius.gameserver.entity.zone.ZoneId;
+import org.l2jmobius.gameserver.mechanics.skill.Skill;
 import org.l2jmobius.gameserver.network.SystemMessageId;
+import org.l2jmobius.gameserver.network.serverpackets.MagicSkillUse;
 import org.l2jmobius.gameserver.util.HtmlUtil;
 
 /**
@@ -127,13 +134,17 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 
 		// Modern Community Board landing page and personal PvP statistics.
-		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;view;"))
+		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;view;") || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;apply;"))
 		{
 			if ("_bbspvptop".equalsIgnoreCase(command))
 			{
 				showPvPRanking(player);
 			}
-			else if (command.toLowerCase().startsWith("_bbsbuffer;view;"))
+			else if (command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;apply;"))
+			{
+				applyBufferScheme(player, command.substring("_bbsbuffer;apply;".length()));
+			}
+			else if (command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;view;"))
 			{
 				showBufferScheme(player, command.substring("_bbsbuffer;view;".length()));
 			}
@@ -378,6 +389,101 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		html.append("<a action=\"bypass _bbshome\">Back to Community Home</a>");
 		html.append("</center></body></html>");
 		separateAndSend(html.toString(), player);
+	}
+
+	/**
+	 * Applies a saved buffer scheme after validating every skill and the total cost.
+	 * @param player the active player
+	 * @param indexText zero-based index of the saved scheme
+	 */
+	private static void applyBufferScheme(Player player, String indexText)
+	{
+		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
+		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
+		final int index;
+		try
+		{
+			index = Integer.parseInt(indexText);
+		}
+		catch (NumberFormatException e)
+		{
+			separateAndSend("<html><body><center>Invalid buffer scheme.<br><a action=\\"bypass _bbsbuffer\\">Back to Buffer</a></center></body></html>", player);
+			return;
+		}
+		if ((index < 0) || (index >= schemes.size()))
+		{
+			separateAndSend("<html><body><center>Buffer scheme not found.<br><a action=\\"bypass _bbsbuffer\\">Back to Buffer</a></center></body></html>", player);
+			return;
+		}
+		if (player.isCastingNow() || player.isCastingSimultaneouslyNow() || player.isInCombat() || player.isInDuel() || player.isInOlympiadMode() || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP) || (player.getPvpFlag() > 0) || player.isAlikeDead() || player.isOnEvent() || player.isInStoreMode())
+		{
+			player.sendMessage("You cannot apply a buffer scheme while in combat or another restricted state.");
+			return;
+		}
+		final java.util.List<Map.Entry<String, java.util.List<Integer>>> schemeEntries = new java.util.ArrayList<>(schemes.entrySet());
+		schemeEntries.sort(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER));
+		final Map.Entry<String, java.util.List<Integer>> scheme = schemeEntries.get(index);
+		if (scheme.getValue().isEmpty())
+		{
+			player.sendMessage("This buffer scheme is empty.");
+			return;
+		}
+		final java.util.List<Skill> skills = new java.util.ArrayList<>();
+		long totalCost = 0;
+		for (int skillId : scheme.getValue())
+		{
+			final org.l2jmobius.gameserver.entity.actor.holders.npc.BuffSkillHolder buff = SchemeBufferTable.getInstance().getAvailableBuff(skillId);
+			if (buff == null)
+			{
+				player.sendMessage("The scheme contains a buff that is no longer available. No items were charged.");
+				return;
+			}
+			final Skill skill = SkillData.getInstance().getSkill(buff.getId(), buff.getLevel());
+			if (skill == null)
+			{
+				player.sendMessage("A configured buff skill is missing. No items were charged.");
+				return;
+			}
+			final int configuredCost = (SchemeBufferConfig.BUFFER_STATIC_BUFF_COST >= 0) ? SchemeBufferConfig.BUFFER_STATIC_BUFF_COST : buff.getPrice();
+			final int skillCost = Math.max(0, configuredCost);
+			totalCost += skillCost;
+			if (totalCost > Integer.MAX_VALUE)
+			{
+				player.sendMessage("The total buffer cost is invalid. No items were charged.");
+				return;
+			}
+			skills.add(skill);
+		}
+		if (player.getInventory().getInventoryItemCount(SchemeBufferConfig.BUFFER_ITEM_ID, -1) < totalCost)
+		{
+			player.sendMessage("Not enough currency to apply this buffer scheme.");
+			return;
+		}
+		if ((totalCost > 0) && !player.destroyItemByItemId(ItemProcessType.FEE, SchemeBufferConfig.BUFFER_ITEM_ID, (int) totalCost, player, true))
+		{
+			player.sendMessage("Payment failed. No buffs were applied.");
+			return;
+		}
+		final java.util.List<Creature> targets = new java.util.ArrayList<>(2);
+		targets.add(player);
+		final Summon summon = player.getSummon();
+		if (summon != null)
+		{
+			targets.add(summon);
+		}
+		for (Skill skill : skills)
+		{
+			for (Creature target : targets)
+			{
+				skill.applyEffects(player, target);
+				if (target == player)
+				{
+					player.sendPacket(new MagicSkillUse(player, target, skill.getId(), skill.getLevel(), skill.getHitTime(), skill.getReuseDelay()));
+				}
+			}
+		}
+		player.sendMessage("Buffer scheme '" + scheme.getKey() + "' applied.");
+		showBufferOverview(player);
 	}
 
 	/**
