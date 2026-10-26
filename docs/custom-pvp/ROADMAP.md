@@ -443,8 +443,9 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - The settings are loaded through the existing custom PvP config loader. This source change has not been compiled or runtime-tested yet; include it in the later combined validation pass.
 
 
-## Phase 55 — confirm existing arena manager NPC templates
+## Phase 55 — confirm arena NPC and instance data
 
-- Confirmed that NPC IDs `70013`, `70014`, and `70015` already exist in `dist/game/data/stats/npcs/custom/custom.xml`; no additional NPC-range file is needed. An experimental duplicate file was removed immediately to avoid duplicate template IDs.
-- The arena scripts expose `main(String[] args)` entry points and each has a matching `manager.html` file.
-- Remaining validation: confirm custom NPC XML loads on the target datapack and verify manager spawn/talk/bypass handling in-game. No new runtime validation was performed.
+- Confirmed that NPC IDs `70013`, `70014`, and `70015` already exist in `dist/game/data/stats/npcs/custom/custom.xml`; no additional NPC-range file is needed. A temporary duplicate file was removed to avoid duplicate template IDs.
+- Verified in `NpcData.load()` that the target branch loads `data/stats/npcs/custom` recursively. Each arena script has a `main(String[] args)` entry point and a matching `manager.html` file.
+- Confirmed the instance templates exist at `dist/game/data/instances/custom/Arena1v1.xml` (ID `3053`), `Arena3v3.xml` (ID `3051`), and `LastHero.xml` (ID `3052`). The template structure (`PvPInstance` followed by `exitPoint`) matches the sequence in `dist/game/data/xsd/instance.xsd`.
+- Remaining validation: run schema validation on the actual files, compile the latest source after feature preparation is complete, and verify manager spawn/talk/bypass and dynamic instance creation in-game. No build or runtime validation was performed for the latest commits.
