@@ -137,7 +137,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 
 		// Modern Community Board landing page and personal PvP statistics.
-		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;view;") || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;apply;"))
+		if (CommunityBoardConfig.CUSTOM_CB_ENABLED && ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;view;") || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;apply;")))
 		{
 			if ("_bbspvptop".equalsIgnoreCase(command))
 			{
