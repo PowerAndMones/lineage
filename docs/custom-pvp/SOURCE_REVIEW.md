@@ -100,3 +100,9 @@ Do not enable the modes on a live server until the source compiles against the t
 - All three NPC templates are in `dist/game/data/stats/npcs/custom/custom.xml`. `NpcData.load()` explicitly parses `data/stats/npcs/custom` recursively.
 - Instance templates exist at `dist/game/data/instances/custom/Arena1v1.xml` (3053), `Arena3v3.xml` (3051), and `LastHero.xml` (3052). Their `PvPInstance` and `exitPoint` elements follow the order declared in `dist/game/data/xsd/instance.xsd`.
 - Pending: run actual XML schema validation and the latest combined build after source preparation; test manager spawn/talk/bypass, instance creation and exit recovery in-game.
+
+
+## Queue eligibility revalidation
+
+- 1v1 and 3v3 `isMatchReady` now mirrors the relevant `canRegister` state checks while allowing the expected queued `isRegisteredOnEvent` flag. Verify that a participant who enters combat, starts fishing, equips a cursed weapon, starts flying, or becomes overloaded while waiting is removed rather than teleported into a match.
+- Compile/runtime verification for this latest source change is pending; the current branch's previously reported CI success predates this source update.
