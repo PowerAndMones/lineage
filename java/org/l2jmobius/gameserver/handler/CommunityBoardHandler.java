@@ -21,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -55,7 +56,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	{
 		for (String cmd : handler.getCommandList())
 		{
-			_datatable.put(cmd.toLowerCase(), handler);
+			_datatable.put(cmd.toLowerCase(Locale.ROOT), handler);
 		}
 	}
 
@@ -64,18 +65,24 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	{
 		for (String cmd : handler.getCommandList())
 		{
-			_datatable.remove(cmd.toLowerCase());
+			_datatable.remove(cmd.toLowerCase(Locale.ROOT));
 		}
 	}
 
 	@Override
 	public IParseBoardHandler getHandler(String cmd)
 	{
+		if (cmd == null)
+		{
+			return null;
+		}
+
+		final String normalizedCommand = cmd.toLowerCase(Locale.ROOT);
 		for (IParseBoardHandler cb : _datatable.values())
 		{
 			for (String command : cb.getCommandList())
 			{
-				if (cmd.toLowerCase().startsWith(command.toLowerCase()))
+				if (normalizedCommand.startsWith(command.toLowerCase(Locale.ROOT)))
 				{
 					return cb;
 				}
@@ -108,7 +115,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	 */
 	public void handleParseCommand(String command, Player player)
 	{
-		if (player == null)
+		if ((player == null) || (command == null))
 		{
 			return;
 		}
@@ -120,7 +127,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 
 		// Modern Community Board landing page and personal PvP statistics.
-		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase().startsWith("_bbsbuffer;view;"))
+		if ("_bbshome".equalsIgnoreCase(command) || "_bbspvp".equalsIgnoreCase(command) || "_bbspvptop".equalsIgnoreCase(command) || "_bbsbuffer".equalsIgnoreCase(command) || command.toLowerCase(Locale.ROOT).startsWith("_bbsbuffer;view;"))
 		{
 			if ("_bbspvptop".equalsIgnoreCase(command))
 			{
@@ -218,6 +225,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		else
 		{
 			final java.util.List<Map.Entry<String, java.util.List<Integer>>> schemeEntries = new java.util.ArrayList<>(schemes.entrySet());
+			 schemeEntries.sort(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER));
 			for (int schemeIndex = 0; schemeIndex < schemeEntries.size(); schemeIndex++)
 			{
 				final Map.Entry<String, java.util.List<Integer>> entry = schemeEntries.get(schemeIndex);
@@ -269,6 +277,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			return;
 		}
 		final java.util.List<Map.Entry<String, java.util.List<Integer>>> schemeEntries = new java.util.ArrayList<>(schemes.entrySet());
+		schemeEntries.sort(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER));
 		final Map.Entry<String, java.util.List<Integer>> scheme = schemeEntries.get(index);
 		final StringBuilder html = new StringBuilder(4096);
 		html.append("<html><body><center>");
