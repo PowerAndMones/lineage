@@ -790,7 +790,7 @@ public class Arena1v1 extends Event
 
 	private boolean isMatchReady(Player player)
 	{
-		return (player != null) && (player.isOnlineInt() == 1) && !player.isDead() && !player.isOnEvent() && !player.isInDuel() && (player.getPvpFlag() == 0) && !player.isInOlympiadMode() && !player.isInInstance() && !player.isInSiege() && (player.getKarma() == 0);
+		return (player != null) && (player.isOnlineInt() == 1) && !player.isDead() && !player.isOnEvent() && !player.isInDuel() && (player.getPvpFlag() == 0) && !player.isInOlympiadMode() && !player.isInInstance() && !player.isInSiege() && !player.isFishing() && !player.isInCombat() && !player.isCursedWeaponEquipped() && !player.isFlying() && player.isInventoryUnder80(false) && (player.getWeightPenalty() == 0) && (player.getKarma() == 0);
 	}
 
 	private void clearWaitingPlayers(String message)
