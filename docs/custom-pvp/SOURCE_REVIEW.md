@@ -97,5 +97,5 @@ Do not enable the modes on a live server until the source compiles against the t
 ## Arena manager NPC data
 
 - The 1v1, 3v3, and Last Hero scripts spawn NPC IDs 70013, 70014, and 70015 respectively; manager HTML files exist alongside each script.
-- Added matching non-attackable Folk templates in `dist/game/data/stats/npcs/70000-70099.xml` so `addSpawn` has definitions for those IDs.
-- Still required before release: verify the exact target datapack's NPC loader scans this range file, validate the XML against `dist/game/data/xsd/npcs.xsd`, confirm the three instance template IDs are present in the correct instance-data directory, then run the agreed combined build and test pass. Do not mark these checks complete based on source presence alone.
+- All three NPC templates already exist in `dist/game/data/stats/npcs/custom/custom.xml`. No duplicate template file should be added.
+- Still required before release: confirm the custom NPC XML loads on the target datapack, confirm instance template IDs 3053/3051/3052 are present in the instance-data directory, then run the agreed combined build and test pass. Do not mark these checks complete based on source presence alone.
