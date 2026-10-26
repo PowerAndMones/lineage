@@ -106,3 +106,10 @@ Do not enable the modes on a live server until the source compiles against the t
 
 - 1v1 and 3v3 `isMatchReady` now mirrors the relevant `canRegister` state checks while allowing the expected queued `isRegisteredOnEvent` flag. Verify that a participant who enters combat, starts fishing, equips a cursed weapon, starts flying, or becomes overloaded while waiting is removed rather than teleported into a match.
 - GitHub Actions run `40278108005` passed after this source change, including core and custom-script compilation, XML/SQL validation, rating-math checks, and SQL smoke tests. In-game state-change scenarios remain pending.
+
+
+## Script and configuration loading
+
+- `ScriptEngine.executeScriptList()` recursively scans `ServerConfig.SCRIPT_ROOT` for `.java` files, so the three arena scripts do not require a separate `scripts.cfg` entry. Each exposes the expected `main(String[] args)` entry point.
+- `ConfigLoader.load()` invokes `CustomPvpConfig.load()` in the custom-configuration section before game scripts are executed by `GameServer`, so the configured queue limits and reward switches are populated before the event scripts use them.
+- The automated compile job passed for the queue eligibility change. Runtime confirmation of NPC talk/bypass and event lifecycle remains outstanding.
