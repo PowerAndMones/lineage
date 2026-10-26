@@ -441,3 +441,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Setting either value to `0` disables that event's Adena reward without changing event scoring, registration, or winner selection.
 - Replaced direct reward grants with guarded helper methods so a disabled reward is never passed to the item-grant routine.
 - The settings are loaded through the existing custom PvP config loader. This source change has not been compiled or runtime-tested yet; include it in the later combined validation pass.
+
+
+## Phase 55 — arena manager NPC templates
+
+- Added `dist/game/data/stats/npcs/70000-70099.xml` with non-attackable Folk NPC templates for manager IDs `70013` (1v1), `70014` (3v3), and `70015` (Last Hero). The arena scripts call `addSpawn` for these IDs, so templates must exist in NPC data in addition to the Java scripts and HTML pages.
+- Kept all changes on `feature/custom-pvp-core`.
+- Pending validation: confirm the target revision's NPC loader picks up this custom-range XML file, validate it against `npcs.xsd`, then compile and test actual manager spawning and talk/bypass handling. No build or runtime validation was run as part of this change.
