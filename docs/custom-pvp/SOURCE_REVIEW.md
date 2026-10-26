@@ -92,3 +92,10 @@ Do not enable the modes on a live server until the source compiles against the t
 - Verify a configured reward of 0 grants no Adena and does not alter winner selection, scoring, or tie handling.
 - Verify the config loader runs before event scripts initialize their static reward holders.
 - These checks are pending the combined compile and runtime validation pass.
+
+
+## Arena manager NPC data
+
+- The 1v1, 3v3, and Last Hero scripts spawn NPC IDs 70013, 70014, and 70015 respectively; manager HTML files exist alongside each script.
+- Added matching non-attackable Folk templates in `dist/game/data/stats/npcs/70000-70099.xml` so `addSpawn` has definitions for those IDs.
+- Still required before release: verify the exact target datapack's NPC loader scans this range file, validate the XML against `dist/game/data/xsd/npcs.xsd`, confirm the three instance template IDs are present in the correct instance-data directory, then run the agreed combined build and test pass. Do not mark these checks complete based on source presence alone.
