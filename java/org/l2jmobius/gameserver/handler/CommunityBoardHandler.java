@@ -225,7 +225,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		else
 		{
 			final java.util.List<Map.Entry<String, java.util.List<Integer>>> schemeEntries = new java.util.ArrayList<>(schemes.entrySet());
-			 schemeEntries.sort(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER));
+			schemeEntries.sort(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER));
 			for (int schemeIndex = 0; schemeIndex < schemeEntries.size(); schemeIndex++)
 			{
 				final Map.Entry<String, java.util.List<Integer>> entry = schemeEntries.get(schemeIndex);
