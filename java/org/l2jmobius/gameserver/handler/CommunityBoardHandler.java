@@ -422,26 +422,6 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			player.sendMessage("Community Board cannot be used out of peace zone.");
 			return;
 		}
-		final long now = System.currentTimeMillis();
-		final int playerId = player.getObjectId();
-		boolean cooldownReserved = false;
-		while (!cooldownReserved)
-		{
-			final Long previousApply = BUFFER_APPLY_TIMESTAMPS.putIfAbsent(playerId, now);
-			if (previousApply == null)
-			{
-				cooldownReserved = true;
-			}
-			else if ((now - previousApply) < BUFFER_APPLY_COOLDOWN_MS)
-			{
-				player.sendMessage("Please wait a moment before applying another buffer scheme.");
-				return;
-			}
-			else
-			{
-				cooldownReserved = BUFFER_APPLY_TIMESTAMPS.replace(playerId, previousApply, now);
-			}
-		}
 		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
 		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
 		final int index;
@@ -497,6 +477,26 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		{
 			player.sendMessage("Not enough currency to apply this buffer scheme.");
 			return;
+		}
+		final long now = System.currentTimeMillis();
+		final int playerId = player.getObjectId();
+		boolean cooldownReserved = false;
+		while (!cooldownReserved)
+		{
+			final Long previousApply = BUFFER_APPLY_TIMESTAMPS.putIfAbsent(playerId, now);
+			if (previousApply == null)
+			{
+				cooldownReserved = true;
+			}
+			else if ((now - previousApply) < BUFFER_APPLY_COOLDOWN_MS)
+			{
+				player.sendMessage("Please wait a moment before applying another buffer scheme.");
+				return;
+			}
+			else
+			{
+				cooldownReserved = BUFFER_APPLY_TIMESTAMPS.replace(playerId, previousApply, now);
+			}
 		}
 		if ((totalCost > 0) && !player.destroyItemByItemId(ItemProcessType.FEE, SchemeBufferConfig.BUFFER_ITEM_ID, (int) totalCost, player, true))
 		{
