@@ -49,6 +49,8 @@ import org.l2jmobius.gameserver.util.HtmlUtil;
 public class CommunityBoardHandler implements IHandler<IParseBoardHandler, String>
 {
 	private static final Logger LOG = Logger.getLogger(CommunityBoardHandler.class.getName());
+	private static final long BUFFER_APPLY_COOLDOWN_MS = 2000;
+	private static final Map<Integer, Long> BUFFER_APPLY_TIMESTAMPS = new ConcurrentHashMap<>();
 	/** The registered handlers. */
 	private final Map<String, IParseBoardHandler> _datatable = new HashMap<>();
 	/** The bypasses used by the players. */
@@ -420,6 +422,18 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 			player.sendMessage("Community Board cannot be used out of peace zone.");
 			return;
 		}
+		final long now = System.currentTimeMillis();
+		final int playerId = player.getObjectId();
+		final Long previousApply = BUFFER_APPLY_TIMESTAMPS.putIfAbsent(playerId, now);
+		if ((previousApply != null) && ((now - previousApply) < BUFFER_APPLY_COOLDOWN_MS))
+		{
+			player.sendMessage("Please wait a moment before applying another buffer scheme.");
+			return;
+		}
+		if (previousApply != null)
+		{
+			BUFFER_APPLY_TIMESTAMPS.replace(playerId, previousApply, now);
+		}
 		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
 		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
 		final int index;
@@ -478,6 +492,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 		if ((totalCost > 0) && !player.destroyItemByItemId(ItemProcessType.FEE, SchemeBufferConfig.BUFFER_ITEM_ID, (int) totalCost, player, true))
 		{
+			BUFFER_APPLY_TIMESTAMPS.remove(playerId, BUFFER_APPLY_TIMESTAMPS.get(playerId));
 			player.sendMessage("Payment failed. No buffs were applied.");
 			return;
 		}
