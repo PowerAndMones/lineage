@@ -242,7 +242,7 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 				final Map.Entry<String, java.util.List<Integer>> entry = schemeEntries.get(schemeIndex);
 				html.append("<tr><td><font color=FFFFFF>").append(escapeBoardText(entry.getKey())).append("</font><br1><a action=\"bypass _bbsbuffer;view;").append(schemeIndex).append("\">View skills</a></td>");
 				html.append("<td align=center><font color=E8BD68>").append(entry.getValue().size()).append("</font></td></tr>");
-				html.append("<tr><td colspan=2><a action=\\"bypass _bbsbuffer;apply;").append(schemeIndex).append("\\">Apply scheme</a></td></tr>");
+				html.append("<tr><td colspan=2><a action=\"bypass _bbsbuffer;apply;").append(schemeIndex).append("\">Apply scheme</a></td></tr>");
 			}
 		}
 		html.append("</table><br><table width=600 cellpadding=6 cellspacing=1 bgcolor=252B38>");
@@ -408,12 +408,12 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		}
 		catch (NumberFormatException e)
 		{
-			separateAndSend("<html><body><center>Invalid buffer scheme.<br><a action=\\"bypass _bbsbuffer\\">Back to Buffer</a></center></body></html>", player);
+			separateAndSend("<html><body><center>Invalid buffer scheme.<br><a action=\"bypass _bbsbuffer\">Back to Buffer</a></center></body></html>", player);
 			return;
 		}
 		if ((index < 0) || (index >= schemes.size()))
 		{
-			separateAndSend("<html><body><center>Buffer scheme not found.<br><a action=\\"bypass _bbsbuffer\\">Back to Buffer</a></center></body></html>", player);
+			separateAndSend("<html><body><center>Buffer scheme not found.<br><a action=\"bypass _bbsbuffer\">Back to Buffer</a></center></body></html>", player);
 			return;
 		}
 		if (player.isCastingNow() || player.isCastingSimultaneouslyNow() || player.isInCombat() || player.isInDuel() || player.isInOlympiadMode() || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP) || (player.getPvpFlag() > 0) || player.isAlikeDead() || player.isOnEvent() || player.isInStoreMode())
