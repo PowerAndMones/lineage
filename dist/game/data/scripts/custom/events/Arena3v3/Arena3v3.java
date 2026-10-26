@@ -651,7 +651,7 @@ public class Arena3v3 extends Event
 
 	private boolean isMatchReady(Player p)
 	{
-		return (p != null) && (p.isOnlineInt() == 1) && !p.isDead() && !p.isOnEvent() && !p.isInDuel() && (p.getPvpFlag() == 0) && !p.isInOlympiadMode() && !p.isInInstance() && !p.isInSiege() && (p.getKarma() == 0);
+		return (p != null) && (p.isOnlineInt() == 1) && !p.isDead() && !p.isOnEvent() && !p.isInDuel() && (p.getPvpFlag() == 0) && !p.isInOlympiadMode() && !p.isInInstance() && !p.isInSiege() && !p.isFishing() && !p.isInCombat() && !p.isCursedWeaponEquipped() && !p.isFlying() && p.isInventoryUnder80(false) && (p.getWeightPenalty() == 0) && (p.getKarma() == 0);
 	}
 
 	private void clearQueue(String message)
