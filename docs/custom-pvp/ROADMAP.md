@@ -455,4 +455,4 @@ The persistent-statistics code and SQL table have been added to this feature bra
 
 - 1v1 and 3v3 now recheck the full queue-entry eligibility set immediately before match start, including combat, fishing, cursed weapon, flying, inventory load, and weight penalty. The recheck intentionally does not reject `isRegisteredOnEvent`, because a queued participant is expected to have that flag set until reservation is cleared.
 - This prevents a queued player whose state changed while waiting from being pulled into an arena match while combat-locked, fishing, overloaded, or otherwise ineligible.
-- Pending verification: compile the latest source and exercise state changes while waiting on a test server; no runtime test has been performed for this phase.
+- GitHub Actions run `40278108005` passed after this source update: core compilation, custom-script compilation, XML/SQL validation, rating-math checks, and SQL smoke tests all succeeded. In-game state-change scenarios remain untested.
