@@ -94,8 +94,9 @@ Do not enable the modes on a live server until the source compiles against the t
 - These checks are pending the combined compile and runtime validation pass.
 
 
-## Arena manager NPC data
+## Arena manager NPC and instance data
 
-- The 1v1, 3v3, and Last Hero scripts spawn NPC IDs 70013, 70014, and 70015 respectively; manager HTML files exist alongside each script.
-- All three NPC templates already exist in `dist/game/data/stats/npcs/custom/custom.xml`. No duplicate template file should be added.
-- Still required before release: confirm the custom NPC XML loads on the target datapack, confirm instance template IDs 3053/3051/3052 are present in the instance-data directory, then run the agreed combined build and test pass. Do not mark these checks complete based on source presence alone.
+- The 1v1, 3v3, and Last Hero scripts spawn NPC IDs 70013, 70014, and 70015 respectively; matching manager HTML files and `main(String[] args)` entry points exist.
+- All three NPC templates are in `dist/game/data/stats/npcs/custom/custom.xml`. `NpcData.load()` explicitly parses `data/stats/npcs/custom` recursively.
+- Instance templates exist at `dist/game/data/instances/custom/Arena1v1.xml` (3053), `Arena3v3.xml` (3051), and `LastHero.xml` (3052). Their `PvPInstance` and `exitPoint` elements follow the order declared in `dist/game/data/xsd/instance.xsd`.
+- Pending: run actual XML schema validation and the latest combined build after source preparation; test manager spawn/talk/bypass, instance creation and exit recovery in-game.
