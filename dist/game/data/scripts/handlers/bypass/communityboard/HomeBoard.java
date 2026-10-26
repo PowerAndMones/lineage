@@ -72,6 +72,8 @@ public class HomeBoard implements IParseBoardHandler
 	{
 		"_bbshome",
 		"_bbstop",
+		"_bbspvp",
+		"_bbspvptop",
 	};
 	
 	private static final String[] CUSTOM_COMMANDS =
@@ -161,6 +163,21 @@ public class HomeBoard implements IParseBoardHandler
 			if (!path.isEmpty() && path.endsWith(".html"))
 			{
 				returnHtml = HtmCache.getInstance().getHtm(player, "data/html/CommunityBoard/" + customPath + path);
+			}
+		}
+		else if (command.equals("_bbspvp") || command.equals("_bbspvptop"))
+		{
+			returnHtml = HtmCache.getInstance().getHtm(player, "data/html/CommunityBoard/Custom/pvp.html");
+			if (returnHtml != null)
+			{
+				returnHtml = returnHtml.replace("%my_stats%", getPvpStats(player));
+				returnHtml = returnHtml.replace("%top_list%", getPvpTop());
+				returnHtml = returnHtml.replace("%arena_stats%", getArenaStats(player));
+				returnHtml = returnHtml.replace("%arena_top%", getArenaTop());
+				returnHtml = returnHtml.replace("%arena3v3_stats%", getArena3v3Stats(player));
+				returnHtml = returnHtml.replace("%arena3v3_top%", getArena3v3Top());
+				returnHtml = returnHtml.replace("%lasthero_stats%", getLastHeroStats(player));
+				returnHtml = returnHtml.replace("%lasthero_top%", getLastHeroTop());
 			}
 		}
 		else if (command.startsWith("_bbsmultisell"))
@@ -336,6 +353,254 @@ public class HomeBoard implements IParseBoardHandler
 		return false;
 	}
 	
+	/**
+	 * Returns the current player's custom PvP statistics as Community Board HTML.
+	 * @param player the player
+	 * @return HTML fragment
+	 */
+	private static String getPvpStats(Player player)
+	{
+		final String query = "SELECT totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints FROM character_pvp_stats WHERE charId = ?";
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query))
+		{
+			ps.setInt(1, player.getObjectId());
+			try (ResultSet rs = ps.executeQuery())
+			{
+				if (rs.next())
+				{
+					final int points = rs.getInt("pvpPoints");
+					final int kills = rs.getInt("totalKills");
+					final int deaths = rs.getInt("totalDeaths");
+					final int currentStreak = rs.getInt("currentStreak");
+					final int bestStreak = rs.getInt("bestStreak");
+					return "<table width=450><tr><td width=110><font color=LEVEL>PvP points:</font></td><td>" + points + "</td><td width=110><font color=LEVEL>PvP kills:</font></td><td>" + kills + "</td></tr><tr><td><font color=LEVEL>Deaths:</font></td><td>" + deaths + "</td><td><font color=LEVEL>Current streak:</font></td><td>" + currentStreak + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + bestStreak + "</td></tr></table><br><font color=LEVEL>PvP ACHIEVEMENTS</font><br>" + getPvpAchievements(kills, bestStreak, points);
+				}
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			player.sendMessage("PvP statistics table is missing or unavailable. Install character_pvp_stats.sql first.");
+			return "<font color=FF6666>PvP statistics are temporarily unavailable.</font>";
+		}
+		return "<font color=AAAAAA>No PvP statistics yet. Win your first PvP fight to start tracking!</font>";
+	}
+
+	/**
+	 * Builds non-announced PvP achievements directly from saved statistics.
+	 * @param kills total custom PvP kills
+	 * @param bestStreak best kill streak
+	 * @param points earned PvP points
+	 * @return achievement HTML
+	 */
+	private static String getPvpAchievements(int kills, int bestStreak, int points)
+	{
+		final StringBuilder html = new StringBuilder("<table width=450>");
+		html.append("<tr><td width=220><font color=LEVEL>Achievement</font></td><td><font color=LEVEL>Progress</font></td></tr>");
+		appendAchievement(html, "First Blood", kills, 1);
+		appendAchievement(html, "PvP Veteran", kills, 100);
+		appendAchievement(html, "Arena Legend", kills, 500);
+		appendAchievement(html, "War Machine", kills, 1000);
+		appendAchievement(html, "On a Roll", bestStreak, 5);
+		appendAchievement(html, "Unstoppable", bestStreak, 10);
+		appendAchievement(html, "Legendary Streak", bestStreak, 20);
+		appendAchievement(html, "Point Collector", points, 100);
+		appendAchievement(html, "Point Hunter", points, 500);
+		appendAchievement(html, "Point Master", points, 1000);
+		return html.append("</table>").toString();
+	}
+
+	private static void appendAchievement(StringBuilder html, String name, int value, int required)
+	{
+		final boolean unlocked = value >= required;
+		html.append("<tr><td><font color=").append(unlocked ? "LEVEL" : "AAAAAA").append(">").append(unlocked ? "[Unlocked] " : "[Locked] ").append(name).append("</font></td><td>").append(Math.min(value, required)).append(" / ").append(required).append("</td></tr>");
+	}
+
+	/**
+	 * Returns the top ten PvP players as Community Board HTML.
+	 * @return HTML fragment
+	 */
+	private static String getPvpTop()
+	{
+		final String query = "SELECT charName, totalKills, totalDeaths, bestStreak, pvpPoints FROM character_pvp_stats ORDER BY pvpPoints DESC, totalKills DESC, bestStreak DESC, charName ASC LIMIT 10";
+		final StringBuilder html = new StringBuilder("<table width=450><tr><td width=35><font color=LEVEL>#</font></td><td width=150><font color=LEVEL>Player</font></td><td width=75><font color=LEVEL>Points</font></td><td width=65><font color=LEVEL>Kills</font></td><td width=65><font color=LEVEL>Deaths</font></td><td><font color=LEVEL>Best streak</font></td></tr>");
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query);
+			ResultSet rs = ps.executeQuery())
+		{
+			int rank = 1;
+			while (rs.next())
+			{
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(escapeBoardText(rs.getString("charName"))).append("</td><td>").append(rs.getInt("pvpPoints")).append("</td><td>").append(rs.getInt("totalKills")).append("</td><td>").append(rs.getInt("totalDeaths")).append("</td><td>").append(rs.getInt("bestStreak")).append("</td></tr>");
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>Ranking unavailable. Install character_pvp_stats.sql first.</font></table>";
+		}
+		if (html.toString().endsWith("</table>"))
+		{
+			// Header-only table means no PvP records exist yet.
+			if (html.toString().contains("<tr><td width=35><font color=LEVEL>#</font></td>"))
+			{
+				// Keep the table valid; the first row is the header.
+			}
+		}
+		return html.append("</table>").toString();
+	}
+
+	/**
+	 * Returns the player's dedicated 1v1 Arena record.
+	 * @param player the player
+	 * @return HTML fragment
+	 */
+	private static String getArenaStats(Player player)
+	{
+		final String query = "SELECT matches, wins, losses, rating, winStreak, bestWinStreak FROM character_arena1v1_stats WHERE charId = ?";
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query))
+		{
+			ps.setInt(1, player.getObjectId());
+			try (ResultSet rs = ps.executeQuery())
+			{
+				if (rs.next())
+				{
+					return "<table width=450><tr><td width=120><font color=LEVEL>Rating:</font></td><td>" + rs.getInt("rating") + "</td><td width=120><font color=LEVEL>Matches:</font></td><td>" + rs.getInt("matches") + "</td></tr><tr><td><font color=LEVEL>Wins:</font></td><td>" + rs.getInt("wins") + "</td><td><font color=LEVEL>Losses:</font></td><td>" + rs.getInt("losses") + "</td></tr><tr><td><font color=LEVEL>Win streak:</font></td><td>" + rs.getInt("winStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestWinStreak") + "</td></tr></table>";
+				}
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>1v1 rating unavailable. Install character_arena1v1_stats.sql first.</font>";
+		}
+		return "<font color=AAAAAA>No rated 1v1 matches yet. Join the Arena queue to begin.</font>";
+	}
+
+	/**
+	 * Returns the top ten rated 1v1 players.
+	 * @return HTML fragment
+	 */
+	private static String getArenaTop()
+	{
+		final String query = "SELECT c.char_name, s.rating, s.wins, s.losses, s.matches FROM character_arena1v1_stats s INNER JOIN characters c ON c.charId = s.charId ORDER BY s.rating DESC, s.wins DESC, s.matches DESC, c.char_name ASC LIMIT 10";
+		final StringBuilder html = new StringBuilder("<table width=450><tr><td width=30><font color=LEVEL>#</font></td><td width=150><font color=LEVEL>Player</font></td><td width=65><font color=LEVEL>Rating</font></td><td width=55><font color=LEVEL>W</font></td><td width=55><font color=LEVEL>L</font></td><td><font color=LEVEL>Matches</font></td></tr>");
+		try (Connection con = DatabaseFactory.getConnection();
+			PreparedStatement ps = con.prepareStatement(query);
+			ResultSet rs = ps.executeQuery())
+		{
+			int rank = 1;
+			while (rs.next())
+			{
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(escapeBoardText(rs.getString("char_name"))).append("</td><td>").append(rs.getInt("rating")).append("</td><td>").append(rs.getInt("wins")).append("</td><td>").append(rs.getInt("losses")).append("</td><td>").append(rs.getInt("matches")).append("</td></tr>");
+			}
+			if (rank == 1)
+			{
+				html.append("<tr><td colspan=6><font color=AAAAAA>No rated 1v1 matches yet.</font></td></tr>");
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>1v1 leaderboard unavailable. Install character_arena1v1_stats.sql first.</font></table>";
+		}
+		return html.append("</table>").toString();
+	}
+
+
+	/**
+	 * Returns the player's dedicated 3v3 Arena record.
+	 * @param player the player
+	 * @return HTML fragment
+	 */
+	private static String getArena3v3Stats(Player player)
+	{
+		final String query = "SELECT matches, wins, losses, rating, winStreak, bestWinStreak FROM character_arena3v3_stats WHERE charId=?";
+		try (Connection con = DatabaseFactory.getConnection(); PreparedStatement ps = con.prepareStatement(query))
+		{
+			ps.setInt(1, player.getObjectId());
+			try (ResultSet rs = ps.executeQuery())
+			{
+				if (rs.next())
+				{
+					return "<table width=450><tr><td><font color=LEVEL>Rating:</font></td><td>" + rs.getInt("rating") + "</td><td><font color=LEVEL>Matches:</font></td><td>" + rs.getInt("matches") + "</td></tr><tr><td><font color=LEVEL>Wins:</font></td><td>" + rs.getInt("wins") + "</td><td><font color=LEVEL>Losses:</font></td><td>" + rs.getInt("losses") + "</td></tr><tr><td><font color=LEVEL>Win streak:</font></td><td>" + rs.getInt("winStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestWinStreak") + "</td></tr></table>";
+				}
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>3v3 rating unavailable. Install character_arena3v3_stats.sql first.</font>";
+		}
+		return "<font color=AAAAAA>No rated 3v3 matches yet.</font>";
+	}
+
+	private static String getArena3v3Top()
+	{
+		final String query = "SELECT c.char_name, s.rating, s.wins, s.losses, s.matches FROM character_arena3v3_stats s INNER JOIN characters c ON c.charId=s.charId ORDER BY s.rating DESC, s.wins DESC, s.matches DESC, c.char_name ASC LIMIT 10";
+		return getRatingTop(query, "3v3 leaderboard unavailable. Install character_arena3v3_stats.sql first.", "No rated 3v3 matches yet.");
+	}
+
+	/**
+	 * Returns the player's Last Hero record.
+	 * @param player the player
+	 * @return HTML fragment
+	 */
+	private static String getLastHeroStats(Player player)
+	{
+		final String query = "SELECT matches, wins, losses, rating, winStreak, bestWinStreak FROM character_lasthero_stats WHERE charId=?";
+		try (Connection con = DatabaseFactory.getConnection(); PreparedStatement ps = con.prepareStatement(query))
+		{
+			ps.setInt(1, player.getObjectId());
+			try (ResultSet rs = ps.executeQuery())
+			{
+				if (rs.next())
+				{
+					return "<table width=450><tr><td><font color=LEVEL>Rating:</font></td><td>" + rs.getInt("rating") + "</td><td><font color=LEVEL>Matches:</font></td><td>" + rs.getInt("matches") + "</td></tr><tr><td><font color=LEVEL>Wins:</font></td><td>" + rs.getInt("wins") + "</td><td><font color=LEVEL>Losses:</font></td><td>" + rs.getInt("losses") + "</td></tr><tr><td><font color=LEVEL>Win streak:</font></td><td>" + rs.getInt("winStreak") + "</td><td><font color=LEVEL>Best streak:</font></td><td>" + rs.getInt("bestWinStreak") + "</td></tr></table>";
+				}
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>Last Hero rating unavailable. Install character_lasthero_stats.sql first.</font>";
+		}
+		return "<font color=AAAAAA>No rated Last Hero matches yet.</font>";
+	}
+
+	private static String getLastHeroTop()
+	{
+		final String query = "SELECT c.char_name, s.rating, s.wins, s.losses, s.matches FROM character_lasthero_stats s INNER JOIN characters c ON c.charId=s.charId ORDER BY s.rating DESC, s.wins DESC, s.matches DESC, c.char_name ASC LIMIT 10";
+		return getRatingTop(query, "Last Hero leaderboard unavailable. Install character_lasthero_stats.sql first.", "No rated Last Hero matches yet.");
+	}
+
+	private static String getRatingTop(String query, String unavailableMessage, String emptyMessage)
+	{
+		final StringBuilder html = new StringBuilder("<table width=450><tr><td width=30><font color=LEVEL>#</font></td><td width=150><font color=LEVEL>Player</font></td><td width=65><font color=LEVEL>Rating</font></td><td width=55><font color=LEVEL>W</font></td><td width=55><font color=LEVEL>L</font></td><td><font color=LEVEL>Matches</font></td></tr>");
+		try (Connection con = DatabaseFactory.getConnection(); PreparedStatement ps = con.prepareStatement(query); ResultSet rs = ps.executeQuery())
+		{
+			int rank = 1;
+			while (rs.next())
+			{
+				html.append("<tr><td>").append(rank++).append("</td><td>").append(escapeBoardText(rs.getString("char_name"))).append("</td><td>").append(rs.getInt("rating")).append("</td><td>").append(rs.getInt("wins")).append("</td><td>").append(rs.getInt("losses")).append("</td><td>").append(rs.getInt("matches")).append("</td></tr>");
+			}
+			if (rank == 1)
+			{
+				html.append("<tr><td colspan=6><font color=AAAAAA>").append(emptyMessage).append("</font></td></tr>");
+			}
+		}
+		catch (java.sql.SQLException e)
+		{
+			return "<font color=FF6666>" + unavailableMessage + "</font></table>";
+		}
+		return html.append("</table>").toString();
+	}
+
+	private static String escapeBoardText(String value)
+	{
+		if (value == null)
+		{
+			return "";
+		}
+		return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+	}
+
 	/**
 	 * Gets the Favorite links for the given player.
 	 * @param player the player

@@ -1,0 +1,307 @@
+name: Custom PvP build
+
+on:
+  push:
+    branches:
+      - feature/custom-pvp-core
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 27
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '27'
+
+      - name: Verify Java and Ant
+        run: |
+          java -version
+          ant -version
+
+      - name: Check whitespace errors
+        run: git -c core.whitespace=cr-at-eol diff --check origin/main...HEAD
+
+      - name: Compile L2J Mobius core
+        run: ant -f build.xml compile
+
+      - name: Validate custom PvP XML and SQL files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import xml.etree.ElementTree as ET
+
+          root = Path("dist/game")
+          npc_file = root / "data/stats/npcs/custom/custom.xml"
+          npc_tree = ET.parse(npc_file)
+          npc_ids = [node.attrib["id"] for node in npc_tree.getroot().findall("npc")]
+          for npc_id in ("70013", "70014", "70015"):
+              assert npc_ids.count(npc_id) == 1, f"Expected exactly one custom NPC {npc_id}"
+
+          npc_pattern = re.compile(r'<npc\b[^>]*\bid=["\'](70013|70014|70015)["\']')
+          npc_matches = {"70013": [], "70014": [], "70015": []}
+          for candidate in (root / "data/stats/npcs").rglob("*.xml"):
+              source = candidate.read_text(encoding="utf-8", errors="ignore")
+              for match in npc_pattern.finditer(source):
+                  npc_matches[match.group(1)].append(candidate.resolve())
+          for npc_id, matches in npc_matches.items():
+              assert matches == [npc_file.resolve()], f"NPC ID {npc_id} is duplicated or missing: {matches}"
+
+          expected_templates = {
+              "Arena1v1.xml": "3053",
+              "Arena3v3.xml": "3051",
+              "LastHero.xml": "3052",
+          }
+          for filename, template_id in expected_templates.items():
+              tree = ET.parse(root / "data/instances/custom" / filename)
+              assert tree.getroot().attrib.get("id") == template_id, f"Unexpected template ID in {filename}"
+              assert tree.getroot().find("exitPoint") is not None, f"Missing exitPoint in {filename}"
+
+          # InstanceManager indexes templates by ID, so duplicates can silently select the wrong arena.
+          seen_instance_ids = {}
+          for candidate in (root / "data/instances").rglob("*.xml"):
+              tree = ET.parse(candidate)
+              instance_id = tree.getroot().attrib.get("id")
+              if instance_id is None:
+                  continue
+              assert instance_id not in seen_instance_ids, (
+                  f"Duplicate instance template ID {instance_id}: {seen_instance_ids.get(instance_id)} and {candidate}"
+              )
+              seen_instance_ids[instance_id] = candidate
+
+          # Guard against scripts compiling successfully but never being loaded by the script engine
+          # or leaving their manager NPC interactions unregistered.
+          script_specs = {
+              "Arena1v1/Arena1v1.java": ("Arena1v1", "70013", "3053"),
+              "Arena3v3/Arena3v3.java": ("Arena3v3", "70014", "3051"),
+              "LastHero/LastHero.java": ("LastHero", "70015", "3052"),
+          }
+          scripts_dir = root / "data/scripts/custom/events"
+          for relative_path, (class_name, npc_id, template_id) in script_specs.items():
+              source = (scripts_dir / relative_path).read_text(encoding="utf-8")
+              assert "public static void main(String[] args)" in source, f"Missing script entry point: {relative_path}"
+              assert f"new {class_name}();" in source, f"Entry point does not instantiate {class_name}"
+              assert f"MANAGER_NPC_ID = {npc_id}" in source, f"Wrong manager NPC ID: {relative_path}"
+              assert f"INSTANCE_TEMPLATE_ID = {template_id}" in source, f"Wrong instance template ID: {relative_path}"
+              assert "eventStart(null);" in source, f"Queue is not auto-opened on script load: {relative_path}"
+              assert "if (MANAGER_NPC == null)" in source and "ACTIVE = false;" in source, f"Missing manager-spawn failure guard: {relative_path}"
+              for registration in ("addTalkId(MANAGER_NPC_ID)", "addStartNpc(MANAGER_NPC_ID)", "addFirstTalkId(MANAGER_NPC_ID)"):
+                  assert registration in source, f"Missing {registration} in {relative_path}"
+              unload_start = source.find("public void unload(boolean removeFromList)")
+              assert unload_start >= 0, f"Missing unload cleanup override: {relative_path}"
+              unload_body = source[unload_start:source.find("\n\t}", unload_start) + 3]
+              assert "eventStop();" in unload_body and "super.unload(" in unload_body, f"Incomplete unload cleanup: {relative_path}"
+              assert "ScriptManager.getInstance().getScript(getName()) == this" in unload_body, f"Unload may remove a replacement script: {relative_path}"
+              assert unload_body.index("eventStop();") < unload_body.index("super.unload("), f"Base cleanup runs before eventStop: {relative_path}"
+
+          sql_dir = Path("dist/db_installer/sql/game")
+          for filename in (
+              "character_pvp_stats.sql",
+              "character_arena1v1_stats.sql",
+              "character_arena1v1_return.sql",
+              "character_arena3v3_stats.sql",
+              "character_lasthero_stats.sql",
+          ):
+              assert (sql_dir / filename).is_file(), f"Missing SQL installer: {filename}"
+          print("Custom PvP XML and SQL file checks passed.")
+          PY
+
+
+      - name: Verify rating math invariants
+        run: |
+          python3 - <<'PY'
+          from math import floor
+          from pathlib import Path
+
+          one = Path("dist/game/data/scripts/custom/events/Arena1v1/Arena1v1.java").read_text()
+          three = Path("dist/game/data/scripts/custom/events/Arena3v3/Arena3v3.java").read_text()
+          hero = Path("dist/game/data/scripts/custom/events/LastHero/LastHero.java").read_text()
+
+          assert "winnerRating + ratingDelta" in one and "loserRating - ratingDelta" in one
+          assert "ratings.get(p.getObjectId()) + ratingDelta" in three
+          assert "ratings.get(p.getObjectId()) - ratingDelta" in three
+          assert "java.util.Collections.shuffle(opponents);" in hero
+          assert "final int baseLoss = winnerDelta / opponents.size();" in hero
+          assert "final int remainder = winnerDelta % opponents.size();" in hero
+          assert "ratings.get(p.getObjectId()) - losses.get(p.getObjectId())" in hero
+
+          def java_round(value):
+              return floor(value + 0.5)
+
+          for winner_rating, loser_rating in ((1000, 1000), (1200, 1000), (800, 1200), (1500, 1000), (1000, 1500)):
+              expected_winner = 1 / (1 + 10 ** ((loser_rating - winner_rating) / 400))
+              delta = java_round(32 * (1 - expected_winner))
+              assert (winner_rating + delta) + (loser_rating - delta) == winner_rating + loser_rating
+
+          for winner_delta in range(33):
+              for opponent_count in range(3, 10):
+                  base_loss, remainder = divmod(winner_delta, opponent_count)
+                  losses = [base_loss + (1 if index < remainder else 0) for index in range(opponent_count)]
+                  assert sum(losses) == winner_delta
+                  assert max(losses) - min(losses) <= 1
+          print("Rating math invariants passed: zero-sum Elo deltas and conserved Last Hero rating totals.")
+          PY
+
+      - name: Compile custom PvP scripts
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/custom-pvp-classes"
+          javac --release 27 -encoding UTF-8 \
+            -cp "../build/bin:dist/game/libs/*" \
+            -sourcepath "dist/game/data/scripts" \
+            -d "$RUNNER_TEMP/custom-pvp-classes" \
+            dist/game/data/scripts/custom/events/Arena1v1/Arena1v1.java \
+            dist/game/data/scripts/custom/events/Arena3v3/Arena3v3.java \
+            dist/game/data/scripts/custom/events/LastHero/LastHero.java \
+            dist/game/data/scripts/custom/events/TeamVsTeam/TvT.java \
+            dist/game/data/scripts/custom/events/CaptureTheFlag/CtF.java \
+            dist/game/data/scripts/handlers/bypass/communityboard/HomeBoard.java
+
+  sql-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: game
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Install MariaDB client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
+
+      - name: Apply custom PvP SQL installers to a clean database
+        env:
+          MYSQL_PWD: root
+        run: |
+          for file in dist/db_installer/sql/game/character_pvp_stats.sql dist/db_installer/sql/game/character_arena1v1_stats.sql dist/db_installer/sql/game/character_arena1v1_return.sql dist/db_installer/sql/game/character_arena3v3_stats.sql dist/db_installer/sql/game/character_lasthero_stats.sql; do
+            mariadb --protocol=tcp -h 127.0.0.1 -uroot game < "$file"
+          done
+
+      - name: Exercise existing-install PvP SQL migrations
+        env:
+          MYSQL_PWD: root
+        run: |
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot <<'SQL'
+          CREATE DATABASE migration_test;
+          CREATE TABLE migration_test.character_pvp_stats (
+            charId INT NOT NULL,
+            charName VARCHAR(35) NOT NULL,
+            totalKills INT UNSIGNED NOT NULL DEFAULT 0,
+            totalDeaths INT UNSIGNED NOT NULL DEFAULT 0,
+            currentStreak INT UNSIGNED NOT NULL DEFAULT 0,
+            bestStreak INT UNSIGNED NOT NULL DEFAULT 0,
+            lastKillTime DATETIME NULL DEFAULT NULL,
+            PRIMARY KEY (charId),
+            KEY idx_pvp_stats_rank (totalKills),
+            KEY idx_pvp_stats_streak (bestStreak)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+          SQL
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test < dist/db_installer/sql/game/character_pvp_stats_add_points.sql
+          points=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test -Nse "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='migration_test' AND table_name='character_pvp_stats' AND column_name='pvpPoints'")
+          test "$points" = "1"
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test < dist/db_installer/sql/game/character_pvp_stats_add_points_index.sql
+          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot migration_test -Nse "SELECT COUNT(DISTINCT index_name) FROM information_schema.statistics WHERE table_schema='migration_test' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
+          test "$idx" = "1"
+          echo "Existing-install PvP SQL migrations passed."
+
+      - name: Verify expected tables, columns, and leaderboard index
+        env:
+          MYSQL_PWD: root
+        run: |
+          tables=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='game' AND table_name IN ('character_pvp_stats','character_arena1v1_stats','character_arena1v1_pair_cooldown','character_arena1v1_return','character_arena3v3_stats','character_arena3v3_team_cooldown','character_arena3v3_return','character_lasthero_stats','character_lasthero_roster_cooldown','character_lasthero_return')")
+          echo "Custom PvP table count: $tables"
+          test "$tables" = "10"
+          points=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='game' AND table_name='character_pvp_stats' AND column_name='pvpPoints'")
+          echo "pvpPoints column count: $points"
+          test "$points" = "1"
+          idx=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT COUNT(DISTINCT index_name) FROM information_schema.statistics WHERE table_schema='game' AND table_name='character_pvp_stats' AND index_name='idx_pvp_stats_points'")
+          echo "PvP points index count: $idx"
+          test "$idx" = "1"
+          echo "SQL schema smoke test passed."
+
+      - name: Exercise database-clock rating cooldown queries
+        env:
+          MYSQL_PWD: root
+        run: |
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot game <<'SQL'
+          INSERT INTO character_arena1v1_pair_cooldown (charIdLow, charIdHigh, lastRatedAt) VALUES (900010, 900011, CURRENT_TIMESTAMP);
+          INSERT INTO character_arena3v3_team_cooldown (teamHashLow, teamHashHigh, lastRatedAt) VALUES (REPEAT('a', 64), REPEAT('b', 64), CURRENT_TIMESTAMP);
+          INSERT INTO character_lasthero_roster_cooldown (rosterHash, lastRatedAt) VALUES (REPEAT('c', 64), CURRENT_TIMESTAMP);
+          SQL
+          cooldowns=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "START TRANSACTION; SELECT IF(TIMESTAMPDIFF(SECOND,lastRatedAt,CURRENT_TIMESTAMP)>=0,1,0) FROM character_arena1v1_pair_cooldown WHERE charIdLow=900010 AND charIdHigh=900011 FOR UPDATE; SELECT IF(TIMESTAMPDIFF(SECOND,lastRatedAt,CURRENT_TIMESTAMP)>=0,1,0) FROM character_arena3v3_team_cooldown WHERE teamHashLow=REPEAT('a',64) AND teamHashHigh=REPEAT('b',64) FOR UPDATE; SELECT IF(TIMESTAMPDIFF(SECOND,lastRatedAt,CURRENT_TIMESTAMP)>=0,1,0) FROM character_lasthero_roster_cooldown WHERE rosterHash=REPEAT('c',64) FOR UPDATE; ROLLBACK;" | tr -d '\n')
+          test "$cooldowns" = "111"
+          echo "Database-clock cooldown queries passed."
+
+      - name: Exercise streak SQL assignment order
+        env:
+          MYSQL_PWD: root
+        run: |
+          mariadb --protocol=tcp -h 127.0.0.1 -uroot game <<'SQL'
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 1, 0, 1, 1, 1, NOW());
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 1, 0, 1, 1, 1, NOW())
+          ON DUPLICATE KEY UPDATE charName=VALUES(charName), totalKills=totalKills+1, bestStreak=GREATEST(bestStreak,currentStreak+1), currentStreak=currentStreak+1, pvpPoints=pvpPoints+1, lastKillTime=NOW();
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 1, 0, 1, 1, 1, NOW())
+          ON DUPLICATE KEY UPDATE charName=VALUES(charName), totalKills=totalKills+1, bestStreak=GREATEST(bestStreak,currentStreak+1), currentStreak=currentStreak+1, pvpPoints=pvpPoints+1, lastKillTime=NOW();
+
+          INSERT IGNORE INTO character_arena1v1_stats (charId) VALUES (900002);
+          UPDATE character_arena1v1_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+          UPDATE character_arena1v1_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+          UPDATE character_arena1v1_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+
+          INSERT IGNORE INTO character_arena3v3_stats (charId) VALUES (900003);
+          UPDATE character_arena3v3_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+          UPDATE character_arena3v3_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+          UPDATE character_arena3v3_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+
+          INSERT IGNORE INTO character_lasthero_stats (charId) VALUES (900004);
+          UPDATE character_lasthero_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+          UPDATE character_lasthero_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+          UPDATE character_lasthero_stats SET matches=matches+1,wins=wins+1,rating=1000,bestWinStreak=GREATEST(bestWinStreak,winStreak+1),winStreak=winStreak+1,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+
+          INSERT INTO character_pvp_stats (charId, charName, totalKills, totalDeaths, currentStreak, bestStreak, pvpPoints, lastKillTime)
+          VALUES (900001, 'SmokePvP', 0, 1, 0, 0, 0, NULL)
+          ON DUPLICATE KEY UPDATE charName=VALUES(charName), totalDeaths=totalDeaths+1, currentStreak=0;
+          UPDATE character_arena1v1_stats SET matches=matches+1,losses=losses+1,rating=1000,winStreak=0,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900002;
+          UPDATE character_arena3v3_stats SET matches=matches+1,losses=losses+1,rating=1000,winStreak=0,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900003;
+          UPDATE character_lasthero_stats SET matches=matches+1,losses=losses+1,rating=1000,winStreak=0,lastMatchAt=CURRENT_TIMESTAMP WHERE charId=900004;
+          SQL
+
+          general=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(currentStreak, ':', bestStreak) FROM character_pvp_stats WHERE charId=900001")
+          arena1=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(winStreak, ':', bestWinStreak) FROM character_arena1v1_stats WHERE charId=900002")
+          arena3=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(winStreak, ':', bestWinStreak) FROM character_arena3v3_stats WHERE charId=900003")
+          last_hero=$(mariadb --protocol=tcp -h 127.0.0.1 -uroot game -Nse "SELECT CONCAT(winStreak, ':', bestWinStreak) FROM character_lasthero_stats WHERE charId=900004")
+          test "$general" = "0:3"
+          test "$arena1" = "0:3"
+          test "$arena3" = "0:3"
+          test "$last_hero" = "0:3"
+          echo "Streak SQL smoke test passed."
