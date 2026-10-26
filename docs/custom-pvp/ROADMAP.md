@@ -449,3 +449,10 @@ The persistent-statistics code and SQL table have been added to this feature bra
 - Verified in `NpcData.load()` that the target branch loads `data/stats/npcs/custom` recursively. Each arena script has a `main(String[] args)` entry point and a matching `manager.html` file.
 - Confirmed the instance templates exist at `dist/game/data/instances/custom/Arena1v1.xml` (ID `3053`), `Arena3v3.xml` (ID `3051`), and `LastHero.xml` (ID `3052`). The template structure (`PvPInstance` followed by `exitPoint`) matches the sequence in `dist/game/data/xsd/instance.xsd`.
 - Remaining validation: run schema validation on the actual files, compile the latest source after feature preparation is complete, and verify manager spawn/talk/bypass and dynamic instance creation in-game. No build or runtime validation was performed for the latest commits.
+
+
+## Phase 56 — revalidate queued arena participants
+
+- 1v1 and 3v3 now recheck the full queue-entry eligibility set immediately before match start, including combat, fishing, cursed weapon, flying, inventory load, and weight penalty. The recheck intentionally does not reject `isRegisteredOnEvent`, because a queued participant is expected to have that flag set until reservation is cleared.
+- This prevents a queued player whose state changed while waiting from being pulled into an arena match while combat-locked, fishing, overloaded, or otherwise ineligible.
+- Pending verification: compile the latest source and exercise state changes while waiting on a test server; no runtime test has been performed for this phase.
