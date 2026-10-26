@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import org.l2jmobius.commons.database.DatabaseFactory;
 import org.l2jmobius.gameserver.config.GeneralConfig;
+import org.l2jmobius.gameserver.config.custom.CommunityBoardConfig;
 import org.l2jmobius.gameserver.config.custom.SchemeBufferConfig;
 import org.l2jmobius.gameserver.data.SchemeBufferTable;
 import org.l2jmobius.gameserver.data.xml.SkillData;
@@ -399,6 +400,26 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 	 */
 	private static void applyBufferScheme(Player player, String indexText)
 	{
+		if (!CommunityBoardConfig.COMMUNITYBOARD_ENABLE_BUFFS)
+		{
+			player.sendMessage("Community Board buffs are disabled.");
+			return;
+		}
+		if (CommunityBoardConfig.COMMUNITYBOARD_COMBAT_DISABLED && (player.isCastingNow() || player.isCastingSimultaneouslyNow() || player.isInCombat() || player.isInDuel() || player.isInOlympiadMode() || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP) || (player.getPvpFlag() > 0) || player.isAlikeDead() || player.isOnEvent() || player.isInStoreMode()))
+		{
+			player.sendMessage("You cannot apply a buffer scheme while in combat or another restricted state.");
+			return;
+		}
+		if (CommunityBoardConfig.COMMUNITYBOARD_KARMA_DISABLED && (player.getKarma() > 0))
+		{
+			player.sendMessage("Players with Karma cannot use the Community Board.");
+			return;
+		}
+		if (CommunityBoardConfig.COMMUNITYBOARD_PEACE_ONLY && !player.isInsideZone(ZoneId.PEACE))
+		{
+			player.sendMessage("Community Board cannot be used out of peace zone.");
+			return;
+		}
 		final Map<String, java.util.List<Integer>> playerSchemes = SchemeBufferTable.getInstance().getPlayerSchemes(player.getObjectId());
 		final Map<String, java.util.List<Integer>> schemes = (playerSchemes != null) ? playerSchemes : java.util.Collections.emptyMap();
 		final int index;
@@ -414,11 +435,6 @@ public class CommunityBoardHandler implements IHandler<IParseBoardHandler, Strin
 		if ((index < 0) || (index >= schemes.size()))
 		{
 			separateAndSend("<html><body><center>Buffer scheme not found.<br><a action=\"bypass _bbsbuffer\">Back to Buffer</a></center></body></html>", player);
-			return;
-		}
-		if (player.isCastingNow() || player.isCastingSimultaneouslyNow() || player.isInCombat() || player.isInDuel() || player.isInOlympiadMode() || player.isInsideZone(ZoneId.SIEGE) || player.isInsideZone(ZoneId.PVP) || (player.getPvpFlag() > 0) || player.isAlikeDead() || player.isOnEvent() || player.isInStoreMode())
-		{
-			player.sendMessage("You cannot apply a buffer scheme while in combat or another restricted state.");
 			return;
 		}
 		final java.util.List<Map.Entry<String, java.util.List<Integer>>> schemeEntries = new java.util.ArrayList<>(schemes.entrySet());
