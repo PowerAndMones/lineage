@@ -105,4 +105,4 @@ Do not enable the modes on a live server until the source compiles against the t
 ## Queue eligibility revalidation
 
 - 1v1 and 3v3 `isMatchReady` now mirrors the relevant `canRegister` state checks while allowing the expected queued `isRegisteredOnEvent` flag. Verify that a participant who enters combat, starts fishing, equips a cursed weapon, starts flying, or becomes overloaded while waiting is removed rather than teleported into a match.
-- Compile/runtime verification for this latest source change is pending; the current branch's previously reported CI success predates this source update.
+- GitHub Actions run `40278108005` passed after this source change, including core and custom-script compilation, XML/SQL validation, rating-math checks, and SQL smoke tests. In-game state-change scenarios remain pending.
