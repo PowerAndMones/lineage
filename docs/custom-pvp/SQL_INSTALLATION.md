@@ -19,13 +19,12 @@ Run these files in order:
 5. `dist/db_installer/sql/game/character_lasthero_stats.sql`
    - Last Hero rating/statistics, roster cooldown and saved return locations.
 
-The scripts use `CREATE TABLE IF NOT EXISTS`, but that does not update an existing table's structure. Keep the backup even when installing on a database that already has some of these tables.
+The scripts use `CREATE TABLE IF NOT EXISTS`, but that does not update an existing table's structure. Keep the backup even when installing on a database that already has some of these tables. The two `character_pvp_stats_add_*` migration files are now safe to run from the installer on a fresh schema: they check `INFORMATION_SCHEMA` and skip a column or index that already exists.
 
 ## Existing installation
 
-- If `character_pvp_stats` already exists and has the `pvpPoints` column, do **not** run the add-points migration.
-- If `character_pvp_stats` exists but is missing `pvpPoints`, back up the database, confirm the column is absent, then run `dist/db_installer/sql/game/character_pvp_stats_add_points.sql` exactly once.
-- If `character_pvp_stats` already has `pvpPoints` but lacks `idx_pvp_stats_points`, back up the database, confirm the index is absent, then run `dist/db_installer/sql/game/character_pvp_stats_add_points_index.sql` exactly once.
+- The add-points and add-index migration files can be rerun: each checks `INFORMATION_SCHEMA` and only alters the table when its target column or index is absent. Still back up the database before any installation or schema migration.
+- If an installer reports an error while running either migration, update to this branch's latest SQL files and review the installer log; do not drop the statistics table to recover.
 - If a custom table is already present, inspect its columns before assuming `CREATE TABLE IF NOT EXISTS` brought it up to date.
 - Do not delete custom statistics tables as a troubleshooting step; that would erase player ratings and history.
 
